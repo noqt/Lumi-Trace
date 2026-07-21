@@ -1,0 +1,15 @@
+include CODE_OF_CONDUCT.md
+include CHANGELOG.md
+include CONTRIBUTING.md
+include LICENSE
+include NOTICE
+include README.md
+include SECURITY.md
+include THIRD_PARTY_NOTICES.md
+include model-inventory.yaml
+recursive-include docs *.md
+prune evidence
+recursive-include examples *.md
+recursive-include schemas *.json
+recursive-include scripts *.py
+recursive-include tests *.py *.json *.sarif *.sh *.md LICENSE

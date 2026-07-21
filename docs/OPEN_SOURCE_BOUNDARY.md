@@ -1,0 +1,81 @@
+# Open-Source Boundary
+
+## Apache-2.0 Scope
+
+The repository's Apache-2.0 licence applies only to Skylark-owned source code
+and documentation expressly distributed under that licence. It establishes an
+open-source software project; it does not establish or license an open-source
+AI model.
+
+Lumi Trace V0.1.0 contains no checkpoint, model weights, trained adapter, or
+training dataset.
+
+## Excluded Materials
+
+Apache-2.0 on the source repository does not grant rights to:
+
+- current or future model weights, checkpoints, or adapters;
+- current or future training data, labels, dataset manifests, or evaluation
+  data;
+- third-party source code, packages, repository contents, or datasets except
+  under their own licences;
+- customer repositories, findings, reproduction material, reports, or
+  evidence;
+- historical Lumi evidence, checkpoints, adapters, or research artefacts;
+- protected V2.7 holdback material or any other reserved evaluation material;
+- CyberGym tasks, task metadata, source bundles, or derived task evidence;
+- credentials, secrets, private manifests, or customer and ad hoc local runtime
+  receipts; or
+- Skylark names, marks, or branding beyond rights expressly granted by law.
+
+Future `TRACE-001` weights require a separate, explicit weight licence. Future
+training data requires documented rights and provenance. Neither category
+inherits Apache-2.0 merely because training or inference code is present in an
+Apache-licensed repository.
+
+## Evidence Publication Rules
+
+Historical Lumi evidence, customer evidence, and protected holdback evidence
+must never be copied into, committed to, or published from this repository.
+This prohibition includes derived excerpts or summaries that would disclose
+protected task or repository substance.
+
+User-supplied repositories and immutable archives are local runtime inputs.
+They do not become project fixtures or distributable project content. Evidence
+reports containing customer or third-party material remain under the user's
+control and must not be committed or published by the project. Public examples
+and fixtures must be Skylark-authored or carry a verified permissive licence
+and explicit provenance.
+
+The sole generated-evidence exception is a versioned release seal produced
+exclusively from the repository's licensed, Skylark-authored synthetic fixture.
+Every artifact in that seal must be covered by its release-seal manifest and
+must pass licence, secret, dependency, and public-boundary checks. This
+exception does not permit customer, third-party, historical, holdback, or
+CyberGym-derived evidence.
+
+Third-party repository contents must not be republished as part of a Lumi
+Trace evidence package. Reports should minimise captured content and prefer
+repository identities, hashes, paths, symbols, line locations, command
+receipts, and user-authorised observations.
+
+## Dependency and Notice Rules
+
+Third-party dependencies remain governed by their own licences. The release
+must keep dependency licences and notices explicit, must not remove required
+attribution, and must record any vendored material in
+[`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md).
+
+Before any public release, a reviewer must confirm that:
+
+- the repository contains only authorised, distributable content;
+- no weights or training data are present;
+- no historical, customer, holdback, CyberGym, or private evidence is present,
+  apart from the manifest-bound Skylark-authored synthetic release seal;
+- fixture provenance and permissions are recorded;
+- dependency and licence checks pass; and
+- secret scanning passes.
+
+V0.1 source publication was separately authorised after the release-evidence
+review. Every later release must repeat the boundary review and receive its own
+publication decision.

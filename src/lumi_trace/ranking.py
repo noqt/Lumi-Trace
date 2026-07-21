@@ -1,0 +1,356 @@
+# SPDX-License-Identifier: Apache-2.0
+"""Transparent deterministic candidate-retrieval baseline."""
+
+from __future__ import annotations
+
+import re
+from pathlib import PurePosixPath
+from typing import Any
+
+from .canonical import stable_id
+from .errors import IntegrityError
+from .findings import validate_normalized_finding
+from .indexing import tokenize, verify_repository_index
+
+RANKING_ALGORITHM = "deterministic-candidate-ranking-v1"
+
+
+def _terms(values: list[str]) -> set[str]:
+    return {term for value in values for term in tokenize(value) if len(term) > 1}
+
+
+def _query(finding: dict[str, object]) -> dict[str, object]:
+    rule = finding["rule"]
+    message = finding["message"]
+    locations = finding.get("locations", [])
+    identifier_values = [str(rule.get("id", "")), str(rule.get("name", ""))]
+    identifier_values.extend(map(str, rule.get("cwes", [])))
+    identifier_values.extend(map(str, rule.get("tags", [])))
+    message_values = [str(message.get("title", "")), str(message.get("text", ""))]
+    message_values.extend(map(str, finding.get("keywords", [])))
+    reported_paths: set[str] = set()
+    reported_symbols: set[str] = set()
+    regions: dict[str, list[dict[str, int]]] = {}
+    for location in locations:
+        path = str(location["path"])
+        reported_paths.add(path)
+        identifier_values.append(path)
+        if location.get("symbol"):
+            symbol = str(location["symbol"])
+            reported_symbols.add(symbol.casefold())
+            identifier_values.append(symbol)
+        regions.setdefault(path, []).append(location["region"])
+    return {
+        "identifier_terms": _terms(identifier_values),
+        "message_terms": _terms(message_values),
+        "reported_paths": reported_paths,
+        "reported_symbols": reported_symbols,
+        "regions": regions,
+    }
+
+
+def _reason(code: str, points: int, matches: list[str] | None = None) -> dict[str, object]:
+    value: dict[str, object] = {"code": code, "points": points}
+    if matches:
+        value["matches"] = sorted(matches)
+    return value
+
+
+def _base_file_score(
+    file: dict[str, Any], query: dict[str, Any]
+) -> tuple[int, list[dict[str, object]]]:
+    path = str(file["path"])
+    reasons: list[dict[str, object]] = []
+    score = 0
+    if path in query["reported_paths"]:
+        score += 10_000
+        reasons.append(_reason("EXACT_REPORTED_PATH", 10_000))
+
+    path_terms = set(tokenize(path))
+    basename_terms = set(tokenize(PurePosixPath(path).stem))
+    basename_matches = sorted(basename_terms & query["identifier_terms"])
+    if basename_matches:
+        points = min(len(basename_matches), 2) * 3_000
+        score += points
+        reasons.append(_reason("PATH_BASENAME_MATCH", points, basename_matches[:2]))
+    path_matches = sorted((path_terms - basename_terms) & query["identifier_terms"])
+    if path_matches:
+        points = min(len(path_matches), 4) * 500
+        score += points
+        reasons.append(_reason("PATH_TOKEN_MATCH", points, path_matches[:4]))
+
+    file_tokens = set(file.get("tokens", {}))
+    identifier_matches = sorted(file_tokens & query["identifier_terms"])
+    if identifier_matches:
+        points = min(len(identifier_matches), 10) * 400
+        score += points
+        reasons.append(_reason("IDENTIFIER_CONTENT_MATCH", points, identifier_matches[:10]))
+    message_matches = sorted(file_tokens & query["message_terms"])
+    if message_matches:
+        points = min(len(message_matches), 20) * 100
+        score += points
+        reasons.append(_reason("MESSAGE_CONTENT_MATCH", points, message_matches[:20]))
+
+    test_markers = {"test", "tests", "spec", "specs"}
+    if path_terms & test_markers and path not in query["reported_paths"]:
+        score -= 500
+        reasons.append(_reason("TEST_PATH_PENALTY", -500))
+    return score, reasons
+
+
+def _region_overlap(symbol: dict[str, Any], regions: list[dict[str, int]]) -> bool:
+    start = int(symbol["start_line"])
+    end = int(symbol["end_line"])
+    return any(
+        start <= int(region["end_line"]) and end >= int(region["start_line"]) for region in regions
+    )
+
+
+def _candidate(
+    *,
+    kind: str,
+    path: str,
+    region: dict[str, int],
+    score: int,
+    reasons: list[dict[str, object]],
+    symbol: dict[str, object] | None = None,
+) -> dict[str, object]:
+    identity: dict[str, object] = {"kind": kind, "path": path, "region": region}
+    candidate: dict[str, object] = {
+        **identity,
+        "integer_score": score,
+        "score_reasons": reasons,
+    }
+    if symbol is not None:
+        projected = {
+            "name": symbol["name"],
+            "qualified_name": symbol["qualified_name"],
+            "kind": symbol["kind"],
+            "extractor": symbol["extractor"],
+        }
+        candidate["symbol"] = projected
+        identity["symbol"] = projected
+    candidate["candidate_id"] = stable_id("candidate", identity)
+    return candidate
+
+
+def rank_candidates(
+    finding: dict[str, object], index: dict[str, object], *, top_k: int = 20
+) -> dict[str, object]:
+    """Rank file and symbol locations with integer scores and stable ties."""
+
+    validate_normalized_finding(finding)
+    verify_repository_index(index)
+    if top_k < 1 or top_k > 1_000:
+        raise ValueError("top_k must be between 1 and 1000")
+    query = _query(finding)
+    candidates: list[dict[str, object]] = []
+
+    for file in index.get("files", []):
+        path = str(file["path"])
+        score, reasons = _base_file_score(file, query)
+        end_line = max(1, int(file.get("line_count", 1)))
+        candidates.append(
+            _candidate(
+                kind="file",
+                path=path,
+                region={"start_line": 1, "start_column": 1, "end_line": end_line, "end_column": 1},
+                score=score,
+                reasons=reasons,
+            )
+        )
+
+        for symbol in file.get("symbols", []):
+            symbol_score = score
+            symbol_reasons = list(reasons)
+            names = {str(symbol["name"]).casefold(), str(symbol["qualified_name"]).casefold()}
+            if names & query["reported_symbols"]:
+                symbol_score += 8_000
+                symbol_reasons.append(_reason("EXACT_REPORTED_SYMBOL", 8_000))
+            if _region_overlap(symbol, query["regions"].get(path, [])):
+                symbol_score += 7_000
+                symbol_reasons.append(_reason("REPORTED_REGION_OVERLAP", 7_000))
+            symbol_matches = sorted(set(symbol.get("tokens", [])) & query["identifier_terms"])
+            if symbol_matches:
+                points = min(len(symbol_matches), 4) * 2_000
+                symbol_score += points
+                symbol_reasons.append(_reason("SYMBOL_TOKEN_MATCH", points, symbol_matches[:4]))
+            candidates.append(
+                _candidate(
+                    kind="symbol",
+                    path=path,
+                    region={
+                        "start_line": int(symbol["start_line"]),
+                        "start_column": 1,
+                        "end_line": int(symbol["end_line"]),
+                        "end_column": 1,
+                    },
+                    score=symbol_score,
+                    reasons=symbol_reasons,
+                    symbol=symbol,
+                )
+            )
+
+    candidates.sort(
+        key=lambda item: (
+            -int(item["integer_score"]),
+            str(item["path"]),
+            int(item["region"]["start_line"]),  # type: ignore[index]
+            int(item["region"]["end_line"]),  # type: ignore[index]
+            str(item.get("kind", "")),
+            str((item.get("symbol") or {}).get("qualified_name", "")),
+            str(item["candidate_id"]),
+        )
+    )
+    selected = candidates[:top_k]
+    for rank, candidate in enumerate(selected, start=1):
+        candidate["rank"] = rank
+    result: dict[str, object] = {
+        "schema_version": "candidate-set-v1",
+        "algorithm": RANKING_ALGORITHM,
+        "finding_id": finding["finding_id"],
+        "index_id": index["index_id"],
+        "top_k": top_k,
+        "candidate_count_considered": len(candidates),
+        "candidates": selected,
+        "confidence_is_not_probability": True,
+    }
+    result["candidate_set_id"] = stable_id("candidate-set", result)
+    return result
+
+
+def verify_ranked_candidates(candidates: object) -> None:
+    """Verify a ranked candidate projection and each content identity."""
+
+    if not isinstance(candidates, list) or len(candidates) > 1_000:
+        raise IntegrityError("ranked candidates must be a bounded array")
+    for rank, candidate in enumerate(candidates, start=1):
+        required_candidate = {
+            "kind",
+            "path",
+            "region",
+            "integer_score",
+            "score_reasons",
+            "candidate_id",
+            "rank",
+        }
+        if (
+            not isinstance(candidate, dict)
+            or not required_candidate.issubset(candidate)
+            or set(candidate) - required_candidate - {"symbol"}
+            or candidate.get("rank") != rank
+            or candidate.get("kind") not in {"file", "symbol"}
+            or not isinstance(candidate.get("integer_score"), int)
+            or isinstance(candidate.get("integer_score"), bool)
+            or not isinstance(candidate.get("score_reasons"), list)
+        ):
+            raise IntegrityError("ranked candidate structure is invalid")
+        path = candidate.get("path")
+        parsed = PurePosixPath(path) if isinstance(path, str) else None
+        if (
+            not isinstance(path, str)
+            or not path
+            or "\\" in path
+            or "\x00" in path
+            or parsed is None
+            or parsed.is_absolute()
+            or ".." in parsed.parts
+            or parsed.as_posix() != path
+            or re.match(r"^[A-Za-z]:", path)
+        ):
+            raise IntegrityError("ranked candidate path is unsafe")
+        region = candidate.get("region")
+        if (
+            not isinstance(region, dict)
+            or set(region)
+            != {
+                "start_line",
+                "start_column",
+                "end_line",
+                "end_column",
+            }
+            or any(
+                not isinstance(value, int) or isinstance(value, bool) or value < 1
+                for value in region.values()
+            )
+        ):
+            raise IntegrityError("ranked candidate region is invalid")
+        if (region["end_line"], region["end_column"]) < (
+            region["start_line"],
+            region["start_column"],
+        ):
+            raise IntegrityError("ranked candidate region ends before it starts")
+        reasons = candidate["score_reasons"]
+        if len(reasons) > 64:
+            raise IntegrityError("ranked candidate score reasons exceed the bound")
+        for reason in reasons:
+            if (
+                not isinstance(reason, dict)
+                or set(reason) - {"code", "points", "matches"}
+                or not {"code", "points"}.issubset(reason)
+                or not isinstance(reason.get("code"), str)
+                or re.fullmatch(r"[A-Z][A-Z0-9_]*", reason["code"]) is None
+                or not isinstance(reason.get("points"), int)
+                or isinstance(reason.get("points"), bool)
+                or "matches" in reason
+                and (
+                    not isinstance(reason["matches"], list)
+                    or len(reason["matches"]) > 8
+                    or any(not isinstance(item, str) or not item for item in reason["matches"])
+                )
+            ):
+                raise IntegrityError("ranked candidate score reason is invalid")
+        identity = {"kind": candidate["kind"], "path": path, "region": region}
+        if candidate["kind"] == "symbol":
+            symbol = candidate.get("symbol")
+            if (
+                not isinstance(symbol, dict)
+                or set(symbol) != {"name", "qualified_name", "kind", "extractor"}
+                or any(not isinstance(value, str) or not value for value in symbol.values())
+            ):
+                raise IntegrityError("ranked candidate symbol is invalid")
+            identity["symbol"] = symbol
+        elif "symbol" in candidate:
+            raise IntegrityError("file candidate must not contain symbol metadata")
+        if candidate.get("candidate_id") != stable_id("candidate", identity):
+            raise IntegrityError("ranked candidate identity mismatch")
+
+
+def verify_candidate_set(candidate_set: dict[str, object]) -> None:
+    """Verify the schema marker and canonical self-identity of ranked candidates."""
+
+    if (
+        not isinstance(candidate_set, dict)
+        or candidate_set.get("schema_version") != "candidate-set-v1"
+    ):
+        raise IntegrityError("candidate set must use candidate-set-v1")
+    required = {
+        "schema_version",
+        "algorithm",
+        "finding_id",
+        "index_id",
+        "top_k",
+        "candidate_count_considered",
+        "candidates",
+        "confidence_is_not_probability",
+        "candidate_set_id",
+    }
+    if set(candidate_set) != required or candidate_set.get("algorithm") != RANKING_ALGORITHM:
+        raise IntegrityError("candidate set fields or algorithm are invalid")
+    if (
+        not isinstance(candidate_set.get("top_k"), int)
+        or isinstance(candidate_set.get("top_k"), bool)
+        or not 1 <= candidate_set["top_k"] <= 1_000
+        or not isinstance(candidate_set.get("candidate_count_considered"), int)
+        or isinstance(candidate_set.get("candidate_count_considered"), bool)
+        or candidate_set["candidate_count_considered"] < 0
+        or candidate_set.get("confidence_is_not_probability") is not True
+    ):
+        raise IntegrityError("candidate set summary values are invalid")
+    candidates = candidate_set.get("candidates")
+    if not isinstance(candidates, list) or len(candidates) > candidate_set["top_k"]:
+        raise IntegrityError("candidate set candidates are invalid")
+    verify_ranked_candidates(candidates)
+    expected = stable_id("candidate-set", candidate_set, omit_keys=("candidate_set_id",))
+    if candidate_set.get("candidate_set_id") != expected:
+        raise IntegrityError("candidate set identity mismatch")

@@ -1,0 +1,15 @@
+schema_version: model-inventory-v1
+id: skylark.lumi.trace
+name: Lumi Trace
+parent: skylark.lumi.frontier
+stage: instrument-development
+runtime: customer-local
+model_status: PROPOSED_NOT_TRAINED
+checkpoint: null
+active_parameters: 0
+skylark_trained_parameters: 0
+code_license: Apache-2.0
+weight_license: not_applicable
+training_data: none
+api_keys_required: false
+hosted_inference: false

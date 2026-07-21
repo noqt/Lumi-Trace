@@ -1,0 +1,430 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "repository-index-v1.json",
+  "title": "Lumi Trace deterministic repository index v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "algorithm",
+    "repository",
+    "file_count",
+    "indexed_text_file_count",
+    "symbol_count",
+    "exclusions",
+    "global_limit_reached",
+    "limits",
+    "files",
+    "index_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "repository-index-v1"
+    },
+    "algorithm": {
+      "const": "deterministic-lexical-index-v1"
+    },
+    "repository": {
+      "$ref": "#/$defs/repositoryIdentity"
+    },
+    "file_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "indexed_text_file_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "symbol_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "exclusions": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "oversized",
+          "binary",
+          "unsupported_encoding"
+        ]
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "global_limit_reached": {
+      "$ref": "#/$defs/globalLimitStatus"
+    },
+    "limits": {
+      "$ref": "#/$defs/indexLimits"
+    },
+    "files": {
+      "type": "array",
+      "maxItems": 25000,
+      "items": {
+        "$ref": "#/$defs/fileRecord"
+      }
+    },
+    "index_id": {
+      "$ref": "#/$defs/indexId"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+$"
+    },
+    "repositoryId": {
+      "type": "string",
+      "pattern": "^repository:[0-9a-f]{64}$"
+    },
+    "indexId": {
+      "type": "string",
+      "pattern": "^index:[0-9a-f]{64}$"
+    },
+    "repositoryIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository_id",
+        "manifest_id",
+        "algorithm",
+        "source_kind",
+        "file_count",
+        "total_bytes"
+      ],
+      "properties": {
+        "repository_id": {
+          "$ref": "#/$defs/repositoryId"
+        },
+        "manifest_id": {
+          "$ref": "#/$defs/sha256"
+        },
+        "algorithm": {
+          "const": "lumi-tree-sha256-v1"
+        },
+        "source_kind": {
+          "enum": [
+            "directory",
+            "archive"
+          ]
+        },
+        "file_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "archive_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source_kind": {
+                "const": "archive"
+              }
+            },
+            "required": [
+              "source_kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "archive_sha256"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "archive_sha256"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "indexLimits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_text_bytes",
+        "max_unique_tokens_per_file",
+        "max_symbols_per_file",
+        "max_index_file_records",
+        "max_total_token_entries",
+        "max_total_symbols",
+        "max_symbol_tokens",
+        "max_symbol_name_chars",
+        "max_qualified_symbol_chars",
+        "max_python_ast_nodes",
+        "max_index_json_bytes"
+      ],
+      "properties": {
+        "max_text_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2097152
+        },
+        "max_unique_tokens_per_file": {
+          "const": 50000
+        },
+        "max_symbols_per_file": {
+          "const": 5000
+        },
+        "max_index_file_records": {
+          "const": 25000
+        },
+        "max_total_token_entries": {
+          "const": 100000
+        },
+        "max_total_symbols": {
+          "const": 10000
+        },
+        "max_symbol_tokens": {
+          "const": 16
+        },
+        "max_symbol_name_chars": {
+          "const": 256
+        },
+        "max_qualified_symbol_chars": {
+          "const": 1024
+        },
+        "max_python_ast_nodes": {
+          "const": 200000
+        },
+        "max_index_json_bytes": {
+          "const": 62914560
+        }
+      }
+    },
+    "globalLimitStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "token_entries",
+        "symbols"
+      ],
+      "properties": {
+        "token_entries": {
+          "type": "boolean"
+        },
+        "symbols": {
+          "type": "boolean"
+        }
+      }
+    },
+    "tokens": {
+      "type": "object",
+      "maxProperties": 50000,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]{1,63}$"
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 255
+      }
+    },
+    "symbol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "qualified_name",
+        "kind",
+        "start_line",
+        "end_line",
+        "tokens",
+        "extractor"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "qualified_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "start_line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "end_line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "tokens": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]{1,63}$"
+          }
+        },
+        "extractor": {
+          "enum": [
+            "python-ast-v1",
+            "lexical-v1"
+          ]
+        }
+      }
+    },
+    "fileRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes",
+        "language",
+        "content_indexed",
+        "tokens",
+        "symbols"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/relativePath"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "language": {
+          "enum": [
+            "c",
+            "cpp",
+            "go",
+            "java",
+            "javascript",
+            "php",
+            "python",
+            "ruby",
+            "rust",
+            "shell",
+            "text",
+            "typescript"
+          ]
+        },
+        "content_indexed": {
+          "type": "boolean"
+        },
+        "tokens": {
+          "$ref": "#/$defs/tokens"
+        },
+        "symbols": {
+          "type": "array",
+          "maxItems": 5000,
+          "items": {
+            "$ref": "#/$defs/symbol"
+          }
+        },
+        "exclusion_reason": {
+          "enum": [
+            "oversized",
+            "binary",
+            "unsupported_encoding"
+          ]
+        },
+        "line_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "token_limit_reached": {
+          "type": "boolean"
+        },
+        "symbol_limit_reached": {
+          "type": "boolean"
+        },
+        "symbol_extraction_issue": {
+          "enum": [
+            "syntax_error",
+            "complexity_limit"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "content_indexed": {
+                "const": true
+              }
+            },
+            "required": [
+              "content_indexed"
+            ]
+          },
+          "then": {
+            "required": [
+              "line_count",
+              "token_limit_reached",
+              "symbol_limit_reached"
+            ],
+            "not": {
+              "required": [
+                "exclusion_reason"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "exclusion_reason"
+            ],
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "line_count"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "token_limit_reached"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "symbol_limit_reached"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "symbol_extraction_issue"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

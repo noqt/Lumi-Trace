@@ -1,0 +1,14 @@
+Lumi Trace
+Copyright 2026 Skylark.AI
+
+This product includes software developed by Skylark.AI.
+
+Skylark-owned source code in this distribution is licensed under the
+Apache License, Version 2.0. See LICENSE for the complete licence text.
+
+This source distribution contains no Lumi Trace model checkpoint, model
+weights, trained adapter, or training data. The Apache-2.0 source-code licence
+does not license any future weights or training data.
+
+Third-party materials, if any, remain subject to their own licences and notices.
+See THIRD_PARTY_NOTICES.md.

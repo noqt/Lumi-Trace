@@ -1,0 +1,27 @@
+{
+  "schema_version": "manual-finding-v1",
+  "id": "TRACE-FIXTURE-001",
+  "title": "Archive member path can escape the extraction root",
+  "description": "unsafe_join accepts a parent-directory member name without containment validation.",
+  "severity": "high",
+  "rule": {
+    "id": "SKYLARK-PATH-TRAVERSAL",
+    "name": "Unsafe archive path join",
+    "cwes": ["CWE-22"],
+    "tags": ["archive", "path-traversal"]
+  },
+  "locations": [
+    {
+      "path": "src/archive.sh",
+      "start_line": 4,
+      "start_column": 1,
+      "end_line": 8,
+      "end_column": 1,
+      "symbol": "unsafe_join"
+    }
+  ],
+  "keywords": ["member name", "containment", "escape"],
+  "fingerprints": {
+    "fixture/v1": "trace-fixture-001"
+  }
+}

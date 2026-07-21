@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Skylark Fixture Analyzer",
+          "semanticVersion": "1.0.0",
+          "rules": [
+            {
+              "id": "SKYLARK-PATH-TRAVERSAL",
+              "name": "UnsafeArchivePathJoin",
+              "shortDescription": {
+                "text": "Archive member path can escape the extraction root"
+              },
+              "properties": {
+                "security-severity": "8.1",
+                "tags": ["security", "CWE-22", "archive"]
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "guid": "00000000-0000-4000-8000-000000000001",
+          "ruleId": "SKYLARK-PATH-TRAVERSAL",
+          "level": "error",
+          "message": {
+            "text": "unsafe_join accepts a parent-directory member name without containment validation."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/archive.sh"
+                },
+                "region": {
+                  "startLine": 4,
+                  "startColumn": 1,
+                  "endLine": 8,
+                  "endColumn": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "unsafe_join",
+                  "fullyQualifiedName": "unsafe_join",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "fingerprints": {
+            "fixture/v1": "trace-fixture-001"
+          }
+        }
+      ]
+    }
+  ]
+}
