@@ -1,0 +1,18 @@
+{
+  "evaluator_artifact_sha256": "sha256:a5309c14c6e2f2d929886fe4ce13e9fbf483b35a1b5ae5d191829ecb11c2ce3d",
+  "holdback_opened": false,
+  "inputs": "SKYLARK_AUTHORED_PUBLIC_SYNTHETIC_ONLY",
+  "natural_performance_claim": false,
+  "qualification_decision_id": "qualification-decision:ba86c47d80fcabcefc80644f744b9d8097874b8e52848bf155900cb5b49f55e5",
+  "readiness_package_id": "trace-eval-package:7a1f0f1ad5db2b1dce562adf8205b0164bed08cdfb913a58c5020c0a5a606d58",
+  "replay_package_id": "trace-eval-package:26328e0abd80ea16159097245b1b463177393dd2905905df721241093821ec71",
+  "run_id": "trace-eval-run:dca88a039a8c62f1576581bb359cd59306d663e719464796149752ed82b5471f",
+  "run_package_id": "trace-eval-package:b8c6a12a9fe1cf076e316cf2773a8c6cf3ad91c93c5ab92b26a103699053502f",
+  "runtime_artifact_sha256": "sha256:c3872c3ab25b1df4c4e2f31711f9072d25e4955a1cda3eecd89e421d901c0bba",
+  "schema_version": "trace-eval-public-baseline-provenance-v1",
+  "scored_package_id": "trace-eval-package:c8487b2ac2221c398d8b71d9e12868592189dcc05219e679e41b90259cf32a95",
+  "source_revision": "81518329af45502aa641222997732023c267d45c",
+  "training_readiness_decision_id": "training-readiness-decision:046efb9f82a89bc519c97179665503b20124b177a2f918583337d5d5d5c78987",
+  "training_started": false,
+  "weights_downloaded": false
+}

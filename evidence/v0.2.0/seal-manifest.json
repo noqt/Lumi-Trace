@@ -1,0 +1,37 @@
+{
+  "artifacts": [
+    {
+      "path": "baseline-provenance.json",
+      "sha256": "sha256:5255522cb5c2fd76c82e0ced44b5d4de9864f89bd3a36f2a21eb4831015c4320",
+      "size_bytes": 1311
+    },
+    {
+      "path": "environment-summary.json",
+      "sha256": "sha256:e7d4ea3bf1c8df7be46ec6beaf2b8e1ac91d938f5c2521b0f86e758f8539f17e",
+      "size_bytes": 896
+    },
+    {
+      "path": "public-boundary-review.json",
+      "sha256": "sha256:e9f6e27482f9a632aaaff224096d54ade7f721e9e3dacdb09265666beac404a7",
+      "size_bytes": 460
+    },
+    {
+      "path": "public-summary.json",
+      "sha256": "sha256:83d102a0b8955362752e24eb700ce079613310a56ddfd50d2e7ae63e4e8ec188",
+      "size_bytes": 3977
+    },
+    {
+      "path": "qualification-decision.json",
+      "sha256": "sha256:e499cb5ca6c4507ce3209150972b3fd20d7889b87ac516f6b2ec20ef48c61013",
+      "size_bytes": 925
+    },
+    {
+      "path": "training-readiness-decision.json",
+      "sha256": "sha256:8e9033f54be868b9d656ed9069e261662f2a024a8b2e3e12b9c7665422c08561",
+      "size_bytes": 4726
+    }
+  ],
+  "schema_version": "lumi-trace-v0.2-public-evidence-seal-v1",
+  "seal_id": "lumi-trace-v0.2-public-evidence:96b65c7de93d0332ba645ebc475ffc637b6147d87150bd930e962e3a9188ce63",
+  "source_revision": "81518329af45502aa641222997732023c267d45c"
+}

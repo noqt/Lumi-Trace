@@ -1,0 +1,24 @@
+{
+  "architecture": "x86_64",
+  "docker_available": false,
+  "environment": "Trace-Eval",
+  "environment_id": "environment-qualification:247b0cdd8fd8b33cfd4e30a71bf6ad3f48b53b321a8b19b87cb7221f9b8840b3",
+  "evaluator": {
+    "artifact_sha256": "sha256:a5309c14c6e2f2d929886fe4ce13e9fbf483b35a1b5ae5d191829ecb11c2ce3d",
+    "package": "skylark-lumi-trace-eval",
+    "release": "v0.2.0",
+    "source_revision": "81518329af45502aa641222997732023c267d45c"
+  },
+  "machine_paths_excluded": true,
+  "os": "Linux",
+  "python": "3.11.13",
+  "schema_version": "trace-eval-public-environment-summary-v1",
+  "sut": {
+    "active_parameters": 0,
+    "artifact_sha256": "sha256:c3872c3ab25b1df4c4e2f31711f9072d25e4955a1cda3eecd89e421d901c0bba",
+    "checkpoint": null,
+    "model_status": "PROPOSED_NOT_TRAINED",
+    "release": "v0.1.0",
+    "release_commit": "04bee651f6347ec3b4b5d3a941029ef8f6bfc48d"
+  }
+}

@@ -37,6 +37,9 @@ protocol, and evidence limits are documented in [V0.2 Evaluation and
 Qualification](docs/V0.2_EVALUATION.md). Evaluator commands are exposed by the
 separate `skylark-lumi-trace-eval` package under `eval/`.
 
+The disclosure-reviewed synthetic seal and exact verification command are in
+[V0.2 Public Evaluation Evidence](docs/V0.2_EVIDENCE.md).
+
 ## Runtime Flow
 
 ```text

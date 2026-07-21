@@ -1,0 +1,19 @@
+{
+  "identity_exclusions": [
+    "observations"
+  ],
+  "payload": {
+    "closure_state": "ENVIRONMENT_QUALIFIED / DATA_GATES_PENDING",
+    "evaluator_id": "environment-qualification:247b0cdd8fd8b33cfd4e30a71bf6ad3f48b53b321a8b19b87cb7221f9b8840b3",
+    "evidence_ids": [
+      "trace-eval-package:b8c6a12a9fe1cf076e316cf2773a8c6cf3ad91c93c5ab92b26a103699053502f",
+      "trace-eval-package:c8487b2ac2221c398d8b71d9e12868592189dcc05219e679e41b90259cf32a95",
+      "trace-eval-package:26328e0abd80ea16159097245b1b463177393dd2905905df721241093821ec71"
+    ],
+    "holdback_opened": false,
+    "runtime_id": "lumi-trace-runtime:32479aa5f93a0e43bb73bc3a6b6aa26a29d37cc26d27e84517ac338c09bbed77",
+    "threshold_decision": "DECLINED / INSUFFICIENT_DEVELOPMENT_EVIDENCE"
+  },
+  "record_id": "qualification-decision:ba86c47d80fcabcefc80644f744b9d8097874b8e52848bf155900cb5b49f55e5",
+  "schema_version": "qualification-decision-v1"
+}
