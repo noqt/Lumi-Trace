@@ -1,0 +1,41 @@
+{
+  "all_gates_satisfied": false,
+  "checkpoint": null,
+  "gates": [
+    {
+      "gate": "labelled_candidate_ranking_groups",
+      "observed": 0,
+      "required": 500,
+      "satisfied": false
+    },
+    {
+      "gate": "unrelated_training_repositories",
+      "observed": 0,
+      "required": 25,
+      "satisfied": false
+    },
+    {
+      "gate": "repository_disjoint_development_and_holdback_sets",
+      "satisfied": false
+    },
+    {
+      "gate": "meaningful_hard_negatives_and_controls",
+      "satisfied": false
+    },
+    {
+      "gate": "audited_location_and_reproduction_labels",
+      "satisfied": false
+    },
+    {
+      "gate": "adequate_deterministic_candidate_recall",
+      "satisfied": false
+    }
+  ],
+  "inventory_id": "skylark.lumi.trace",
+  "recommendation": "DO_NOT_BEGIN_TRACE_001",
+  "recommendation_id": "training-readiness:2ce3aea4dd9bb6ce00be00d9e8b46cdcd3081d55d16a472e06bef9b0260d28cf",
+  "schema_version": "trace-001-training-readiness-v1",
+  "source_revision": "8f7c235333ab7e270d6dce320481ebb28960a212",
+  "training_started": false,
+  "weights_downloaded": false
+}

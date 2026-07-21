@@ -1,0 +1,20 @@
+{
+  "attestation_id": "inventory-attestation:0469fbb01c21ed8dea6f98c1c0e1cd1b42a53bc1e01f736c0e5ce3ad39f6c236",
+  "dependency_inventory": {
+    "dependency_count": 55,
+    "path": "dependency-inventory.json",
+    "runtime_dependency_count": 0,
+    "sha256": "sha256:1d5564d425c6d4d45b5662bdf196579580a738d70fb1f3382a29d1a7578759fb"
+  },
+  "model_inventory": {
+    "active_parameters": 0,
+    "checkpoint": null,
+    "inventory_id": "skylark.lumi.trace",
+    "model_status": "PROPOSED_NOT_TRAINED",
+    "path": "model-inventory.yaml",
+    "sha256": "sha256:16bff5ddfecafb45995923d4aa0808ad2ecbbfa5811319477c42526e600b4808",
+    "skylark_trained_parameters": 0
+  },
+  "schema_version": "inventory-attestation-v1",
+  "source_revision": "8f7c235333ab7e270d6dce320481ebb28960a212"
+}

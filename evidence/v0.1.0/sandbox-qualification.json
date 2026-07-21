@@ -1,0 +1,30 @@
+{
+  "attestation_id": "sandbox-qualification:4a42c10eb41e856372c415cc281d53fefeb363760ffb90a6ebd16edcd9212efa",
+  "classification": "CONFIRMED",
+  "evidence_package_manifest_id": "evidence-package:23313e6085174e027daf4266b53135323e124e1e025c43f0f04f211c0573db79",
+  "image_id": "sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1",
+  "image_reference_sha256": "sha256:316c9ccc86bf307df5837db758a85d1b369a1fcd1ad552ba2063395771ea488d",
+  "network_mode": "none",
+  "policy_id": "sha256:da470437fd368b233cf845fffd757bd20083dbad00b9520590c2c9af926ee0f6",
+  "qualification": {
+    "container_policy_verified": true,
+    "core_dumps_disabled": true,
+    "credential_environment_absent": true,
+    "engine_sockets_absent": true,
+    "host_credential_mounts_absent": true,
+    "image_id": "sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1",
+    "no_default_ipv4_route": true,
+    "no_default_ipv6_route": true,
+    "non_root": true,
+    "probe_stdout_sha256": "sha256:d224748ecbcf1dd27f6d202609849d59482c6274efd5cd851fc9a816b8a3f341",
+    "qualification_id": "sha256:59aec5dd0f0ace7b73a38727cfca7ab696c230678344a689438ff4ce0bf16417",
+    "qualified": true,
+    "source_read_only": true,
+    "uid": 65532
+  },
+  "qualification_id": "sha256:59aec5dd0f0ace7b73a38727cfca7ab696c230678344a689438ff4ce0bf16417",
+  "receipt_id": "sha256:f892adb5df51b9c2c8bd66aca0e6a123a5090fffbb65b1c8831edd0e9b9a4fda",
+  "schema_version": "sandbox-qualification-evidence-v1",
+  "source_mount": "read_only",
+  "source_revision": "8f7c235333ab7e270d6dce320481ebb28960a212"
+}
