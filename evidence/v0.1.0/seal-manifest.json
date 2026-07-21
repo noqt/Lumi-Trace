@@ -1,0 +1,93 @@
+{
+  "files": [
+    {
+      "path": "check-results.json",
+      "sha256": "sha256:cd9e138852b516af408ec5f28c86b3183861db6f5fcfa426a2573efa280a5088",
+      "size_bytes": 1541
+    },
+    {
+      "path": "dependency-inventory.json",
+      "sha256": "sha256:1d5564d425c6d4d45b5662bdf196579580a738d70fb1f3382a29d1a7578759fb",
+      "size_bytes": 7363
+    },
+    {
+      "path": "evidence-package/candidates.json",
+      "sha256": "sha256:cad2a6425763ac1816bd357a52d996f9a4552401d93bfbc024d6f4f3ccd891b0",
+      "size_bytes": 5966
+    },
+    {
+      "path": "evidence-package/evidence-bundle.json",
+      "sha256": "sha256:bdc5f605818e741312b357b31f2397da6fd44401c34ba26c2f76e992cc6bad80",
+      "size_bytes": 13223
+    },
+    {
+      "path": "evidence-package/evidence.sarif",
+      "sha256": "sha256:c35bdaab16898f974fe502219df896c2b7d592e9cef0b75070804bf845c43a6b",
+      "size_bytes": 11160
+    },
+    {
+      "path": "evidence-package/manifest.json",
+      "sha256": "sha256:db49421f891054f40fae01c94ec7dcd6b62872a6c2dcbbbf4a86206bd7f43bf1",
+      "size_bytes": 1348
+    },
+    {
+      "path": "evidence-package/normalized-finding.json",
+      "sha256": "sha256:15962ad780a50030531fc503a7e411ca9ae1e1f7c142e821c5f04fb1b96128c2",
+      "size_bytes": 1034
+    },
+    {
+      "path": "evidence-package/repository-index.json",
+      "sha256": "sha256:5adccb9e8ef0d0778654e19655b126f2c09c5a0e75b7b157db7108563c43fdbd",
+      "size_bytes": 4888
+    },
+    {
+      "path": "evidence-package/reproduction-plan.json",
+      "sha256": "sha256:8befa46a71a69e358ddf27160664c0bfd7a12de630667c964a9eadf47d2bdfb5",
+      "size_bytes": 444
+    },
+    {
+      "path": "evidence-package/reproduction-receipt.json",
+      "sha256": "sha256:8102634e1d292968df41e86422b1f53d71de97d052fa7be37816559e3fe26b5f",
+      "size_bytes": 3194
+    },
+    {
+      "path": "inventory-attestation.json",
+      "sha256": "sha256:e93cf1df3a9c8069ba303d87ddbf3f487ecd07addbbdcb6ea47891b886110766",
+      "size_bytes": 778
+    },
+    {
+      "path": "model-inventory.yaml",
+      "sha256": "sha256:16bff5ddfecafb45995923d4aa0808ad2ecbbfa5811319477c42526e600b4808",
+      "size_bytes": 387
+    },
+    {
+      "path": "release-artifacts.json",
+      "sha256": "sha256:b2b7abc53d82026a2e8283d7adc5d8fefe7d119a66de08f317f4604a44b893f9",
+      "size_bytes": 754
+    },
+    {
+      "path": "release-artifacts/skylark_lumi_trace-0.1.0-py3-none-any.whl",
+      "sha256": "sha256:8c4422928ec25655d377027ddba1abbb29563cf5fa677a6cdf236608649013ac",
+      "size_bytes": 99749
+    },
+    {
+      "path": "release-artifacts/skylark_lumi_trace-0.1.0.tar.gz",
+      "sha256": "sha256:3866694c211f5982026e03aa05f09fada8f9d35530aad23f70e308f16469dcf2",
+      "size_bytes": 112839
+    },
+    {
+      "path": "sandbox-qualification.json",
+      "sha256": "sha256:20ff7d2a7244eb032d6981ebfe261ea8c9f9e24f0fe25c522289907d0a3fecdb",
+      "size_bytes": 1587
+    },
+    {
+      "path": "training-readiness.json",
+      "sha256": "sha256:2572524010f96b7b16470b50ab886f58d11d0590ba181f481da131d7fff1db8c",
+      "size_bytes": 1103
+    }
+  ],
+  "release_version": "0.1.0",
+  "schema_version": "lumi-trace-v0.1-seal-manifest-v1",
+  "seal_id": "lumi-trace-v0.1-seal:d74f625f65e023c7787ff79a635b3cf8193e6110122cbe09e9305419959f02c1",
+  "source_revision": "c0c3ab199fa97ac52ef84d6bc4eceaaca6653e76"
+}
