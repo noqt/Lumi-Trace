@@ -1,0 +1,363 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evidence-bundle-v1.json",
+  "title": "Lumi Trace evidence bundle v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "tool",
+    "finding",
+    "repository",
+    "index",
+    "candidates",
+    "reproduction",
+    "classification",
+    "provenance",
+    "telemetry",
+    "limitations",
+    "bundle_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "evidence-bundle-v1"
+    },
+    "tool": {
+      "$ref": "#/$defs/tool"
+    },
+    "finding": {
+      "$ref": "normalized-finding-v1.json"
+    },
+    "repository": {
+      "$ref": "repository-index-v1.json#/$defs/repositoryIdentity"
+    },
+    "index": {
+      "$ref": "#/$defs/indexSummary"
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "$ref": "candidate-set-v1.json#/$defs/candidate"
+      }
+    },
+    "reproduction": {
+      "$ref": "#/$defs/reproduction"
+    },
+    "classification": {
+      "$ref": "#/$defs/classification"
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    },
+    "telemetry": {
+      "$ref": "#/$defs/telemetry"
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "bundle_id": {
+      "type": "string",
+      "pattern": "^evidence-bundle:[0-9a-f]{64}$"
+    }
+  },
+  "$defs": {
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "source_revision",
+        "model_provider",
+        "checkpoint",
+        "current_weights"
+      ],
+      "properties": {
+        "name": {
+          "const": "Lumi Trace"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_provider": {
+          "type": "null"
+        },
+        "checkpoint": {
+          "type": "null"
+        },
+        "current_weights": {
+          "const": 0
+        }
+      }
+    },
+    "indexSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index_id",
+        "algorithm",
+        "file_count",
+        "indexed_text_file_count",
+        "symbol_count",
+        "exclusions"
+      ],
+      "properties": {
+        "index_id": {
+          "type": "string",
+          "pattern": "^index:[0-9a-f]{64}$"
+        },
+        "algorithm": {
+          "const": "deterministic-lexical-index-v1"
+        },
+        "file_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "indexed_text_file_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "symbol_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "exclusions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "reproduction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested",
+        "attempted",
+        "receipts"
+      ],
+      "properties": {
+        "requested": {
+          "type": "boolean"
+        },
+        "attempted": {
+          "type": "boolean"
+        },
+        "receipts": {
+          "type": "array",
+          "maxItems": 1,
+          "items": {
+            "$ref": "reproduction-receipt-v1.json"
+          }
+        },
+        "plan_id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "policy_id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "sandbox_qualified": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "requested": {
+                "const": false
+              }
+            },
+            "required": [
+              "requested"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attempted": {
+                "const": false
+              },
+              "receipts": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "reason_codes",
+        "confidence_grade",
+        "confidence_basis_points",
+        "confidence_is_not_probability"
+      ],
+      "properties": {
+        "outcome": {
+          "enum": [
+            "CONFIRMED",
+            "UNSUPPORTED",
+            "INSUFFICIENT_EVIDENCE"
+          ]
+        },
+        "reason_codes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          }
+        },
+        "confidence_grade": {
+          "enum": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ]
+        },
+        "confidence_basis_points": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "confidence_is_not_probability": {
+          "const": true
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_input_sha256",
+        "repository_manifest_id",
+        "index_id",
+        "candidate_set_id",
+        "schema_versions",
+        "runtime",
+        "environment_key_names",
+        "external_network_calls"
+      ],
+      "properties": {
+        "finding_input_sha256": {
+          "$ref": "normalized-finding-v1.json#/$defs/sha256"
+        },
+        "repository_manifest_id": {
+          "$ref": "repository-index-v1.json#/$defs/sha256"
+        },
+        "index_id": {
+          "type": "string",
+          "pattern": "^index:[0-9a-f]{64}$"
+        },
+        "candidate_set_id": {
+          "type": "string",
+          "pattern": "^candidate-set:[0-9a-f]{64}$"
+        },
+        "schema_versions": {
+          "const": [
+            "normalized-finding-v1",
+            "repository-index-v1",
+            "candidate-set-v1",
+            "evidence-bundle-v1"
+          ]
+        },
+        "runtime": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "python",
+            "implementation",
+            "platform_system"
+          ],
+          "properties": {
+            "python": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation": {
+              "type": "string",
+              "minLength": 1
+            },
+            "platform_system": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "environment_key_names": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          }
+        },
+        "external_network_calls": {
+          "const": 0
+        }
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository_files",
+        "repository_bytes",
+        "text_files_indexed",
+        "symbols_indexed",
+        "candidates_considered",
+        "candidates_emitted",
+        "reproduction_steps"
+      ],
+      "properties": {
+        "repository_files": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "repository_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "text_files_indexed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "symbols_indexed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "candidates_considered": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "candidates_emitted": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reproduction_steps": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

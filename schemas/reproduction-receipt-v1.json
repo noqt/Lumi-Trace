@@ -1,0 +1,434 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "reproduction-receipt-v1.json",
+  "title": "Lumi Trace reproduction receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "reason_code",
+    "reason_codes",
+    "attempted",
+    "repository_identity",
+    "repository",
+    "plan_id",
+    "policy_id",
+    "sandbox",
+    "qualification",
+    "qualification_id",
+    "steps",
+    "receipt_id",
+    "runtime"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "reproduction-receipt-v1"
+    },
+    "status": {
+      "enum": [
+        "COMPLETED",
+        "TIMED_OUT",
+        "OUTPUT_LIMIT",
+        "UNSUPPORTED"
+      ]
+    },
+    "reason_code": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "reason_codes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]*$"
+      }
+    },
+    "attempted": {
+      "type": "boolean"
+    },
+    "repository_identity": {
+      "type": "string",
+      "pattern": "^repository:[0-9a-f]{64}$"
+    },
+    "repository": {
+      "$ref": "#/$defs/repository"
+    },
+    "plan_id": {
+      "$ref": "#/$defs/sha256"
+    },
+    "policy_id": {
+      "$ref": "#/$defs/sha256"
+    },
+    "sandbox": {
+      "$ref": "#/$defs/sandbox"
+    },
+    "qualification": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/qualification"
+        }
+      ]
+    },
+    "qualification_id": {
+      "$ref": "#/$defs/sha256"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/stepReceipt"
+      }
+    },
+    "receipt_id": {
+      "$ref": "#/$defs/sha256"
+    },
+    "runtime": {
+      "$ref": "#/$defs/runtimeTelemetry"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "relativeDirectory": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+$"
+    },
+    "sandbox": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "backend",
+        "qualified",
+        "network_mode",
+        "image_reference_sha256",
+        "image_id",
+        "source_mount"
+      ],
+      "properties": {
+        "backend": {
+          "const": "docker"
+        },
+        "qualified": {
+          "type": "boolean"
+        },
+        "network_mode": {
+          "const": "none"
+        },
+        "image_reference_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "image_id": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sha256"
+            }
+          ]
+        },
+        "source_mount": {
+          "const": "read_only"
+        }
+      }
+    },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "before",
+        "after",
+        "unchanged"
+      ],
+      "properties": {
+        "before": {
+          "type": "string",
+          "pattern": "^repository:[0-9a-f]{64}$"
+        },
+        "after": {
+          "type": "string",
+          "pattern": "^repository:[0-9a-f]{64}$"
+        },
+        "unchanged": {
+          "type": "boolean"
+        }
+      }
+    },
+    "qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "qualified",
+        "image_id",
+        "container_policy_verified",
+        "non_root",
+        "uid",
+        "no_default_ipv4_route",
+        "no_default_ipv6_route",
+        "engine_sockets_absent",
+        "host_credential_mounts_absent",
+        "credential_environment_absent",
+        "core_dumps_disabled",
+        "source_read_only",
+        "probe_stdout_sha256",
+        "qualification_id"
+      ],
+      "properties": {
+        "qualified": {
+          "type": "boolean"
+        },
+        "image_id": {
+          "$ref": "#/$defs/sha256"
+        },
+        "container_policy_verified": {
+          "type": "boolean"
+        },
+        "non_root": {
+          "type": "boolean"
+        },
+        "uid": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "no_default_ipv4_route": {
+          "type": "boolean"
+        },
+        "no_default_ipv6_route": {
+          "type": "boolean"
+        },
+        "engine_sockets_absent": {
+          "type": "boolean"
+        },
+        "host_credential_mounts_absent": {
+          "type": "boolean"
+        },
+        "credential_environment_absent": {
+          "type": "boolean"
+        },
+        "core_dumps_disabled": {
+          "type": "boolean"
+        },
+        "source_read_only": {
+          "type": "boolean"
+        },
+        "probe_stdout_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "qualification_id": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "outputReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "preview": {
+          "type": "string"
+        }
+      }
+    },
+    "witness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "matched",
+        "exit_code",
+        "stdout_contains",
+        "stderr_contains"
+      ],
+      "properties": {
+        "matched": {
+          "type": "boolean"
+        },
+        "exit_code": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "stdout_contains": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "stderr_contains": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "stepReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "argv_id",
+        "cwd",
+        "expect_id",
+        "exit_code",
+        "termination_reason",
+        "timed_out",
+        "output_limit_exceeded",
+        "oom_killed",
+        "stdout",
+        "stderr",
+        "witness"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "argv_id": {
+          "$ref": "#/$defs/sha256"
+        },
+        "cwd": {
+          "$ref": "#/$defs/relativeDirectory"
+        },
+        "expect_id": {
+          "$ref": "#/$defs/sha256"
+        },
+        "exit_code": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 255
+        },
+        "termination_reason": {
+          "enum": [
+            "completed",
+            "timeout",
+            "output_limit",
+            "setup_failure"
+          ]
+        },
+        "timed_out": {
+          "type": "boolean"
+        },
+        "output_limit_exceeded": {
+          "type": "boolean"
+        },
+        "oom_killed": {
+          "type": "boolean"
+        },
+        "stdout": {
+          "$ref": "#/$defs/outputReceipt"
+        },
+        "stderr": {
+          "$ref": "#/$defs/outputReceipt"
+        },
+        "witness": {
+          "$ref": "#/$defs/witness"
+        }
+      }
+    },
+    "runtimeTelemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine_server_version",
+        "engine_architecture",
+        "engine_endpoint_class",
+        "duration_ms",
+        "duration_measurement",
+        "qualification_cleanup_verified",
+        "step_cleanup",
+        "setup_reason_code",
+        "output_preview_included"
+      ],
+      "properties": {
+        "engine_server_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "engine_architecture": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "engine_endpoint_class": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "duration_ms": {
+          "type": "null"
+        },
+        "duration_measurement": {
+          "const": "not_recorded_for_determinism"
+        },
+        "qualification_cleanup_verified": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "step_cleanup": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stepCleanup"
+          }
+        },
+        "setup_reason_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "output_preview_included": {
+          "type": "boolean"
+        }
+      }
+    },
+    "stepCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "kill_attempted",
+        "remove_succeeded"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "kill_attempted": {
+          "type": "boolean"
+        },
+        "remove_succeeded": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

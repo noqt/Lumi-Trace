@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools==83.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "skylark-lumi-trace"
+version = "0.1.0"
+description = "Deterministic local vulnerability evidence instrument"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md"]
+authors = [{ name = "Skylark.AI" }]
+keywords = ["sarif", "security", "vulnerability", "evidence"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "build==1.3.0",
+  "jsonschema==4.26.0",
+  "packaging==26.2",
+  "pip-audit==2.9.0",
+  "PyYAML==6.0.3",
+  "pytest==9.0.3",
+  "ruff==0.12.3",
+  "setuptools==83.0.0",
+  "twine==6.1.0",
+]
+
+[project.scripts]
+lumi-trace = "lumi_trace.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.data-files]
+"share/skylark-lumi-trace" = ["model-inventory.yaml", "THIRD_PARTY_NOTICES.md"]
+"share/skylark-lumi-trace/docs" = ["docs/*.md"]
+"share/skylark-lumi-trace/schemas" = ["schemas/*.json"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-config --strict-markers"
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+  "docker: requires a local Linux-container Docker engine and preloaded image",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

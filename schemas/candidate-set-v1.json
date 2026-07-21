@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "candidate-set-v1.json",
+  "title": "Lumi Trace deterministic candidate set v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "algorithm",
+    "finding_id",
+    "index_id",
+    "top_k",
+    "candidate_count_considered",
+    "candidates",
+    "confidence_is_not_probability",
+    "candidate_set_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "candidate-set-v1"
+    },
+    "algorithm": {
+      "const": "deterministic-candidate-ranking-v1"
+    },
+    "finding_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "index_id": {
+      "type": "string",
+      "pattern": "^index:[0-9a-f]{64}$"
+    },
+    "top_k": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000
+    },
+    "candidate_count_considered": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/candidate"
+      }
+    },
+    "confidence_is_not_probability": {
+      "const": true
+    },
+    "candidate_set_id": {
+      "type": "string",
+      "pattern": "^candidate-set:[0-9a-f]{64}$"
+    }
+  },
+  "$defs": {
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+$"
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_line",
+        "start_column",
+        "end_line",
+        "end_column"
+      ],
+      "properties": {
+        "start_line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "start_column": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "end_line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "end_column": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "scoreReason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "points"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "points": {
+          "type": "integer"
+        },
+        "matches": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "candidateSymbol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "qualified_name",
+        "kind",
+        "extractor"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "qualified_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "extractor": {
+          "enum": [
+            "python-ast-v1",
+            "lexical-v1"
+          ]
+        }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "path",
+        "region",
+        "integer_score",
+        "score_reasons",
+        "candidate_id",
+        "rank"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "file",
+            "symbol"
+          ]
+        },
+        "path": {
+          "$ref": "#/$defs/relativePath"
+        },
+        "region": {
+          "$ref": "#/$defs/region"
+        },
+        "integer_score": {
+          "type": "integer"
+        },
+        "score_reasons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/scoreReason"
+          }
+        },
+        "symbol": {
+          "$ref": "#/$defs/candidateSymbol"
+        },
+        "candidate_id": {
+          "type": "string",
+          "pattern": "^candidate:[0-9a-f]{64}$"
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "symbol"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "symbol"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "symbol"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

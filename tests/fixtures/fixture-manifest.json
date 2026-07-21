@@ -1,0 +1,36 @@
+{
+  "schema_version": "fixture-manifest-v1",
+  "provenance": "Skylark.AI-authored synthetic test material",
+  "licence": "Apache-2.0",
+  "third_party_repository_contents": false,
+  "entries": [
+    {
+      "path": "tests/data/finding.sarif",
+      "sha256": "dcf369bf57c35e0d6fa46f9799c725e3f2a9201d964df70fa7ccdaee3f39ae48"
+    },
+    {
+      "path": "tests/data/manual-finding.json",
+      "sha256": "29f57954debacb2631d72efe46a68d39a2993d0dd5e167567c59fe5921e8f6a6"
+    },
+    {
+      "path": "tests/data/reproduction-plan.json",
+      "sha256": "ba121b6199fbd4dc0eadf234011905bfa46dc3af074ea15e3e83b29842909efb"
+    },
+    {
+      "path": "tests/fixtures/demo-repository/LICENSE",
+      "sha256": "6ca11eaea7768ac1f65a8d5fcba2c5135dac62c4bac805eae004a70090d5b831"
+    },
+    {
+      "path": "tests/fixtures/demo-repository/README.md",
+      "sha256": "c06edd7927e50fb19e46dab781868e7d9740d543d608242b0d4ac4b3bc58f413"
+    },
+    {
+      "path": "tests/fixtures/demo-repository/src/archive.sh",
+      "sha256": "9f6bb2c8011679a4319daf90bf5d8f29445a834590c65de587b4a0b76e81e166"
+    },
+    {
+      "path": "tests/fixtures/demo-repository/tests/reproduce.sh",
+      "sha256": "f3c1d5a34df3a4f5dcfb25dcfad9b82b8fc4110090a4e2b5dcea7180af955804"
+    }
+  ]
+}

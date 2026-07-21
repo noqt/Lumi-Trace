@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "manual-finding-v1.json",
+  "title": "Lumi Trace manual finding input v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title"],
+  "properties": {
+    "schema_version": {"const": "manual-finding-v1"},
+    "id": {"type": "string", "minLength": 1},
+    "title": {"type": "string", "minLength": 1},
+    "description": {"type": "string"},
+    "severity": {"type": ["string", "null"]},
+    "rule": {"$ref": "#/$defs/rule"},
+    "locations": {
+      "type": "array",
+      "items": {"oneOf": [{"$ref": "#/$defs/flatLocation"}, {"$ref": "#/$defs/nestedLocation"}]}
+    },
+    "keywords": {"type": "array", "items": {"type": "string"}},
+    "fingerprints": {
+      "type": "object",
+      "propertyNames": {"type": "string"},
+      "additionalProperties": {"type": "string"}
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "cwes": {
+          "oneOf": [
+            {"type": "string"},
+            {"type": "array", "items": {"type": "string"}}
+          ]
+        },
+        "tags": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "startLine": {"type": "integer", "minimum": 1},
+        "startColumn": {"type": "integer", "minimum": 1},
+        "endLine": {"type": "integer", "minimum": 1},
+        "endColumn": {"type": "integer", "minimum": 1},
+        "start_line": {"type": "integer", "minimum": 1},
+        "start_column": {"type": "integer", "minimum": 1},
+        "end_line": {"type": "integer", "minimum": 1},
+        "end_column": {"type": "integer", "minimum": 1}
+      }
+    },
+    "flatLocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "oneOf": [
+        {"required": ["path"], "not": {"required": ["uri"]}},
+        {"required": ["uri"], "not": {"required": ["path"]}}
+      ],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "uri": {"type": "string", "minLength": 1},
+        "symbol": {"type": "string", "minLength": 1},
+        "startLine": {"type": "integer", "minimum": 1},
+        "startColumn": {"type": "integer", "minimum": 1},
+        "endLine": {"type": "integer", "minimum": 1},
+        "endColumn": {"type": "integer", "minimum": 1},
+        "start_line": {"type": "integer", "minimum": 1},
+        "start_column": {"type": "integer", "minimum": 1},
+        "end_line": {"type": "integer", "minimum": 1},
+        "end_column": {"type": "integer", "minimum": 1}
+      }
+    },
+    "nestedLocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region"],
+      "oneOf": [
+        {"required": ["path"], "not": {"required": ["uri"]}},
+        {"required": ["uri"], "not": {"required": ["path"]}}
+      ],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "uri": {"type": "string", "minLength": 1},
+        "symbol": {"type": "string", "minLength": 1},
+        "region": {"$ref": "#/$defs/region"}
+      }
+    }
+  }
+}

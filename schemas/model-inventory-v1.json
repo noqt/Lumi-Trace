@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Skylark Micro-Model Inventory v1",
+  "description": "Contract for a Skylark micro-model inventory record. A PROPOSED_NOT_TRAINED record cannot identify a checkpoint, weights, learned parameters, or training data.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "name",
+    "parent",
+    "stage",
+    "runtime",
+    "model_status",
+    "checkpoint",
+    "active_parameters",
+    "skylark_trained_parameters",
+    "code_license",
+    "weight_license",
+    "training_data",
+    "api_keys_required",
+    "hosted_inference"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "model-inventory-v1"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^skylark\\.[a-z0-9]+(?:\\.[a-z0-9]+)*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "parent": {
+      "type": "string",
+      "pattern": "^skylark\\.[a-z0-9]+(?:\\.[a-z0-9]+)*$"
+    },
+    "stage": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "runtime": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "model_status": {
+      "type": "string",
+      "minLength": 1
+    },
+    "checkpoint": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "active_parameters": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "skylark_trained_parameters": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "code_license": {
+      "type": "string",
+      "minLength": 1
+    },
+    "weight_license": {
+      "type": "string",
+      "minLength": 1
+    },
+    "training_data": {
+      "type": "string",
+      "minLength": 1
+    },
+    "api_keys_required": {
+      "type": "boolean"
+    },
+    "hosted_inference": {
+      "type": "boolean"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "model_status": {
+            "const": "PROPOSED_NOT_TRAINED"
+          }
+        },
+        "required": [
+          "model_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "checkpoint": {
+            "const": null
+          },
+          "active_parameters": {
+            "const": 0
+          },
+          "skylark_trained_parameters": {
+            "const": 0
+          },
+          "weight_license": {
+            "const": "not_applicable"
+          },
+          "training_data": {
+            "const": "none"
+          },
+          "hosted_inference": {
+            "const": false
+          }
+        }
+      }
+    }
+  ]
+}

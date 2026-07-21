@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "normalized-finding-v1.json",
+  "title": "Lumi Trace normalized finding v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "finding_id",
+    "source",
+    "rule",
+    "message",
+    "severity",
+    "locations",
+    "keywords",
+    "fingerprints"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "normalized-finding-v1"
+    },
+    "finding_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "source": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/manualSource"
+        },
+        {
+          "$ref": "#/$defs/sarifSource"
+        }
+      ]
+    },
+    "rule": {
+      "$ref": "#/$defs/rule"
+    },
+    "message": {
+      "$ref": "#/$defs/message"
+    },
+    "severity": {
+      "$ref": "#/$defs/severity"
+    },
+    "locations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/location"
+      }
+    },
+    "keywords": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]{1,63}$"
+      }
+    },
+    "fingerprints": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "manualSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "input_sha256"
+      ],
+      "properties": {
+        "kind": {
+          "const": "MANUAL"
+        },
+        "input_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "sarifSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "input_sha256",
+        "tool_name",
+        "tool_version",
+        "sarif_run_index",
+        "sarif_result_index"
+      ],
+      "properties": {
+        "kind": {
+          "const": "SARIF"
+        },
+        "input_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "tool_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tool_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sarif_run_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sarif_result_index": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "cwes",
+        "tags"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cwes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^CWE-[0-9]+$"
+          }
+        },
+        "tags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "text"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "severity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "normalized",
+        "original"
+      ],
+      "properties": {
+        "normalized": {
+          "enum": [
+            "CRITICAL",
+            "HIGH",
+            "MEDIUM",
+            "LOW",
+            "NOTE",
+            "UNKNOWN"
+          ]
+        },
+        "original": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_line",
+        "start_column",
+        "end_line",
+        "end_column"
+      ],
+      "properties": {
+        "start_line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "start_column": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "end_line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "end_column": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "region"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/relativePath"
+        },
+        "region": {
+          "$ref": "#/$defs/region"
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+$"
+    }
+  }
+}
