@@ -2,29 +2,24 @@
 
 ## Supported Version
 
-Lumi Trace V0.1.0 is a private-review build. Security fixes currently target
-the `codex/lumi-trace-v0-1` review branch. No public or stable release is
-supported yet.
+Lumi Trace V0.1.0 is the initial public source release. Security fixes target
+the `main` branch. The latest V0.1 patch release is supported; earlier V0.1
+patches may be superseded by a security fix.
 
 ## Reporting a Vulnerability
 
 Do not report a suspected vulnerability, sandbox escape, sensitive output, or
 customer-data exposure in a public issue.
 
-While the repository is private, report it through the private channel by
-which repository access was granted or open a private draft advisory under the
-repository's **Security -> Advisories** tab if your role permits it.
-
-Public release is blocked until GitHub private vulnerability reporting is
-enabled and its **Security -> Report a vulnerability** flow is tested by the
-maintainers. Once the repository is public, use that private flow. Do not fall
-back to a public issue. Include only the minimum information necessary to reproduce the problem
-and remove credentials, customer source, protected evidence, and unrelated
-personal data.
+Use GitHub's **Security -> Report a vulnerability** private reporting flow. If
+that flow is temporarily unavailable, open a private draft advisory if your
+role permits it or contact a maintainer through an established private
+channel. Do not fall back to a public issue. Include only the minimum
+information necessary to reproduce the problem and remove credentials,
+customer source, protected evidence, and unrelated personal data.
 
 Maintainers will acknowledge receipt, assess affected versions and boundaries,
-and coordinate remediation and disclosure. No fixed response-time SLA applies
-to this pre-release build.
+and coordinate remediation and disclosure. No fixed response-time SLA applies.
 
 ## High-Priority Security Areas
 

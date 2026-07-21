@@ -76,5 +76,6 @@ Before any public release, a reviewer must confirm that:
 - dependency and licence checks pass; and
 - secret scanning passes.
 
-The repository must remain private until the user completes the V0.1 evidence
-review and separately authorises publication.
+V0.1 source publication was separately authorised after the release-evidence
+review. Every later release must repeat the boundary review and receive its own
+publication decision.

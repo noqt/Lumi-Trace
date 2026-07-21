@@ -1,8 +1,8 @@
 # Contributing to Lumi Trace
 
-Lumi Trace is currently in private V0.1 review. Contributions must preserve its
+Lumi Trace V0.1.0 is a public source release. Contributions must preserve its
 deterministic, customer-local, fail-closed product contract and the hard stop
-before public release or `TRACE-001` training.
+before `TRACE-001` training.
 
 ## Scope
 

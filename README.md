@@ -1,8 +1,8 @@
 # Lumi Trace
 
-> **V0.1 private-review build.** This repository is being prepared for an
-> Apache-2.0 source release, but it is not public-release approved. Do not make
-> it public or begin `TRACE-001` training without separate user approval.
+> **V0.1 public source release.** The source code is released under Apache-2.0
+> after a controlled internal evidence review. This release does not authorise
+> `TRACE-001` training, model-weight publication, or use of protected evidence.
 
 Lumi Trace is a customer-local vulnerability evidence instrument. It imports a
 finding, creates a clean-room snapshot of a local repository or archive, builds
@@ -16,10 +16,10 @@ baseline, not a trained ML model.
 
 ## Current Status and Hard Stops
 
-- Version: `0.1.0`, under review on `codex/lumi-trace-v0-1`.
+- Version: `0.1.0`, initial public source release.
 - Inventory identity: `skylark.lumi.trace`.
 - Model status: `PROPOSED_NOT_TRAINED`; checkpoint: none; active parameters: 0.
-- The repository remains private until the V0.1 evidence is reviewed.
+- Source status: approved for publication after controlled internal review.
 - `TRACE-001` recommendation: `DO_NOT_BEGIN_TRACE_001`.
 - Historical Lumi evidence, customer evidence, protected holdbacks, CyberGym
   tasks, and rejected V2.7 adapters are outside this build.
@@ -28,7 +28,7 @@ See the [model card](docs/MODEL_CARD.md), [training-readiness
 record](docs/TRAINING_READINESS.md), and [open-source
 boundary](docs/OPEN_SOURCE_BOUNDARY.md).
 
-The owned-fixture V0.1 review seal and its independent verification workflow
+The owned-fixture V0.1 release seal and its controlled verification workflow
 are documented in [V0.1 Release Evidence](docs/RELEASE_EVIDENCE.md).
 
 ## Runtime Flow

@@ -1,9 +1,10 @@
 # V0.1 Release Evidence
 
 The committed `evidence/v0.1.0` tree is a public-safe release seal built only
-from the repository's Skylark-authored, Apache-2.0 synthetic fixture. It is not
-customer evidence, training evidence, or authority to publish the repository
-or begin `TRACE-001`.
+from the repository's Skylark-authored, Apache-2.0 synthetic fixture. V0.1
+source publication was separately authorised after controlled internal review.
+The seal is not customer evidence, training evidence, or authority to begin
+`TRACE-001`.
 
 ## Seal Preconditions
 
