@@ -1,8 +1,9 @@
 # Lumi Trace
 
-> **V0.1 public source release.** The source code is released under Apache-2.0
-> after a controlled internal evidence review. This release does not authorise
-> `TRACE-001` training, model-weight publication, or use of protected evidence.
+> **V0.2 evaluation build.** The V0.1 runtime remains the exact system under
+> test. V0.2 adds the isolated Trace-Eval harness and closes as
+> `ENVIRONMENT_QUALIFIED / DATA_GATES_PENDING`. It does not authorise
+> `TRACE-001` training, model-weight publication, or protected evidence use.
 
 Lumi Trace is a customer-local vulnerability evidence instrument. It imports a
 finding, creates a clean-room snapshot of a local repository or archive, builds
@@ -16,10 +17,10 @@ baseline, not a trained ML model.
 
 ## Current Status and Hard Stops
 
-- Version: `0.1.0`, initial public source release.
+- Runtime version: `0.1.0`; evaluator version: `0.2.0`.
 - Inventory identity: `skylark.lumi.trace`.
 - Model status: `PROPOSED_NOT_TRAINED`; checkpoint: none; active parameters: 0.
-- Source status: approved for publication after controlled internal review.
+- V0.2 status: evaluation environment qualified; natural-data gates pending.
 - `TRACE-001` recommendation: `DO_NOT_BEGIN_TRACE_001`.
 - Historical Lumi evidence, customer evidence, protected holdbacks, CyberGym
   tasks, and rejected V2.7 adapters are outside this build.
@@ -30,6 +31,11 @@ boundary](docs/OPEN_SOURCE_BOUNDARY.md).
 
 The owned-fixture V0.1 release seal and its controlled verification workflow
 are documented in [V0.1 Release Evidence](docs/RELEASE_EVIDENCE.md).
+
+The V0.2 evaluator, separated data boundary, public synthetic baseline, replay
+protocol, and evidence limits are documented in [V0.2 Evaluation and
+Qualification](docs/V0.2_EVALUATION.md). Evaluator commands are exposed by the
+separate `skylark-lumi-trace-eval` package under `eval/`.
 
 ## Runtime Flow
 

@@ -1,0 +1,34 @@
+{
+  "identity_exclusions": [
+    "observations"
+  ],
+  "payload": {
+    "aggregation": [
+      "GROUP_MICRO",
+      "REPOSITORY_MACRO"
+    ],
+    "cutoffs": [
+      1,
+      5,
+      10,
+      20
+    ],
+    "denominators": {
+      "conditional_recall": "labelled-target file-indexable groups",
+      "principal_recall": "all file-eligible scheduled groups",
+      "region_hit_rate": "region-eligible groups",
+      "symbol_recall": "symbol-eligible groups"
+    },
+    "integrity_floors": {
+      "false_confirmations": 0,
+      "holdback_exposure": 0,
+      "manifest_verification_rate": 1,
+      "same_host_identity_rate": 1,
+      "unauthorised_access": 0
+    },
+    "k_max": 20,
+    "region_overlap": "ANY_ONE_BASED_LINE_OVERLAP"
+  },
+  "record_id": "metric-specification:e4095efcb09e3cc19d9085395c12432ffebb4e922a314ef89e7714df8014c113",
+  "schema_version": "metric-specification-v1"
+}

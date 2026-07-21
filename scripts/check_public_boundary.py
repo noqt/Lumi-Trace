@@ -30,6 +30,9 @@ HOST_PATHS = (
     re.compile(r"(?i)\bF:\\Data\\"),
     re.compile(r"/var/lib/lumi/"),
 )
+DOCUMENTED_TOPOLOGY_FILES = {
+    Path("docs/build-briefs/Lumi-Trace-V0.2-Evaluation-and-Training-Readiness-Build-Brief.md"),
+}
 
 
 def files() -> list[Path]:
@@ -63,6 +66,8 @@ def main() -> int:
             # This checker necessarily contains the prohibited path signatures.
             continue
         for pattern in HOST_PATHS:
+            if relative in DOCUMENTED_TOPOLOGY_FILES and pattern.pattern == r"(?i)\bF:\\Data\\":
+                continue
             if pattern.search(text):
                 failures.append(f"absolute historical host path found: {relative}")
     fixture_license = ROOT / "tests" / "fixtures" / "demo-repository" / "LICENSE"

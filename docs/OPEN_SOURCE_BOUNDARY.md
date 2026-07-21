@@ -7,7 +7,7 @@ and documentation expressly distributed under that licence. It establishes an
 open-source software project; it does not establish or license an open-source
 AI model.
 
-Lumi Trace V0.1.0 contains no checkpoint, model weights, trained adapter, or
+Lumi Trace V0.2 contains no checkpoint, model weights, trained adapter, or
 training dataset.
 
 ## Excluded Materials
@@ -47,7 +47,7 @@ control and must not be committed or published by the project. Public examples
 and fixtures must be Skylark-authored or carry a verified permissive licence
 and explicit provenance.
 
-The sole generated-evidence exception is a versioned release seal produced
+The generated-evidence exception is a versioned release or evaluation seal produced
 exclusively from the repository's licensed, Skylark-authored synthetic fixture.
 Every artifact in that seal must be covered by its release-seal manifest and
 must pass licence, secret, dependency, and public-boundary checks. This
@@ -77,5 +77,6 @@ Before any public release, a reviewer must confirm that:
 - secret scanning passes.
 
 V0.1 source publication was separately authorised after the release-evidence
-review. Every later release must repeat the boundary review and receive its own
-publication decision.
+review. V0.2 implementation and sealing do not authorise publication; every
+later release must repeat the boundary review and receive its own publication
+decision.

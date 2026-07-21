@@ -9,6 +9,12 @@ include THIRD_PARTY_NOTICES.md
 include model-inventory.yaml
 recursive-include docs *.md
 prune evidence
+recursive-include eval *.py *.json *.toml *.lock *.md
+include eval/docker/Dockerfile
+prune eval/build
+prune eval/.pytest_cache
+prune eval/.ruff_cache
+prune eval/src/skylark_lumi_trace_eval.egg-info
 recursive-include examples *.md
 recursive-include schemas *.json
 recursive-include scripts *.py

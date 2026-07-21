@@ -1,0 +1,214 @@
+{
+  "records": [
+    {
+      "identity_exclusions": [
+        "observations"
+      ],
+      "payload": {
+        "acquisition_method": "versioned public fixture in noqt/Lumi-Trace",
+        "content_fingerprints": [
+          "sha256:6ca11eaea7768ac1f65a8d5fcba2c5135dac62c4bac805eae004a70090d5b831",
+          "sha256:c06edd7927e50fb19e46dab781868e7d9740d543d608242b0d4ac4b3bc58f413",
+          "sha256:9f6bb2c8011679a4319daf90bf5d8f29445a834590c65de587b4a0b76e81e166",
+          "sha256:f3c1d5a34df3a4f5dcfb25dcfad9b82b8fc4110090a4e2b5dcea7180af955804"
+        ],
+        "exposure_state": "CONSTRUCTION_VISIBLE",
+        "family_id": "family:skylark-public-synthetic-archive",
+        "governed_location": "tests/fixtures/demo-repository",
+        "input_hashes": [
+          "sha256:6ca11eaea7768ac1f65a8d5fcba2c5135dac62c4bac805eae004a70090d5b831",
+          "sha256:c06edd7927e50fb19e46dab781868e7d9740d543d608242b0d4ac4b3bc58f413",
+          "sha256:9f6bb2c8011679a4319daf90bf5d8f29445a834590c65de587b4a0b76e81e166",
+          "sha256:f3c1d5a34df3a4f5dcfb25dcfad9b82b8fc4110090a4e2b5dcea7180af955804"
+        ],
+        "licence": "Apache-2.0",
+        "lineage_id": "lineage:skylark-lumi-trace-demo-v1",
+        "redistribution_status": "PUBLIC_REDISTRIBUTION_PERMITTED",
+        "repository_id": "repository:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1",
+        "review_status": "SKYLARK_AUTHORED",
+        "rights_basis": "Skylark.AI authorship and Apache-2.0 fixture licence",
+        "shared_history_root": "history:skylark-lumi-trace-demo-v1",
+        "source": "Skylark.AI-authored synthetic repository",
+        "tree_id": "sha256:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1"
+      },
+      "record_id": "repository-rights-manifest:456a53c684c789a53959b17ebb0d98502037dd94a81475af02514235fe29e08f",
+      "schema_version": "repository-rights-manifest-v1"
+    },
+    {
+      "identity_exclusions": [
+        "observations"
+      ],
+      "payload": {
+        "independence_method": "origin, tree, lineage, family, shared-history, and content-fingerprint audit",
+        "locked": true,
+        "partitions": {
+          "development": [],
+          "frozen_holdback": [],
+          "future_training_candidate": [],
+          "public_regression": [
+            "repository:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1"
+          ],
+          "qualification": []
+        },
+        "repositories": {
+          "repository:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1": "public_regression"
+        }
+      },
+      "record_id": "split-manifest:806a1198367adcab3ecd2eebc186a600d8615dae5afa862f67667f151e76ee8c",
+      "schema_version": "split-manifest-v1"
+    },
+    {
+      "identity_exclusions": [
+        "observations"
+      ],
+      "payload": {
+        "exposure_log_ids": [],
+        "groups": [
+          "candidate-ranking-group:04bdbcb2a85b68ae5fc85be9fa2797e35290e6af056b0fa69ace9ace22db5cfb",
+          "candidate-ranking-group:7931748ff3957286b44d6dbaf982b4f7000a4dfd1d666418f0465ce61263e1aa",
+          "candidate-ranking-group:1b2bed1bfb16c0102e7a1f27d4bb0e98212b686d9a5ee3d2b3a74a4fde17a793"
+        ],
+        "repositories": [
+          "repository-rights-manifest:456a53c684c789a53959b17ebb0d98502037dd94a81475af02514235fe29e08f"
+        ],
+        "split_manifest_id": "split-manifest:806a1198367adcab3ecd2eebc186a600d8615dae5afa862f67667f151e76ee8c"
+      },
+      "record_id": "registry-snapshot:2bdbc51005a143e59666dc3034290bd9e45a8e50151c5774bb837f4eb6b1c725",
+      "schema_version": "registry-snapshot-v1"
+    },
+    {
+      "identity_exclusions": [
+        "observations"
+      ],
+      "payload": {
+        "accepted_target_semantics": "first accepted exact-kind target",
+        "case_class": "positive",
+        "correction_history": [],
+        "exposure_state": "CONSTRUCTION_VISIBLE",
+        "finding_id": "public-finding-input:93aa19c168d007ec535338fb81037b2d0917bc677b7ea46660f3a8a059b23975",
+        "group_id": "trace-public-exact-symbol",
+        "input_hashes": [
+          "sha256:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1",
+          "sha256:29f57954debacb2631d72efe46a68d39a2993d0dd5e167567c59fe5921e8f6a6"
+        ],
+        "label_method": "Skylark-authored constructed fixture source of truth",
+        "label_set_id": "public-label-exact-symbol",
+        "origin": "constructed",
+        "repository_id": "repository:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1",
+        "repository_tree_id": "sha256:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1",
+        "review_receipt_ids": [
+          "controlled-review-receipt:ccfea51591d8342f83bca795d5aee88946ba0ea7c7b9eb860168ec1ba21606c3",
+          "controlled-review-receipt:389b02429a9f43b4c691461739d51ae0a0327793b1fd9a17e397b006022d2d3d"
+        ],
+        "rights_id": "repository-rights-manifest:456a53c684c789a53959b17ebb0d98502037dd94a81475af02514235fe29e08f",
+        "runner_inputs": {
+          "finding": "tests/data/manual-finding.json",
+          "finding_format": "manual",
+          "repository": "tests/fixtures/demo-repository"
+        },
+        "split": "public_regression",
+        "taxonomy": {
+          "cwe": "CWE-22",
+          "difficulty": "PUBLIC_SYNTHETIC_CONTROL",
+          "finding_format": "manual",
+          "language": "shell",
+          "origin": "constructed",
+          "repository_size_band": "TINY",
+          "target_kind": "symbol"
+        }
+      },
+      "record_id": "candidate-ranking-group:04bdbcb2a85b68ae5fc85be9fa2797e35290e6af056b0fa69ace9ace22db5cfb",
+      "schema_version": "candidate-ranking-group-v1"
+    },
+    {
+      "identity_exclusions": [
+        "observations"
+      ],
+      "payload": {
+        "accepted_target_semantics": "first accepted exact-kind target",
+        "case_class": "safety_control",
+        "correction_history": [],
+        "exposure_state": "CONSTRUCTION_VISIBLE",
+        "finding_id": "public-finding-input:6ea2505d97dca739833d9f37370ab64f677f78627e30baf2d0c5b5f92fcb093f",
+        "group_id": "trace-public-message-region",
+        "input_hashes": [
+          "sha256:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1",
+          "sha256:9836d10ec6ca9caeedc533ba163673644c578241a3fe40096a1b4bdd88d51715"
+        ],
+        "label_method": "Skylark-authored constructed fixture source of truth",
+        "label_set_id": "public-label-message-region",
+        "origin": "transformed",
+        "repository_id": "repository:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1",
+        "repository_tree_id": "sha256:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1",
+        "review_receipt_ids": [
+          "controlled-review-receipt:ccfea51591d8342f83bca795d5aee88946ba0ea7c7b9eb860168ec1ba21606c3",
+          "controlled-review-receipt:389b02429a9f43b4c691461739d51ae0a0327793b1fd9a17e397b006022d2d3d"
+        ],
+        "rights_id": "repository-rights-manifest:456a53c684c789a53959b17ebb0d98502037dd94a81475af02514235fe29e08f",
+        "runner_inputs": {
+          "finding": "eval/public-fixtures/inputs/message-only.json",
+          "finding_format": "manual",
+          "repository": "tests/fixtures/demo-repository"
+        },
+        "split": "public_regression",
+        "taxonomy": {
+          "cwe": "CWE-22",
+          "difficulty": "PUBLIC_SYNTHETIC_CONTROL",
+          "finding_format": "manual",
+          "language": "shell",
+          "origin": "transformed",
+          "repository_size_band": "TINY",
+          "target_kind": "region"
+        }
+      },
+      "record_id": "candidate-ranking-group:7931748ff3957286b44d6dbaf982b4f7000a4dfd1d666418f0465ce61263e1aa",
+      "schema_version": "candidate-ranking-group-v1"
+    },
+    {
+      "identity_exclusions": [
+        "observations"
+      ],
+      "payload": {
+        "accepted_target_semantics": "first accepted exact-kind target",
+        "case_class": "hard_negative",
+        "correction_history": [],
+        "exposure_state": "CONSTRUCTION_VISIBLE",
+        "finding_id": "public-finding-input:6e08cf8f47f4e0435f3fcfd88784bc77fedd344e5412de29b2656ba837c2050b",
+        "group_id": "trace-public-hard-negative",
+        "input_hashes": [
+          "sha256:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1",
+          "sha256:112e615618d39e886a252a3b031be8778ab76ed6e8483b009e09458f6ae271ff"
+        ],
+        "label_method": "Skylark-authored constructed fixture source of truth",
+        "label_set_id": "public-label-hard-negative",
+        "origin": "constructed",
+        "repository_id": "repository:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1",
+        "repository_tree_id": "sha256:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1",
+        "review_receipt_ids": [
+          "controlled-review-receipt:ccfea51591d8342f83bca795d5aee88946ba0ea7c7b9eb860168ec1ba21606c3",
+          "controlled-review-receipt:389b02429a9f43b4c691461739d51ae0a0327793b1fd9a17e397b006022d2d3d"
+        ],
+        "rights_id": "repository-rights-manifest:456a53c684c789a53959b17ebb0d98502037dd94a81475af02514235fe29e08f",
+        "runner_inputs": {
+          "finding": "eval/public-fixtures/inputs/constructed-hard-negative.json",
+          "finding_format": "manual",
+          "repository": "tests/fixtures/demo-repository"
+        },
+        "split": "public_regression",
+        "taxonomy": {
+          "cwe": "CWE-22",
+          "difficulty": "PUBLIC_SYNTHETIC_CONTROL",
+          "finding_format": "manual",
+          "language": "shell",
+          "origin": "constructed",
+          "repository_size_band": "TINY",
+          "target_kind": "symbol"
+        }
+      },
+      "record_id": "candidate-ranking-group:1b2bed1bfb16c0102e7a1f27d4bb0e98212b686d9a5ee3d2b3a74a4fde17a793",
+      "schema_version": "candidate-ranking-group-v1"
+    }
+  ],
+  "registry_id": "trace-eval-registry:cecd1fd4ec427767ffb82cdfaaf4a527dbfe15e399783edadac4e674fbfe0474",
+  "schema_version": "trace-eval-registry-file-v1"
+}

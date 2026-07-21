@@ -158,6 +158,14 @@ def test_sdist_excludes_a_populated_evidence_tree(tmp_path: Path, project_root: 
         (evidence_root / f"partial-{index:02d}.json").write_text(
             '{"incomplete":true}\n', encoding="utf-8"
         )
+    for generated in (
+        source_root / "eval" / "build" / "lib" / "generated.py",
+        source_root / "eval" / ".pytest_cache" / "README.md",
+        source_root / "eval" / ".ruff_cache" / "state.json",
+        source_root / "eval" / "src" / "skylark_lumi_trace_eval.egg-info" / "SOURCES.txt",
+    ):
+        generated.parent.mkdir(parents=True, exist_ok=True)
+        generated.write_text("generated and not distributable\n", encoding="utf-8")
 
     output = tmp_path / "dist"
     subprocess.run(
@@ -184,3 +192,7 @@ def test_sdist_excludes_a_populated_evidence_tree(tmp_path: Path, project_root: 
     assert any(member.name == "MANIFEST.in" for member in members)
     assert any(member.as_posix().endswith("/src/lumi_trace/__init__.py") for member in members)
     assert not any("evidence" in member.parts for member in members)
+    assert not any("build" in member.parts for member in members)
+    assert not any(".pytest_cache" in member.parts for member in members)
+    assert not any(".ruff_cache" in member.parts for member in members)
+    assert not any(member.name == "skylark_lumi_trace_eval.egg-info" for member in members)

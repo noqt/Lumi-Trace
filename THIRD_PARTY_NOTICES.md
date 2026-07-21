@@ -6,7 +6,7 @@ repository. It does not replace the licence supplied by a third-party author.
 ## Distributed Third-Party Material
 
 No third-party source code, model weights, training data, customer repository
-contents, CyberGym tasks, or protected Lumi evidence is vendored in the V0.1.0
+contents, CyberGym tasks, or protected Lumi evidence is vendored in the V0.2
 source distribution.
 
 Public test fixtures must be Skylark-authored synthetic content or must include
@@ -52,6 +52,12 @@ closure, while `python -m pip-audit` provides the separate vulnerability check.
 All Python packages in this table and inventory are external build, test, or
 release tools; none is bundled into the V0.1 source distribution or imported by
 the Lumi Trace runtime.
+
+The separately installed Trace-Eval environment uses `jsonschema 4.26.0`
+(MIT), `attrs 26.1.0` (MIT), `jsonschema-specifications 2025.9.1` (MIT),
+`referencing 0.37.0` (MIT), `rpds-py 2026.6.3` (MIT), and
+`typing-extensions 4.16.0` (PSF-2.0). Exact versions are retained in
+`eval/requirements/trace-eval.lock`. None is imported by the V0.1 runtime.
 
 Docker, the Linux container runtime, and the pinned Alpine smoke-test image are
 external prerequisites; Lumi Trace does not redistribute them. The smoke image

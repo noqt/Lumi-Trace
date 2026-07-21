@@ -1,0 +1,27 @@
+{
+  "identity_exclusions": [
+    "observations"
+  ],
+  "payload": {
+    "k_max": 20,
+    "limits": {
+      "case_disk_bytes": 67108864,
+      "case_timeout_seconds": 60,
+      "file_count": 100000,
+      "memory_bytes": 1073741824,
+      "subprocess_output_bytes": 1048576
+    },
+    "metric_spec_id": "metric-specification:e4095efcb09e3cc19d9085395c12432ffebb4e922a314ef89e7714df8014c113",
+    "mode": "public-fixture",
+    "offline": true,
+    "runtime": {
+      "artifact_sha256": "sha256:c3872c3ab25b1df4c4e2f31711f9072d25e4955a1cda3eecd89e421d901c0bba",
+      "release": "v0.1.0",
+      "release_commit": "04bee651f6347ec3b4b5d3a941029ef8f6bfc48d",
+      "source_revision": "8f7c235333ab7e270d6dce320481ebb28960a212",
+      "version": "0.1.0"
+    }
+  },
+  "record_id": "evaluator-configuration:05fe880114da390a74a877358b8a63c731cede16d87d674c2835712b841e582b",
+  "schema_version": "evaluator-configuration-v1"
+}

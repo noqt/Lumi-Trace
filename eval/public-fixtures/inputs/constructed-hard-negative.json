@@ -1,0 +1,23 @@
+{
+  "schema_version": "manual-finding-v1",
+  "id": "TRACE-EVAL-HARD-NEGATIVE-001",
+  "title": "Test witness mentions the unsafe archive join",
+  "description": "The production unsafe_join implementation accepts a parent-directory archive member without containment validation.",
+  "severity": "high",
+  "rule": {
+    "id": "SKYLARK-PATH-TRAVERSAL",
+    "name": "Unsafe archive path join",
+    "cwes": ["CWE-22"],
+    "tags": ["constructed-control", "path-traversal"]
+  },
+  "locations": [
+    {
+      "path": "tests/reproduce.sh",
+      "start_line": 1,
+      "start_column": 1,
+      "end_line": 16,
+      "end_column": 1
+    }
+  ],
+  "keywords": ["unsafe join", "archive member", "containment"]
+}

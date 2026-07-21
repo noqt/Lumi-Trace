@@ -1,0 +1,14 @@
+{
+  "schema_version": "manual-finding-v1",
+  "id": "TRACE-EVAL-MESSAGE-ONLY-001",
+  "title": "Archive member path can escape its extraction root",
+  "description": "The unsafe join accepts a parent-directory member name without containment validation.",
+  "severity": "high",
+  "rule": {
+    "id": "SKYLARK-PATH-TRAVERSAL",
+    "name": "Unsafe archive path join",
+    "cwes": ["CWE-22"],
+    "tags": ["archive", "path-traversal"]
+  },
+  "keywords": ["unsafe join", "archive member", "containment", "escape"]
+}

@@ -1,9 +1,9 @@
-# Lumi Trace V0.1.0 Model Card
+# Lumi Trace V0.2 Model Card
 
 ## Status
 
-Lumi Trace V0.1.0 is a deterministic local vulnerability-evidence
-instrument. It is **not an ML model**.
+Lumi Trace V0.2 continues to test the exact V0.1.0 deterministic local
+vulnerability-evidence instrument. It is **not an ML model**.
 
 | Field | Value |
 | --- | --- |
@@ -21,7 +21,7 @@ This document reserves an inventory identity and records the absence of a
 model. It must not be used to imply that a Lumi Trace checkpoint, learned
 ranker, or trained AI artefact exists.
 
-## V0.1 Behaviour
+## Runtime and Evaluation Behaviour
 
 V0.1 imports a SARIF or manually supplied vulnerability finding, indexes a
 user-supplied local repository, retrieves and ranks candidate files, symbols,
@@ -32,6 +32,12 @@ The candidate ranking is a deterministic baseline. Its scores are produced by
 documented program logic and are not probabilities or learned predictions.
 The runtime does not call a model provider, use hosted inference, or require an
 API key.
+
+V0.2 adds no learned component. Trace-Eval measures the pinned V0.1 wheel in a
+separate Python 3.11 environment using rights-bound registries, label-blind
+subprocess runs, raw-output sealing, reproducible metrics, and replay. The
+public fixture baseline is a controlled synthetic regression exercise, not
+evidence of performance on natural repositories.
 
 ## Intended Use
 
@@ -55,7 +61,7 @@ be represented as a trained vulnerability model.
 
 ## Training and Lineage
 
-No training or fine-tuning was performed for V0.1. No model weights were
+No training or fine-tuning was performed for V0.1 or V0.2. No model weights were
 downloaded. No training dataset, labelled candidate group, learned adapter, or
 checkpoint is included.
 
