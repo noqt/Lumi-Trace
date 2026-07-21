@@ -1,0 +1,81 @@
+{
+  "check_set_id": "release-checks:4f12f819dcb6ad84c3e162762117c6e5b82b6f05bb327d8e3af3a3d021629e7c",
+  "checks": [
+    {
+      "id": "clean-implementation-commit",
+      "status": "PASS"
+    },
+    {
+      "id": "owned-fixture-manifest",
+      "status": "PASS"
+    },
+    {
+      "id": "unit-tests",
+      "status": "PASS"
+    },
+    {
+      "id": "sandbox-tests",
+      "status": "PASS"
+    },
+    {
+      "id": "ruff-lint",
+      "status": "PASS"
+    },
+    {
+      "id": "ruff-format",
+      "status": "PASS"
+    },
+    {
+      "id": "licences",
+      "status": "PASS"
+    },
+    {
+      "id": "secrets",
+      "status": "PASS"
+    },
+    {
+      "id": "dependencies",
+      "status": "PASS"
+    },
+    {
+      "id": "public-boundary",
+      "status": "PASS"
+    },
+    {
+      "id": "dependency-vulnerabilities",
+      "status": "PASS"
+    },
+    {
+      "id": "owned-fixture-confirmed",
+      "status": "PASS"
+    },
+    {
+      "id": "evidence-package-verification",
+      "status": "PASS"
+    },
+    {
+      "id": "dependency-inventory",
+      "status": "PASS"
+    },
+    {
+      "id": "release-build",
+      "status": "PASS"
+    },
+    {
+      "id": "release-reproducibility",
+      "status": "PASS"
+    },
+    {
+      "id": "release-metadata",
+      "status": "PASS"
+    },
+    {
+      "id": "release-artifact-layout",
+      "status": "PASS"
+    }
+  ],
+  "overall_status": "PASS",
+  "release_version": "0.1.0",
+  "schema_version": "v0.1-release-check-results-v1",
+  "source_revision": "1e130a9b1834b43e1a3f1712ffd5cea607f41247"
+}

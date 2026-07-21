@@ -1,0 +1,87 @@
+{
+  "attempted": true,
+  "plan_id": "sha256:d15ad4febdc6c505ea8b529a5018de7edfa432519dc8d9776396f221ff3df239",
+  "policy_id": "sha256:da470437fd368b233cf845fffd757bd20083dbad00b9520590c2c9af926ee0f6",
+  "qualification": {
+    "container_policy_verified": true,
+    "core_dumps_disabled": true,
+    "credential_environment_absent": true,
+    "engine_sockets_absent": true,
+    "host_credential_mounts_absent": true,
+    "image_id": "sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1",
+    "no_default_ipv4_route": true,
+    "no_default_ipv6_route": true,
+    "non_root": true,
+    "probe_stdout_sha256": "sha256:d224748ecbcf1dd27f6d202609849d59482c6274efd5cd851fc9a816b8a3f341",
+    "qualification_id": "sha256:59aec5dd0f0ace7b73a38727cfca7ab696c230678344a689438ff4ce0bf16417",
+    "qualified": true,
+    "source_read_only": true,
+    "uid": 65532
+  },
+  "qualification_id": "sha256:59aec5dd0f0ace7b73a38727cfca7ab696c230678344a689438ff4ce0bf16417",
+  "reason_code": "EXECUTION_COMPLETED",
+  "reason_codes": [
+    "EXECUTION_COMPLETED"
+  ],
+  "receipt_id": "sha256:f892adb5df51b9c2c8bd66aca0e6a123a5090fffbb65b1c8831edd0e9b9a4fda",
+  "repository": {
+    "after": "repository:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1",
+    "before": "repository:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1",
+    "unchanged": true
+  },
+  "repository_identity": "repository:24e0f02418f391392143fdf102135b2d42124ab2b57a06c650771a82c2790dc1",
+  "runtime": {
+    "duration_measurement": "not_recorded_for_determinism",
+    "duration_ms": null,
+    "engine_architecture": "amd64",
+    "engine_endpoint_class": "local-windows-named-pipe",
+    "engine_server_version": "29.5.3",
+    "output_preview_included": false,
+    "qualification_cleanup_verified": true,
+    "setup_reason_code": null,
+    "step_cleanup": [
+      {
+        "index": 0,
+        "kill_attempted": false,
+        "remove_succeeded": true
+      }
+    ]
+  },
+  "sandbox": {
+    "backend": "docker",
+    "image_id": "sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1",
+    "image_reference_sha256": "sha256:316c9ccc86bf307df5837db758a85d1b369a1fcd1ad552ba2063395771ea488d",
+    "network_mode": "none",
+    "qualified": true,
+    "source_mount": "read_only"
+  },
+  "schema_version": "reproduction-receipt-v1",
+  "status": "COMPLETED",
+  "steps": [
+    {
+      "argv_id": "sha256:caa8756fda0679af02593b60e93cf39d6c196fc11ccedb65fd36c6db3dca1dbb",
+      "cwd": ".",
+      "exit_code": 23,
+      "expect_id": "sha256:847f56dbc797339c6182405ca052ee200369ce8d5e578a6ccff8214adcb4be48",
+      "index": 0,
+      "oom_killed": false,
+      "output_limit_exceeded": false,
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 34,
+        "sha256": "sha256:25e640a09661cf00032b4c4f4b98da34fec623d32fae0cb409ee045dc7062139"
+      },
+      "termination_reason": "completed",
+      "timed_out": false,
+      "witness": {
+        "exit_code": true,
+        "matched": true,
+        "stderr_contains": null,
+        "stdout_contains": true
+      }
+    }
+  ]
+}
