@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import io
 import json
+import shutil
+import subprocess
 import sys
 import tarfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import pytest
 
@@ -131,3 +133,54 @@ def test_bundle_source_revision_cross_check_uses_tool_identity() -> None:
     _require_bundle_source_revision(bundle, REVISION)
     with pytest.raises(SealError, match="wrong source revision"):
         _require_bundle_source_revision(bundle, "b" * 40)
+
+
+def test_sdist_excludes_a_populated_evidence_tree(tmp_path: Path, project_root: Path) -> None:
+    source_root = tmp_path / "source"
+    shutil.copytree(
+        project_root,
+        source_root,
+        ignore=shutil.ignore_patterns(
+            ".git",
+            ".venv",
+            ".pytest_cache",
+            ".ruff_cache",
+            "__pycache__",
+            "*.egg-info",
+            "build",
+            "dist",
+            "evidence",
+        ),
+    )
+    evidence_root = source_root / "evidence" / "v0.1.0"
+    evidence_root.mkdir(parents=True)
+    for index in range(14):
+        (evidence_root / f"partial-{index:02d}.json").write_text(
+            '{"incomplete":true}\n', encoding="utf-8"
+        )
+
+    output = tmp_path / "dist"
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "build",
+            "--sdist",
+            "--no-isolation",
+            "--outdir",
+            str(output),
+        ],
+        cwd=source_root,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+
+    distributions = list(output.glob("*.tar.gz"))
+    assert len(distributions) == 1
+    with tarfile.open(distributions[0], mode="r:gz") as archive:
+        members = [PurePosixPath(member.name) for member in archive.getmembers()]
+    assert any(member.name == "MANIFEST.in" for member in members)
+    assert any(member.as_posix().endswith("/src/lumi_trace/__init__.py") for member in members)
+    assert not any("evidence" in member.parts for member in members)
