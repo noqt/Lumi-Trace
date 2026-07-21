@@ -60,6 +60,7 @@ _ALLOWED_SPDX_ATOMS = {
     "GPL-3.0-or-later",
     "ISC",
     "MIT",
+    "MIT-0",
     "MPL-2.0",
     "PSF-2.0",
     "Unlicense",

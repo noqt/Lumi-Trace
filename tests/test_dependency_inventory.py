@@ -9,6 +9,7 @@ from jsonschema import Draft202012Validator
 
 from scripts.dependency_inventory import (
     DependencyInventoryError,
+    _spdx_expression,
     collect_dependency_inventory,
     render_inventory,
 )
@@ -38,6 +39,10 @@ def test_resolved_dependency_inventory_is_sanitized(project_root: Path) -> None:
     )
     Draft202012Validator.check_schema(schema)
     Draft202012Validator(schema).validate(inventory)
+
+
+def test_mit_zero_is_an_approved_spdx_atom() -> None:
+    assert _spdx_expression("MIT-0") == "MIT-0"
 
 
 @pytest.mark.parametrize("unsafe_value", ["https://packages.invalid/item", "C:\\host\\item"])
