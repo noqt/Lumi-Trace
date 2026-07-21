@@ -133,7 +133,9 @@ def repository_manifest(
                     raise UnsupportedError(
                         f"links or reparse points are unsupported in V0.1: {relative}"
                     )
-                if candidate.is_mount():
+                # Windows mount points are reparse points and were rejected above.
+                # Path.is_mount() itself is unsupported on Windows before Python 3.12.
+                if os.name != "nt" and candidate.is_mount():
                     raise UnsupportedError(
                         f"nested filesystem mount points are unsupported in V0.1: {relative}"
                     )

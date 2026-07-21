@@ -28,6 +28,17 @@ def test_repository_identity_is_stable_and_host_path_free(fixture_repository: Pa
     assert first["repository_id"].startswith("repository:")
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Windows Path.is_mount compatibility")
+def test_windows_manifest_does_not_call_unsupported_is_mount(
+    fixture_repository: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def unsupported_is_mount(_path: Path) -> bool:
+        raise NotImplementedError("Path.is_mount() is unsupported on this system")
+
+    monkeypatch.setattr(Path, "is_mount", unsupported_is_mount)
+    assert compute_repository_identity(fixture_repository)["file_count"] > 0
+
+
 def test_repository_workspace_is_a_content_identical_snapshot(fixture_repository: Path) -> None:
     source = compute_repository_identity(fixture_repository)
     with RepositoryWorkspace(fixture_repository) as workspace:
