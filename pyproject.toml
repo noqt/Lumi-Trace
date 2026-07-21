@@ -29,7 +29,7 @@ dev = [
   "packaging==26.2",
   "pip-audit==2.9.0",
   "PyYAML==6.0.3",
-  "pytest==9.0.3",
+  "pytest==9.1.1",
   "ruff==0.12.3",
   "setuptools==83.0.0",
   "twine==6.1.0",
