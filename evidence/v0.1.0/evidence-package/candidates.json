@@ -1,0 +1,261 @@
+{
+  "algorithm": "deterministic-candidate-ranking-v1",
+  "candidate_count_considered": 5,
+  "candidate_set_id": "candidate-set:3041fdc961c12970d97fb5b86b561c11c934d8bd8d591c41ad2419440f109d5b",
+  "candidates": [
+    {
+      "candidate_id": "candidate:c22963f1db0801c110e129562e9a6a79fdfe3a8834499e005f19fd87e850bf06",
+      "integer_score": 35600,
+      "kind": "symbol",
+      "path": "src/archive.sh",
+      "rank": 1,
+      "region": {
+        "end_column": 1,
+        "end_line": 4,
+        "start_column": 1,
+        "start_line": 4
+      },
+      "score_reasons": [
+        {
+          "code": "EXACT_REPORTED_PATH",
+          "points": 10000
+        },
+        {
+          "code": "PATH_BASENAME_MATCH",
+          "matches": [
+            "archive"
+          ],
+          "points": 3000
+        },
+        {
+          "code": "PATH_TOKEN_MATCH",
+          "matches": [
+            "sh",
+            "src"
+          ],
+          "points": 1000
+        },
+        {
+          "code": "IDENTIFIER_CONTENT_MATCH",
+          "matches": [
+            "archive",
+            "join",
+            "sh",
+            "src",
+            "unsafe"
+          ],
+          "points": 2000
+        },
+        {
+          "code": "MESSAGE_CONTENT_MATCH",
+          "matches": [
+            "archive",
+            "join",
+            "member",
+            "name",
+            "root",
+            "unsafe"
+          ],
+          "points": 600
+        },
+        {
+          "code": "EXACT_REPORTED_SYMBOL",
+          "points": 8000
+        },
+        {
+          "code": "REPORTED_REGION_OVERLAP",
+          "points": 7000
+        },
+        {
+          "code": "SYMBOL_TOKEN_MATCH",
+          "matches": [
+            "join",
+            "unsafe"
+          ],
+          "points": 4000
+        }
+      ],
+      "symbol": {
+        "extractor": "lexical-v1",
+        "kind": "function",
+        "name": "unsafe_join",
+        "qualified_name": "unsafe_join"
+      }
+    },
+    {
+      "candidate_id": "candidate:b0778bed9de1b53717e26a15f09d642a472076157b905ebd925e8c7921171240",
+      "integer_score": 16600,
+      "kind": "file",
+      "path": "src/archive.sh",
+      "rank": 2,
+      "region": {
+        "end_column": 1,
+        "end_line": 8,
+        "start_column": 1,
+        "start_line": 1
+      },
+      "score_reasons": [
+        {
+          "code": "EXACT_REPORTED_PATH",
+          "points": 10000
+        },
+        {
+          "code": "PATH_BASENAME_MATCH",
+          "matches": [
+            "archive"
+          ],
+          "points": 3000
+        },
+        {
+          "code": "PATH_TOKEN_MATCH",
+          "matches": [
+            "sh",
+            "src"
+          ],
+          "points": 1000
+        },
+        {
+          "code": "IDENTIFIER_CONTENT_MATCH",
+          "matches": [
+            "archive",
+            "join",
+            "sh",
+            "src",
+            "unsafe"
+          ],
+          "points": 2000
+        },
+        {
+          "code": "MESSAGE_CONTENT_MATCH",
+          "matches": [
+            "archive",
+            "join",
+            "member",
+            "name",
+            "root",
+            "unsafe"
+          ],
+          "points": 600
+        }
+      ]
+    },
+    {
+      "candidate_id": "candidate:d5b90ba6314ccf5c15a90d48c21a5d1c199950452be4963824bb2473851fd81c",
+      "integer_score": 3300,
+      "kind": "file",
+      "path": "tests/reproduce.sh",
+      "rank": 3,
+      "region": {
+        "end_column": 1,
+        "end_line": 16,
+        "start_column": 1,
+        "start_line": 1
+      },
+      "score_reasons": [
+        {
+          "code": "PATH_TOKEN_MATCH",
+          "matches": [
+            "sh"
+          ],
+          "points": 500
+        },
+        {
+          "code": "IDENTIFIER_CONTENT_MATCH",
+          "matches": [
+            "archive",
+            "join",
+            "path",
+            "sh",
+            "src",
+            "traversal",
+            "unsafe"
+          ],
+          "points": 2800
+        },
+        {
+          "code": "MESSAGE_CONTENT_MATCH",
+          "matches": [
+            "archive",
+            "join",
+            "path",
+            "root",
+            "unsafe"
+          ],
+          "points": 500
+        },
+        {
+          "code": "TEST_PATH_PENALTY",
+          "points": -500
+        }
+      ]
+    },
+    {
+      "candidate_id": "candidate:a5458257e6419afa20cd3185699f1a173dca56682d59f76d131a2a30545f65e4",
+      "integer_score": 1300,
+      "kind": "file",
+      "path": "README.md",
+      "rank": 4,
+      "region": {
+        "end_column": 1,
+        "end_line": 5,
+        "start_column": 1,
+        "start_line": 1
+      },
+      "score_reasons": [
+        {
+          "code": "IDENTIFIER_CONTENT_MATCH",
+          "matches": [
+            "archive",
+            "skylark"
+          ],
+          "points": 800
+        },
+        {
+          "code": "MESSAGE_CONTENT_MATCH",
+          "matches": [
+            "archive",
+            "containment",
+            "member",
+            "validation",
+            "without"
+          ],
+          "points": 500
+        }
+      ]
+    },
+    {
+      "candidate_id": "candidate:a137d5a47d0a38e5bb4a86b41bdd8f1df796c764b81557a71082dc39e831ca36",
+      "integer_score": 500,
+      "kind": "file",
+      "path": "LICENSE",
+      "rank": 5,
+      "region": {
+        "end_column": 1,
+        "end_line": 6,
+        "start_column": 1,
+        "start_line": 1
+      },
+      "score_reasons": [
+        {
+          "code": "IDENTIFIER_CONTENT_MATCH",
+          "matches": [
+            "skylark"
+          ],
+          "points": 400
+        },
+        {
+          "code": "MESSAGE_CONTENT_MATCH",
+          "matches": [
+            "the"
+          ],
+          "points": 100
+        }
+      ]
+    }
+  ],
+  "confidence_is_not_probability": true,
+  "finding_id": "manual:TRACE-FIXTURE-001",
+  "index_id": "index:c1f833f3a2d163b45bc94891a97d837edcf9088786c01dd762f45f834b4beb8a",
+  "schema_version": "candidate-set-v1",
+  "top_k": 20
+}

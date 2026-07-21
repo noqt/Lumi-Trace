@@ -1,0 +1,20 @@
+{
+  "artifact_set_id": "release-artifacts:a772bf20e5f36802767edaaf298408bc7e6954137236e0f9af0ec07f4fed4717",
+  "artifacts": [
+    {
+      "media_type": "application/zip",
+      "path": "release-artifacts/skylark_lumi_trace-0.1.0-py3-none-any.whl",
+      "sha256": "sha256:dcdb1926e1349c279bd35859d627785075c599066d53655aaf80c1a4bb062b23",
+      "size_bytes": 99817
+    },
+    {
+      "media_type": "application/gzip",
+      "path": "release-artifacts/skylark_lumi_trace-0.1.0.tar.gz",
+      "sha256": "sha256:144f5210324f2c20147e5e1c107b1263ca443dc4e7f1ebf6d079847c373439bb",
+      "size_bytes": 113480
+    }
+  ],
+  "release_version": "0.1.0",
+  "schema_version": "release-artifacts-v1",
+  "source_revision": "8ac8fae9a3935ddadbb2dc503bc456587d184ca2"
+}

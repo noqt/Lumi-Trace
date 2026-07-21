@@ -1,0 +1,41 @@
+{
+  "artifacts": [
+    {
+      "path": "candidates.json",
+      "sha256": "sha256:cad2a6425763ac1816bd357a52d996f9a4552401d93bfbc024d6f4f3ccd891b0",
+      "size_bytes": 5966
+    },
+    {
+      "path": "evidence-bundle.json",
+      "sha256": "sha256:1449042a48fbb8536efae490bac509324fd3e84e646a651200c48998cbc15650",
+      "size_bytes": 13223
+    },
+    {
+      "path": "evidence.sarif",
+      "sha256": "sha256:0ca08859a03d419cba9668035320a99bd768da821784c8633341eb062177f34e",
+      "size_bytes": 11160
+    },
+    {
+      "path": "normalized-finding.json",
+      "sha256": "sha256:15962ad780a50030531fc503a7e411ca9ae1e1f7c142e821c5f04fb1b96128c2",
+      "size_bytes": 1034
+    },
+    {
+      "path": "repository-index.json",
+      "sha256": "sha256:5adccb9e8ef0d0778654e19655b126f2c09c5a0e75b7b157db7108563c43fdbd",
+      "size_bytes": 4888
+    },
+    {
+      "path": "reproduction-plan.json",
+      "sha256": "sha256:8befa46a71a69e358ddf27160664c0bfd7a12de630667c964a9eadf47d2bdfb5",
+      "size_bytes": 444
+    },
+    {
+      "path": "reproduction-receipt.json",
+      "sha256": "sha256:8102634e1d292968df41e86422b1f53d71de97d052fa7be37816559e3fe26b5f",
+      "size_bytes": 3194
+    }
+  ],
+  "manifest_id": "evidence-package:410c388f55971eb474fa56dad60ba35b50e669825f8921e0b13980f670d59905",
+  "schema_version": "evidence-package-manifest-v1"
+}
