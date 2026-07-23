@@ -10,6 +10,13 @@ safe-control and hard-negative accounting, repository and repository-family
 macro views, and a separate Trace IR lane for inert copied event packages. The
 IR lane has no live integration or response-action interface.
 
+V0.3.1 adds proposal-before-fetch intake, separate use-rights dimensions,
+inert exact-revision Git acquisition controls, revision-pair and cue contracts,
+controlled natural-group review, corpus distributions, pre-run seals,
+predeclared threshold decisions, and a one-run qualification budget. The
+package contains no repository catalogue or natural corpus; those remain on
+governed private storage.
+
 Trace-Eval contains no learned model, weights, training data, trainer, or
 frozen-holdback execution command. Its V0.3 recommendation is
 `DO_NOT_BEGIN_TRACE_001`.

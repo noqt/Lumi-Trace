@@ -149,3 +149,25 @@ def test_pilot_contract_requires_50_groups_and_8_repositories() -> None:
     )
     assert registry["payload"]["sufficiency"] == "PILOT_TARGET_MET"
     assert lineage["payload"]["cross_partition_overlap_count"] == 0
+
+
+def test_revision_snapshots_count_once_per_unrelated_repository_family() -> None:
+    repositories = [_rights(number) for number in range(2)]
+    second_payload = dict(repositories[1]["payload"])
+    second_payload["family_id"] = repositories[0]["payload"]["family_id"]
+    second_payload["lineage_id"] = repositories[0]["payload"]["lineage_id"]
+    second_payload["shared_history_root"] = repositories[0]["payload"]["shared_history_root"]
+    repositories[1] = make_record("repository-rights-manifest-v1", second_payload)
+    assignments = {
+        repository["payload"]["repository_id"]: "development" for repository in repositories
+    }
+    labels = [_label(0, 0), _label(1, 1)]
+    registry, _ = assess_natural_corpus(
+        repositories=repositories,
+        labels=labels,
+        split_manifest=_split(assignments),
+        private_evidence_location="GOVERNED_G_DRIVE_PRIVATE_STORE",
+    )
+    assert registry["payload"]["accepted_group_count"] == 2
+    assert registry["payload"]["accepted_repository_count"] == 1
+    assert registry["payload"]["sufficiency"] == "MORE_NATURAL_DATA_REQUIRED"

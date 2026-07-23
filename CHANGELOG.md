@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.3.1 - Governed natural-corpus intake and unchanged baseline
+
+- Added proposal-before-fetch state transitions, separate rights dimensions,
+  exact-revision receipts, revision pairs, cue profiles, blind controlled
+  review, corpus distributions, pre-run seals, threshold decisions, and a
+  single-use qualification budget.
+- Added a generic inert bare-Git acquisition builder that disables hooks,
+  submodules, LFS smudge, checkout filters, remote includes, active protocols,
+  and repository-controlled execution.
+- Added safe handling for non-portable paths, size bounds, special files,
+  hash-bound inert symlink and submodule references, exact licence evidence,
+  and V0.1 clean-snapshot identities.
+- Added natural vulnerable/fixed pairs, fixed safe controls, implementation
+  roles, harness hard negatives, repository-family-disjoint splits, raw-before-
+  label sealing, deterministic replay, and fail-closed qualification gating.
+- Kept all third-party source and case-level evidence private. Public evidence
+  is restricted to aggregate counts, metrics, decisions, identities, and
+  hashes.
+- Preserved the exact V0.1 runtime, zero weights, unopened holdback,
+  `DO_NOT_BEGIN_TRACE_001`, and `NO_GO_PENDING_USER_REVIEW`.
+
 ## 0.3.0 - Natural repository and defensive evidence qualification
 
 - Added controlled-reviewed code-location roles for observations, harnesses,

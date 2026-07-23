@@ -50,14 +50,17 @@ def _writable_tree(root: Path) -> None:
 
 
 def _artifacts(root: Path) -> list[dict[str, Any]]:
+    paths = sorted(
+        (path for path in root.rglob("*") if path.is_file() and not path.is_symlink()),
+        key=lambda path: path.relative_to(root).as_posix().encode("utf-8"),
+    )
     return [
         {
             "path": path.relative_to(root).as_posix(),
             "sha256": sha256_file(path),
             "size_bytes": path.stat().st_size,
         }
-        for path in sorted(root.rglob("*"))
-        if path.is_file() and not path.is_symlink()
+        for path in paths
     ]
 
 

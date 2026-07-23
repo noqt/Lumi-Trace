@@ -20,7 +20,7 @@ baseline, not a trained ML model.
 
 ## Current Status and Hard Stops
 
-- Runtime version: `0.1.0`; evaluator version: `0.3.0`.
+- Runtime version: `0.1.0`; evaluator version: `0.3.1`.
 - Inventory identity: `skylark.lumi.trace`.
 - Model status: `PROPOSED_NOT_TRAINED`; checkpoint: none; active parameters: 0.
 - V0.3 Trace Code state: `DATA_GATES_PENDING` (0 admitted natural groups).
@@ -49,6 +49,13 @@ The V0.3 location-role contracts, natural-corpus decision, inert Trace IR lane,
 and evidence limits are documented in [V0.3 Natural and Defensive Evidence
 Qualification](docs/V0.3_QUALIFICATION.md). The disclosure-safe seal is
 documented in [V0.3 Evidence](docs/V0.3_EVIDENCE.md).
+
+The V0.3.1 proposal-before-fetch intake, separate rights decisions, inert
+exact-revision acquisition, natural pair labels, repository-family splits,
+predeclared baseline thresholds, and one-run qualification budget are
+documented in [V0.3.1 Governed Natural Pilot](docs/V0.3.1_NATURAL_PILOT.md).
+Its disclosure-safe result is documented in [V0.3.1
+Evidence](docs/V0.3.1_EVIDENCE.md).
 
 ## Runtime Flow
 

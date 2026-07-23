@@ -176,3 +176,7 @@ def test_public_output_rejects_private_paths_and_source_content() -> None:
         verify_public_document({"path": "C:/private/evidence.json"})
     with pytest.raises(PolicyError, match="protected field"):
         verify_public_document({"source_text": "protected"})
+    with pytest.raises(PolicyError, match="protected field"):
+        verify_public_document({"vulnerable_revision": "a" * 40})
+    with pytest.raises(PolicyError, match="protected field"):
+        verify_public_document({"targets": [{"path": "private/location.py"}]})

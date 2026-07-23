@@ -6,7 +6,7 @@ repository. It does not replace the licence supplied by a third-party author.
 ## Distributed Third-Party Material
 
 No third-party source code, model weights, training data, customer repository
-contents, CyberGym tasks, or protected Lumi evidence is vendored in the V0.3
+contents, CyberGym tasks, or protected Lumi evidence is vendored in the V0.3.1
 source distribution.
 
 Public test fixtures must be Skylark-authored synthetic content or must include
@@ -63,6 +63,13 @@ Docker, the Linux container runtime, and the pinned Alpine smoke-test image are
 external prerequisites; Lumi Trace does not redistribute them. The smoke image
 is preloaded before testing and reproduction is executed by immutable local
 image identity with pulling disabled.
+
+V0.3.1 natural-corpus intake is retained only on governed private storage.
+Public upstream source remains under its upstream licence and is neither
+vendored into Lumi Trace nor redistributed in its evidence seal. Security
+advisory records, exact revisions, source snapshots, fixing diffs, labels, and
+case-level output are private evaluation inputs rather than distributed
+third-party material.
 
 ## Prohibited Inputs
 

@@ -55,18 +55,31 @@ def assess_natural_corpus(
     audit = audit_repository_independence(repositories, split_manifest)
     accepted_labels: list[dict[str, Any]] = []
     repository_ids = {repository["payload"]["repository_id"] for repository in repositories}
+    family_by_repository = {
+        repository["payload"]["repository_id"]: repository["payload"]["family_id"]
+        for repository in repositories
+    }
     for label in labels:
         validate_location_label(label)
         if label["payload"]["label_state"] in PRIMARY_LABEL_STATES:
             if label["payload"]["repository_id"] not in repository_ids:
                 raise ContractError("accepted natural label has no admitted repository")
             accepted_labels.append(label)
-    accepted_repository_ids = {label["payload"]["repository_id"] for label in accepted_labels}
+    accepted_repository_families = {
+        family_by_repository[label["payload"]["repository_id"]] for label in accepted_labels
+    }
     group_count = len(accepted_labels)
-    repository_count = len(accepted_repository_ids)
+    repository_count = len(accepted_repository_families)
     sufficient = (
         NATURAL_TARGET_GROUPS[0] <= group_count <= NATURAL_TARGET_GROUPS[1]
         and NATURAL_TARGET_REPOSITORIES[0] <= repository_count <= NATURAL_TARGET_REPOSITORIES[1]
+    )
+    sufficiency = (
+        "PILOT_TARGET_MET"
+        if sufficient
+        else "MORE_NATURAL_DATA_REQUIRED"
+        if group_count or repository_count
+        else "DATA_GATES_PENDING"
     )
     registry = make_record(
         "natural-corpus-registry-v1",
@@ -75,7 +88,7 @@ def assess_natural_corpus(
             "groups": [label["record_id"] for label in labels],
             "accepted_group_count": group_count,
             "accepted_repository_count": repository_count,
-            "sufficiency": ("PILOT_TARGET_MET" if sufficient else "DATA_GATES_PENDING"),
+            "sufficiency": sufficiency,
             "private_evidence_location": private_evidence_location,
         },
     )

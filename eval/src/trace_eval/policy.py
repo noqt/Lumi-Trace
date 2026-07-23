@@ -239,10 +239,29 @@ def sanitize_environment(source: Mapping[str, str], *, temp_root: Path) -> dict[
 
 
 def verify_public_document(value: Any) -> None:
+    protected_fields = {
+        "accepted_targets",
+        "canonical_upstream_url",
+        "finding_text",
+        "fixed_revision",
+        "fixing_diff",
+        "governed_location",
+        "hard_negatives",
+        "parent_revision",
+        "private_path",
+        "requested_revision",
+        "resolved_revision",
+        "reviewer_notes",
+        "security_evidence_references",
+        "source_text",
+        "targets",
+        "vulnerable_revision",
+    }
+
     def visit(item: Any, path: tuple[str, ...]) -> None:
         if isinstance(item, dict):
             for key, child in item.items():
-                if key in {"source_text", "finding_text", "private_path", "accepted_targets"}:
+                if key in protected_fields:
                     raise PolicyError(
                         f"public output contains protected field: {'.'.join((*path, key))}"
                     )

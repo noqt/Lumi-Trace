@@ -255,6 +255,14 @@ def test_label_validation_rejects_unknown_role_and_non_append_only_correction() 
         validate_location_label(correction)
 
 
+def test_fix_only_site_cannot_stand_in_for_vulnerable_implementation() -> None:
+    fix_only = _label("fix-only")
+    fix_only["payload"]["targets"] = [{"path": "src/fixed.py", "role": "FIX_SITE_ONLY"}]
+    fix_only = make_record("trace-code-location-label-v1", fix_only["payload"])
+    with pytest.raises(ContractError, match="declared primary role"):
+        validate_location_label(fix_only)
+
+
 def test_metric_definition_is_locked_against_safety_denominator_changes() -> None:
     changed = deepcopy(default_metric_specification())
     changed["payload"]["denominators"]["safety"] = "only successful cases"
