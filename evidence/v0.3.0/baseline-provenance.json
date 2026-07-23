@@ -1,0 +1,13 @@
+{
+  "ir_inputs": "SKYLARK_AUTHORED_INERT_LAB_ONLY",
+  "natural_inputs": "NONE_ADMITTED",
+  "private_artifacts_published": false,
+  "schema_version": "lumi-trace-v0.3-public-provenance-v1",
+  "source_revision": "7623278f97509ba789efecd62efdc528a6c2f6be",
+  "training_started": false,
+  "v0_1_runtime_sha256": "sha256:c3872c3ab25b1df4c4e2f31711f9072d25e4955a1cda3eecd89e421d901c0bba",
+  "v0_2_evaluator_sha256": "sha256:a5309c14c6e2f2d929886fe4ce13e9fbf483b35a1b5ae5d191829ecb11c2ce3d",
+  "v0_2_evidence_seal_id": "lumi-trace-v0.2-public-evidence:96b65c7de93d0332ba645ebc475ffc637b6147d87150bd930e962e3a9188ce63",
+  "v0_3_evaluator_sha256": "sha256:534a7b818e9c9e9728866a32b5392b648a587629bcb276b83c2edba10a64d498",
+  "weights_acquired": false
+}

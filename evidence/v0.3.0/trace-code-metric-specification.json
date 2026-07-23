@@ -1,0 +1,49 @@
+{
+  "identity_exclusions": [
+    "observations"
+  ],
+  "payload": {
+    "aggregation": [
+      "GROUP_MICRO",
+      "REPOSITORY_MACRO",
+      "REPOSITORY_FAMILY_MACRO"
+    ],
+    "cutoffs": [
+      1,
+      5,
+      10,
+      20
+    ],
+    "denominators": {
+      "disposition": "all primary-metric groups",
+      "indexability": "all primary-metric groups with an accepted target",
+      "retrieval": "all primary-metric groups with an accepted target at the named level",
+      "safety": "all primary-metric groups eligible for the named safety control"
+    },
+    "integrity_floors": {
+      "cross_split_lineage_overlap": 0,
+      "malformed_input_false_supported": 0,
+      "manifest_verification_failure": 0,
+      "negative_control_false_confirmed": 0,
+      "protected_holdback_exposure": 0,
+      "same_host_identity_rate": 1,
+      "unauthorised_corpus_access": 0
+    },
+    "matching": {
+      "file": "EXACT_REPOSITORY_RELATIVE_PATH",
+      "region": "EXACT_PATH_AND_ANY_ONE_BASED_LINE_OVERLAP",
+      "role": "MATCHED_LOCATION_HAS_DECLARED_PRIMARY_ROLE",
+      "symbol": "EXACT_PATH_AND_NAME_OR_QUALIFIED_NAME"
+    },
+    "primary_metrics": [
+      "false_vulnerability_rate",
+      "false_supported_disposition",
+      "wrong_location_role_top_one",
+      "hard_negative_outrank",
+      "unsafe_non_abstention",
+      "unsupported_input_acceptance"
+    ]
+  },
+  "record_id": "trace-code-metric-specification:bdd0fb4eff494ba7b9d21d5ebf46753d0777f7cef3ac02b9d70aa16353d513c9",
+  "schema_version": "trace-code-metric-specification-v1"
+}

@@ -1,0 +1,17 @@
+{
+  "cpu_capable_target": true,
+  "current_active_parameters": 0,
+  "current_model": null,
+  "external_tool_authority": false,
+  "future_max_active_parameters": 1000000000,
+  "future_parameter_bands": [
+    100000000,
+    300000000,
+    1000000000
+  ],
+  "future_preferred_quantised_artifact_max_bytes": 2147483648,
+  "future_target_ram_bytes": 17179869184,
+  "hosted_inference_dependency": false,
+  "measured_private_resource_observations_retained": true,
+  "schema_version": "lumi-trace-v0.3-resource-deployment-envelope-v1"
+}

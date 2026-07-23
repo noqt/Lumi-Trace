@@ -1,0 +1,12 @@
+{
+  "customer_or_protected_evidence_present": false,
+  "incident_event_substance_present": false,
+  "model_weights_or_training_data_present": false,
+  "natural_repository_evidence_present": false,
+  "publication_decision": "NO_GO_PENDING_USER_REVIEW",
+  "review_type": "CONTROLLED_INTERNAL_RELEASE_REVIEW",
+  "schema_version": "lumi-trace-v0.3-public-boundary-review-v1",
+  "source_or_private_paths_present": false,
+  "third_party_repository_substance_present": false,
+  "trace_001_decision": "NO_GO"
+}

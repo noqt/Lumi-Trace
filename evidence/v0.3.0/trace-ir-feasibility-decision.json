@@ -1,0 +1,16 @@
+{
+  "identity_exclusions": [
+    "observations"
+  ],
+  "payload": {
+    "evidence_ids": [
+      "trace-ir-metrics:23c8ee9126b3177fa5e3379fee27bf0e3841c0876e7867c3dc69aa6c13ef2cff"
+    ],
+    "lane_state": "IR_FEASIBILITY_SUPPORTED",
+    "live_integrations": false,
+    "performance_claim": "OWNED_LAB_FIXTURE_FEASIBILITY_ONLY",
+    "response_actions": false
+  },
+  "record_id": "trace-ir-feasibility-decision:f27d98c903c9fb3e6965c211ab1fd8c571a0a2e030c8efd6fa7e71885c9426a3",
+  "schema_version": "trace-ir-feasibility-decision-v1"
+}

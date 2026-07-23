@@ -1,0 +1,38 @@
+{
+  "attack_detection_claim": false,
+  "benign_false_alert_rate": {
+    "denominator": 2,
+    "numerator": 0,
+    "rate": 0.0
+  },
+  "chain_precision": {
+    "denominator": 1,
+    "numerator": 1,
+    "rate": 1.0
+  },
+  "chain_recall": {
+    "denominator": 1,
+    "numerator": 1,
+    "rate": 1.0
+  },
+  "episode_count": 4,
+  "event_count": 7,
+  "event_precision": {
+    "denominator": 3,
+    "numerator": 3,
+    "rate": 1.0
+  },
+  "event_recall": {
+    "denominator": 3,
+    "numerator": 3,
+    "rate": 1.0
+  },
+  "fixture_origin": "SKYLARK_AUTHORED_INERT_LAB_ONLY",
+  "injected_instruction_executions": 0,
+  "live_integrations": false,
+  "rejection_control_count": 5,
+  "remote_references_resolved": 0,
+  "replay_identity_agreement": true,
+  "response_actions_available": 0,
+  "schema_version": "lumi-trace-v0.3-public-ir-feasibility-summary-v1"
+}

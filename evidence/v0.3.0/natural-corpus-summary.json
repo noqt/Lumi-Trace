@@ -1,0 +1,12 @@
+{
+  "accepted_groups": 0,
+  "accepted_repositories": 0,
+  "baseline_run": false,
+  "holdback_opened": false,
+  "natural_performance_claim": false,
+  "pilot_target_met": false,
+  "programme_state": "DATA_GATES_PENDING",
+  "qualification_run": false,
+  "schema_version": "lumi-trace-v0.3-public-natural-corpus-summary-v1",
+  "threshold_decision": "DECLINED / INSUFFICIENT_DEVELOPMENT_EVIDENCE"
+}
