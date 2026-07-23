@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Schema-validated canonical record contracts for Trace-Eval V0.2."""
+"""Schema-validated canonical record contracts for Trace-Eval."""
 
 from __future__ import annotations
 
@@ -145,11 +145,146 @@ REQUIRED_PAYLOAD_FIELDS: dict[str, set[str]] = {
         "training_started",
         "weights_downloaded",
     },
+    "programme-boundary-v1": {
+        "version",
+        "authority",
+        "permitted_activities",
+        "prohibited_sources",
+        "training_authorised",
+        "weights_acquired",
+        "holdback_state",
+    },
+    "natural-corpus-registry-v1": {
+        "repositories",
+        "groups",
+        "accepted_group_count",
+        "accepted_repository_count",
+        "sufficiency",
+        "private_evidence_location",
+    },
+    "trace-code-location-label-v1": {
+        "group_id",
+        "label_state",
+        "repository_id",
+        "repository_family",
+        "expected_disposition",
+        "targets",
+        "primary_role",
+        "hard_negatives",
+        "safe_control",
+        "review_receipt_ids",
+        "corrections",
+        "constructed_without_runner_output",
+    },
+    "trace-code-metric-specification-v1": {
+        "cutoffs",
+        "matching",
+        "denominators",
+        "primary_metrics",
+        "aggregation",
+        "integrity_floors",
+    },
+    "trace-code-case-result-v1": {
+        "group_id",
+        "repository_id",
+        "repository_family",
+        "label_state",
+        "safe_control",
+        "expected_disposition",
+        "observed_disposition",
+        "ranking",
+        "indexability",
+        "failures",
+        "taxonomy",
+    },
+    "trace-code-aggregate-metrics-v1": {
+        "metric_spec_id",
+        "case_result_ids",
+        "micro",
+        "repository_macro",
+        "repository_family_macro",
+        "strata",
+        "excluded",
+    },
+    "repository-lineage-audit-v1": {
+        "repository_count",
+        "partitions",
+        "cross_partition_overlap_count",
+        "methods",
+        "holdback_opened",
+    },
+    "trace-ir-event-v1": {
+        "episode_id",
+        "order",
+        "source_type",
+        "source_id",
+        "action",
+        "outcome",
+        "references",
+        "redaction_status",
+        "provenance",
+        "rights",
+    },
+    "trace-ir-episode-v1": {
+        "episode_id",
+        "scenario_family",
+        "generator_lineage",
+        "partition",
+        "event_ids",
+        "provenance",
+        "rights",
+    },
+    "trace-ir-label-v1": {
+        "episode_id",
+        "label_state",
+        "relevant_event_ids",
+        "chain_edges",
+        "review_receipt_ids",
+    },
+    "trace-ir-result-v1": {
+        "episode_id",
+        "ranked_events",
+        "proposed_chain",
+        "supporting_fields",
+        "missing_evidence",
+        "disposition",
+        "abstention_reason",
+        "action_available",
+    },
+    "trace-ir-metrics-v1": {
+        "episode_count",
+        "event_metrics",
+        "episode_metrics",
+        "chain_metrics",
+        "safety",
+        "replay",
+        "resources",
+    },
+    "trace-ir-feasibility-decision-v1": {
+        "lane_state",
+        "evidence_ids",
+        "live_integrations",
+        "response_actions",
+        "performance_claim",
+    },
+    "v0.3-closure-v1": {
+        "programme_state",
+        "ir_lane_state",
+        "natural_corpus",
+        "threshold_decision",
+        "qualification_run",
+        "holdback_opened",
+        "training_recommendation",
+        "training_started",
+        "weights_acquired",
+        "publication_decision",
+        "evidence_ids",
+    },
 }
 
 _SCHEMA = json.loads(
     files("trace_eval.schemas")
-    .joinpath("trace-eval-contract-v0.2.json")
+    .joinpath("trace-eval-contract-v0.3.json")
     .read_text(encoding="utf-8")
 )
 _VALIDATOR = Draft202012Validator(_SCHEMA)

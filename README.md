@@ -1,9 +1,12 @@
 # Lumi Trace
 
-> **V0.2 evaluation build.** The V0.1 runtime remains the exact system under
-> test. V0.2 adds the isolated Trace-Eval harness and closes as
-> `ENVIRONMENT_QUALIFIED / DATA_GATES_PENDING`. It does not authorise
-> `TRACE-001` training, model-weight publication, or protected evidence use.
+> **V0.3 qualification build.** The V0.1 runtime remains the exact Trace Code
+> system under test. Trace-Eval 0.3 adds location-role and safe-disposition
+> contracts plus a separate, inert Trace IR feasibility lane. The governed
+> natural store contains no admitted corpus, so V0.3 closes as
+> `DATA_GATES_PENDING`; the owned-lab IR lane closes as
+> `IR_FEASIBILITY_SUPPORTED`. Neither result authorises `TRACE-001` training,
+> model-weight acquisition, live incident integration, or publication.
 
 Lumi Trace is a customer-local vulnerability evidence instrument. It imports a
 finding, creates a clean-room snapshot of a local repository or archive, builds
@@ -17,10 +20,12 @@ baseline, not a trained ML model.
 
 ## Current Status and Hard Stops
 
-- Runtime version: `0.1.0`; evaluator version: `0.2.0`.
+- Runtime version: `0.1.0`; evaluator version: `0.3.0`.
 - Inventory identity: `skylark.lumi.trace`.
 - Model status: `PROPOSED_NOT_TRAINED`; checkpoint: none; active parameters: 0.
-- V0.2 status: evaluation environment qualified; natural-data gates pending.
+- V0.3 Trace Code state: `DATA_GATES_PENDING` (0 admitted natural groups).
+- V0.3 Trace IR state: `IR_FEASIBILITY_SUPPORTED` on owned inert lab fixtures
+  only; this is not a live attack-detection result.
 - `TRACE-001` recommendation: `DO_NOT_BEGIN_TRACE_001`.
 - Historical Lumi evidence, customer evidence, protected holdbacks, CyberGym
   tasks, and rejected V2.7 adapters are outside this build.
@@ -39,6 +44,11 @@ separate `skylark-lumi-trace-eval` package under `eval/`.
 
 The disclosure-reviewed synthetic seal and exact verification command are in
 [V0.2 Public Evaluation Evidence](docs/V0.2_EVIDENCE.md).
+
+The V0.3 location-role contracts, natural-corpus decision, inert Trace IR lane,
+and evidence limits are documented in [V0.3 Natural and Defensive Evidence
+Qualification](docs/V0.3_QUALIFICATION.md). The disclosure-safe seal is
+documented in [V0.3 Evidence](docs/V0.3_EVIDENCE.md).
 
 ## Runtime Flow
 

@@ -1,4 +1,4 @@
-# Lumi Trace V0.1 Schemas
+# Lumi Trace Schemas
 
 ## Contract Policy
 
@@ -102,6 +102,25 @@ is not itself the identity encoding.
 
 The CLI `validate` command is not a general-purpose or complete JSON Schema
 validator. Passing it does not replace release-time Draft 2020-12 validation.
+
+## Trace-Eval V0.3 Records
+
+Trace-Eval uses a separately packaged canonical envelope schema under
+`eval/src/trace_eval/schemas/trace-eval-contract-v0.3.json`. It retains every
+V0.2 record type and adds:
+
+- programme boundary, natural-corpus registry, and repository-lineage audit;
+- Trace Code location labels, metric specifications, case results, and
+  aggregates;
+- Trace IR events, episodes, labels, results, metrics, and feasibility
+  decisions; and
+- the V0.3 closure record.
+
+Payload invariants are enforced by evaluator code in addition to the envelope.
+Location labels require an explicit role, controlled-review receipt, and a
+contiguous append-only correction history. Trace IR accepts only bounded inert
+JSON, verifies owned immutable provenance and rights, rejects remote or
+executable fields, and keeps labels outside runner input.
 
 ## Privacy Properties
 

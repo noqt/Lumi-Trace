@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Trace-Eval V0.2 command surface."""
+"""Trace-Eval deterministic qualification command surface."""
 
 from __future__ import annotations
 
@@ -10,12 +10,14 @@ from pathlib import Path
 from typing import Any
 
 from . import __version__
-from .canonical import load_json
+from .canonical import dump_json, load_json
+from .code_metrics import default_metric_specification
 from .contracts import validate_record
 from .environment import qualify_environment
 from .errors import TraceEvalError
+from .ir import normalise_episode, rank_episode
 from .metrics import score_run, verify_labels, verify_scored_package
-from .package import verify_package
+from .package import seal_package, verify_package
 from .policy import audit_repository_independence, verify_rights
 from .readiness import evaluate_readiness
 from .registry import load_registry, records_by_schema, validate_registry
@@ -115,6 +117,20 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate.add_argument("--run-package", type=_path, required=True)
     evaluate.add_argument("--scored-package", type=_path, required=True)
     evaluate.add_argument("--replay-package", type=_path, required=True)
+
+    code = domains.add_parser("code")
+    code_commands = code.add_subparsers(dest="command", required=True)
+    metric_spec = code_commands.add_parser("metric-specification")
+    metric_spec.add_argument("--output", type=_path, required=True)
+
+    ir = domains.add_parser("ir")
+    ir_commands = ir.add_subparsers(dest="command", required=True)
+    ir_normalise = ir_commands.add_parser("normalise")
+    ir_normalise.add_argument("input", type=_path)
+    ir_normalise.add_argument("--output", type=_path, required=True)
+    ir_rank = ir_commands.add_parser("rank")
+    ir_rank.add_argument("episode_package", type=_path)
+    ir_rank.add_argument("--output", type=_path, required=True)
     return parser
 
 
@@ -231,6 +247,44 @@ def dispatch(args: argparse.Namespace) -> None:
             recommendation=result["readiness"]["payload"]["recommendation"],
             package_id=result["manifest"]["package_id"],
         )
+    elif args.domain == "code":
+        if args.output.exists():
+            raise TraceEvalError("metric specification output already exists")
+        record = default_metric_specification()
+        dump_json(args.output, record)
+        _summary(record_id=record["record_id"])
+    elif args.domain == "ir" and args.command == "normalise":
+        if args.output.exists():
+            raise TraceEvalError("Trace IR normalised output already exists")
+        document = load_json(args.input)
+        if not isinstance(document, dict):
+            raise TraceEvalError("Trace IR input package must be an object")
+        episode, events = normalise_episode(document)
+        args.output.mkdir(parents=True)
+        dump_json(args.output / "episode.json", episode)
+        for index, event in enumerate(events):
+            dump_json(args.output / "events" / f"{index:06d}.json", event)
+        manifest = seal_package(args.output)
+        _summary(
+            episode_id=episode["record_id"],
+            event_count=len(events),
+            package_id=manifest["package_id"],
+        )
+    elif args.domain == "ir" and args.command == "rank":
+        if args.output.exists():
+            raise TraceEvalError("Trace IR result output already exists")
+        verify_package(args.episode_package)
+        episode = load_json(args.episode_package / "episode.json")
+        events = [
+            load_json(path) for path in sorted((args.episode_package / "events").glob("*.json"))
+        ]
+        if not isinstance(episode, dict) or not all(isinstance(item, dict) for item in events):
+            raise TraceEvalError("Trace IR normalised package is malformed")
+        result = rank_episode(episode, events)
+        args.output.mkdir(parents=True)
+        dump_json(args.output / "result.json", result)
+        manifest = seal_package(args.output)
+        _summary(result_id=result["record_id"], package_id=manifest["package_id"])
 
 
 def main(argv: list[str] | None = None) -> int:

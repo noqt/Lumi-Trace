@@ -27,6 +27,7 @@ from seal_v0_1 import (  # noqa: E402
     _write_json,
 )
 from verify_v0_1_evidence import verify_seal_manifest  # noqa: E402
+from verify_v0_3_evidence import verify as verify_v0_3_evidence  # noqa: E402
 
 REVISION = "a" * 40
 
@@ -196,3 +197,22 @@ def test_sdist_excludes_a_populated_evidence_tree(tmp_path: Path, project_root: 
     assert not any(".pytest_cache" in member.parts for member in members)
     assert not any(".ruff_cache" in member.parts for member in members)
     assert not any(member.name == "skylark_lumi_trace_eval.egg-info" for member in members)
+
+
+def test_v0_3_public_evidence_verifies_and_detects_tamper(
+    tmp_path: Path, project_root: Path
+) -> None:
+    evidence = project_root / "evidence" / "v0.3.0"
+    if not evidence.is_dir():
+        pytest.skip("V0.3 seal is generated after the implementation revision is committed")
+    manifest = verify_v0_3_evidence(evidence)
+    assert manifest["source_revision"]
+
+    copied = tmp_path / "v0.3.0"
+    shutil.copytree(evidence, copied)
+    summary = copied / "natural-corpus-summary.json"
+    value = json.loads(summary.read_text(encoding="utf-8"))
+    value["accepted_groups"] = 1
+    summary.write_text(json.dumps(value), encoding="utf-8")
+    with pytest.raises(ValueError, match="artifact mismatch"):
+        verify_v0_3_evidence(copied)

@@ -1,8 +1,8 @@
-# Lumi Trace V0.2 Model Card
+# Lumi Trace V0.3 Model Card
 
 ## Status
 
-Lumi Trace V0.2 continues to test the exact V0.1.0 deterministic local
+Lumi Trace V0.3 continues to test the exact V0.1.0 deterministic local
 vulnerability-evidence instrument. It is **not an ML model**.
 
 | Field | Value |
@@ -33,7 +33,7 @@ documented program logic and are not probabilities or learned predictions.
 The runtime does not call a model provider, use hosted inference, or require an
 API key.
 
-V0.2 adds no learned component. Trace-Eval measures the pinned V0.1 wheel in a
+V0.2 and V0.3 add no learned component. Trace-Eval measures the pinned V0.1 wheel in a
 separate Python 3.11 environment using rights-bound registries, label-blind
 subprocess runs, raw-output sealing, reproducible metrics, and replay. The
 public fixture baseline is a controlled synthetic regression exercise, not
@@ -61,7 +61,7 @@ be represented as a trained vulnerability model.
 
 ## Training and Lineage
 
-No training or fine-tuning was performed for V0.1 or V0.2. No model weights were
+No training or fine-tuning was performed for V0.1, V0.2, or V0.3. No model weights were
 downloaded. No training dataset, labelled candidate group, learned adapter, or
 checkpoint is included.
 

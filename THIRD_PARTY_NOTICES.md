@@ -6,7 +6,7 @@ repository. It does not replace the licence supplied by a third-party author.
 ## Distributed Third-Party Material
 
 No third-party source code, model weights, training data, customer repository
-contents, CyberGym tasks, or protected Lumi evidence is vendored in the V0.2
+contents, CyberGym tasks, or protected Lumi evidence is vendored in the V0.3
 source distribution.
 
 Public test fixtures must be Skylark-authored synthetic content or must include

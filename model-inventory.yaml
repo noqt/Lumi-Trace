@@ -2,7 +2,7 @@ schema_version: model-inventory-v1
 id: skylark.lumi.trace
 name: Lumi Trace
 parent: skylark.lumi.frontier
-stage: instrument-development
+stage: instrument-evaluation
 runtime: customer-local
 model_status: PROPOSED_NOT_TRAINED
 checkpoint: null

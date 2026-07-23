@@ -32,6 +32,10 @@ HOST_PATHS = (
 )
 DOCUMENTED_TOPOLOGY_FILES = {
     Path("docs/build-briefs/Lumi-Trace-V0.2-Evaluation-and-Training-Readiness-Build-Brief.md"),
+    Path(
+        "docs/build-briefs/"
+        "Lumi-Trace-V0.3-Natural-Repository-and-Defensive-Evidence-Qualification-Build-Brief.md"
+    ),
 }
 
 

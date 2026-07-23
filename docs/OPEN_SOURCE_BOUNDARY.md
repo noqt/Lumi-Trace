@@ -7,7 +7,7 @@ and documentation expressly distributed under that licence. It establishes an
 open-source software project; it does not establish or license an open-source
 AI model.
 
-Lumi Trace V0.2 contains no checkpoint, model weights, trained adapter, or
+Lumi Trace V0.3 contains no checkpoint, model weights, trained adapter, or
 training dataset.
 
 ## Excluded Materials
@@ -80,3 +80,10 @@ V0.1 source publication was separately authorised after the release-evidence
 review. V0.2 implementation and sealing do not authorise publication; every
 later release must repeat the boundary review and receive its own publication
 decision.
+
+V0.3 retains natural repository manifests, location labels, event packages,
+controlled-review receipts, raw outputs, resource observations, and scored
+packages only in governed private storage. The public V0.3 seal contains
+contract records, counts, decisions, and disclosure-safe summaries; it contains
+no natural repository substance or incident-event content. V0.3 remains
+`NO_GO_PENDING_USER_REVIEW` for publication.

@@ -21,6 +21,7 @@ EXPOSURE_STATES = {
 }
 PARTITIONS = {
     "public_regression",
+    "construction",
     "future_training_candidate",
     "development",
     "qualification",
@@ -47,6 +48,11 @@ FAILURE_CODES = {
     "RESOURCE_LIMIT_REACHED",
     "RUNNER_OR_SCHEMA_FAILURE",
     "METRIC_OR_REPORT_INCONSISTENCY",
+    "FALSE_SUPPORTED_DISPOSITION",
+    "FALSE_VULNERABILITY",
+    "UNSAFE_NON_ABSTENTION",
+    "UNSUPPORTED_INPUT_ACCEPTED",
+    "WRONG_LOCATION_ROLE_TOP_ONE",
 }
 
 _TRANSITIONS = {

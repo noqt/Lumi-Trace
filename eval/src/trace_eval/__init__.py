@@ -1,4 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Lumi Trace evaluation and training-readiness qualification."""
+"""Lumi Trace evaluation and defensive-evidence qualification."""
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"

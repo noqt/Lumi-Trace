@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.0 - Natural repository and defensive evidence qualification
+
+- Added controlled-reviewed code-location roles for observations, harnesses,
+  witnesses, vulnerable and contributing implementations, and fix-only sites.
+- Added locked Trace Code safety, retrieval, disposition, repository-macro,
+  repository-family-macro, hard-negative, and abstention metrics.
+- Added bounded inert Trace IR event and episode normalisation, deterministic
+  event ranking, chain evidence, replay, benign-control metrics, and strict
+  rejection of remote references, templates, secrets, forged provenance, and
+  protected partitions.
+- Added a hash-bound V0.3 authority record, natural-corpus sufficiency decision,
+  required-artifact register, micro-model decision pack, and closure record.
+- Retained an empty governed natural registry instead of acquiring or
+  fabricating a corpus. Trace Code closes `DATA_GATES_PENDING`.
+- Qualified only an owned-lab IR architecture fixture lane as
+  `IR_FEASIBILITY_SUPPORTED`; no live attack-detection claim is made.
+- Preserved `DO_NOT_BEGIN_TRACE_001`, zero weights, an unopened holdback, and
+  `NO_GO_PENDING_USER_REVIEW` for publication.
+
 ## 0.2.0 - Evaluation and training-readiness qualification
 
 - Added the separately packaged Python 3.11 Trace-Eval runner and verifier.

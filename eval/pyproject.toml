@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "skylark-lumi-trace-eval"
-version = "0.2.0"
-description = "Isolated deterministic evaluation and training-readiness qualification for Lumi Trace"
+version = "0.3.0"
+description = "Isolated deterministic natural-repository and defensive-evidence qualification for Lumi Trace"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 license = "Apache-2.0"
