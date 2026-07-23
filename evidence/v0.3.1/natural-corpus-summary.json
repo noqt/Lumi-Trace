@@ -1,0 +1,55 @@
+{
+  "accepted_groups": 58,
+  "accepted_security_pairs": 29,
+  "acquired_repository_families": 10,
+  "admitted_repository_families": 10,
+  "cross_partition_overlap_count": 0,
+  "evidence_strength_counts": {
+    "AUTHORITATIVE_ADVISORY_PLUS_FIXING_DIFF": 58
+  },
+  "future_training_use_permitted": false,
+  "hard_negative_count": 52,
+  "language_counts": {
+    "Python": 58
+  },
+  "missing_strata": [
+    "REPRODUCTION_WITNESS_LABELS",
+    "NON_PYTHON_LANGUAGES"
+  ],
+  "partitions": {
+    "development": 40,
+    "qualification": 18
+  },
+  "proposed_repository_families": 10,
+  "proposed_security_pairs": 30,
+  "rejected_security_pairs": 1,
+  "role_counts": {
+    "VULNERABLE_IMPLEMENTATION": 45
+  },
+  "safe_control_count": 29,
+  "schema_version": "lumi-trace-v0.3.1-public-corpus-summary-v1",
+  "state_counts": {
+    "fixed_safe_control": 29,
+    "vulnerable_or_affected": 29
+  },
+  "sufficiency": "PILOT_TARGET_MET",
+  "weakness_counts": {
+    "CWE-150": 2,
+    "CWE-20": 4,
+    "CWE-200": 6,
+    "CWE-22": 8,
+    "CWE-352": 2,
+    "CWE-400": 4,
+    "CWE-426": 2,
+    "CWE-502": 2,
+    "CWE-522": 2,
+    "CWE-601": 2,
+    "CWE-669": 2,
+    "CWE-670": 2,
+    "CWE-693": 2,
+    "CWE-770": 10,
+    "CWE-78": 2,
+    "CWE-79": 4,
+    "CWE-835": 2
+  }
+}

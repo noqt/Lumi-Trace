@@ -39,6 +39,12 @@ label-blind subprocess runs, raw-output sealing, reproducible metrics, and
 replay. V0.3.1 natural labels and source snapshots are private evaluation
 evidence. They are not training data and are not included in this repository.
 
+The V0.3.1 natural development baseline reproduced, but only 8 of 40 attempts
+completed. Twenty-eight failed on a V0.1 ranked-score-reason validation
+mismatch and four reached the sealed resource limit. The resulting
+`NOT_QUALIFIED / REMEDIATION_REQUIRED` closure is a fail-closed engineering
+result, not evidence of model capability.
+
 ## Intended Use
 
 Lumi Trace V0.1 is intended to help an authorised user collect local evidence

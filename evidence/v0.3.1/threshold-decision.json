@@ -1,0 +1,72 @@
+{
+  "checks": [
+    {
+      "metric": "file_recall_at_20",
+      "observed": 0.15,
+      "operator": ">=",
+      "passed": false,
+      "threshold": 0.7
+    },
+    {
+      "metric": "target_indexability",
+      "observed": 0.2,
+      "operator": ">=",
+      "passed": false,
+      "threshold": 0.9
+    },
+    {
+      "metric": "false_supported_disposition",
+      "observed": 0.0,
+      "operator": "<=",
+      "passed": true,
+      "threshold": 0.0
+    },
+    {
+      "metric": "false_vulnerability_rate",
+      "observed": 0.0,
+      "operator": "<=",
+      "passed": true,
+      "threshold": 0.0
+    },
+    {
+      "metric": "unsafe_non_abstention",
+      "observed": 0.0,
+      "operator": "<=",
+      "passed": true,
+      "threshold": 0.0
+    },
+    {
+      "metric": "wrong_location_role_top_one",
+      "observed": 0.0,
+      "operator": "<=",
+      "passed": true,
+      "threshold": 0.25
+    },
+    {
+      "metric": "hard_negative_outrank",
+      "observed": 1.0,
+      "operator": "<=",
+      "passed": false,
+      "threshold": 0.25
+    }
+  ],
+  "decided_before_qualification": true,
+  "decision": "DECLINE",
+  "execution_integrity": {
+    "all_attempts_completed": false,
+    "replay_identity_agreement": true,
+    "replay_semantic_agreement": true
+  },
+  "integrity_floors": {
+    "cross_split_lineage_overlap": 0,
+    "manifest_verification_failure": 0,
+    "protected_holdback_exposure": 0,
+    "retained_evidence_verification_failure": 0,
+    "third_party_source_in_public_evidence": 0,
+    "unauthorised_corpus_access": 0
+  },
+  "qualification_authorised": false,
+  "qualification_evidence_used": false,
+  "remediation_class": "NOT_QUALIFIED / REMEDIATION_REQUIRED",
+  "schema_version": "lumi-trace-v0.3.1-public-threshold-decision-v1"
+}

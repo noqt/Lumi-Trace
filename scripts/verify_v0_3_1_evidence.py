@@ -81,12 +81,20 @@ def verify(root: Path) -> dict[str, object]:
         or provenance["runtime_changed"] is not False
         or provenance["raw_sealed_before_labels"] is not True
         or provenance["replay_identity_agreement"] is not True
+        or provenance["replay_semantic_agreement"] is not True
         or not 50 <= corpus["accepted_groups"] <= 100
         or not 8 <= corpus["admitted_repository_families"] <= 12
         or corpus["future_training_use_permitted"] is not False
         or corpus["cross_partition_overlap_count"] != 0
         or threshold["qualification_evidence_used"] is not False
         or threshold["decided_before_qualification"] is not True
+        or threshold["execution_integrity"]["all_attempts_completed"]
+        != (
+            resources["development"]["completed_attempts"]
+            == resources["development"]["attempt_count"]
+        )
+        or sum(resources["development"]["failure_code_counts"].values())
+        != resources["development"]["failed_attempts"]
         or qualification["maximum_runs"] != 1
         or qualification["consumed_runs"] not in {0, 1}
         or qualification["used_for_threshold_selection"] is not False
@@ -105,6 +113,14 @@ def verify(root: Path) -> dict[str, object]:
         or resources["repository_build_or_test_runs"] != 0
     ):
         raise ValueError("V0.3.1 evidence or stop gates are not intact")
+    if threshold["execution_integrity"]["all_attempts_completed"] is False and (
+        threshold["decision"] != "DECLINE"
+        or threshold["qualification_authorised"] is not False
+        or qualification["run"] is not False
+        or qualification["consumed_runs"] != 0
+        or closure["payload"]["closure_state"] != "NOT_QUALIFIED / REMEDIATION_REQUIRED"
+    ):
+        raise ValueError("V0.3.1 incomplete execution did not fail closed")
     json.dumps(manifest, allow_nan=False, sort_keys=True)
     return manifest
 

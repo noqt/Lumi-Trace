@@ -15,6 +15,12 @@
 - Added natural vulnerable/fixed pairs, fixed safe controls, implementation
   roles, harness hard negatives, repository-family-disjoint splits, raw-before-
   label sealing, deterministic replay, and fail-closed qualification gating.
+- Admitted 58 controlled-review evaluation groups across 10 unrelated
+  repository families. The exact V0.1 development run completed 8 of 40
+  attempts, reproduced exactly, and stopped before qualification after 28
+  runtime/schema failures and 4 resource-limit failures.
+- Closed `NOT_QUALIFIED / REMEDIATION_REQUIRED` without changing the V0.1
+  runtime or consuming the single qualification budget.
 - Kept all third-party source and case-level evidence private. Public evidence
   is restricted to aggregate counts, metrics, decisions, identities, and
   hashes.

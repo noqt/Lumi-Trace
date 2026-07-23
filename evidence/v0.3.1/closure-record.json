@@ -1,0 +1,27 @@
+{
+  "identity_exclusions": [
+    "observations"
+  ],
+  "payload": {
+    "closure_state": "NOT_QUALIFIED / REMEDIATION_REQUIRED",
+    "development_run": true,
+    "evidence_ids": [
+      "pre-run-seal:4706d7e7e38cc473caed466fe33aac1ece4d62a3a59e0fdd29def9e0653aa12c",
+      "run-record:98b8ee1a4e15f93fb216b20600c4ca896be5fd3e5a6d623ec0d08d9ed3dfc519",
+      "trace-code-aggregate-metrics:e8160820dce73ee675b831607352cd5179073b1eae806b11211f38b174a6c13e",
+      "replay-verification:3ce872ba854af70cfc2500449e5b316c1e5fbd7f488f100f6d8a9c3ac4e6fe4f",
+      "natural-threshold-decision:a358631c70d0332e2800f6ced148384fcceb2de455ef2d035bcb9cf5a961269c"
+    ],
+    "holdback_opened": false,
+    "natural_corpus_state": "PILOT_TARGET_MET",
+    "publication_decision": "NO_GO_PENDING_USER_REVIEW",
+    "qualification_budget_consumed": 0,
+    "qualification_run": false,
+    "trace_ir_state": "IR_FEASIBILITY_SUPPORTED_UNCHANGED",
+    "training_recommendation": "DO_NOT_BEGIN_TRACE_001",
+    "training_started": false,
+    "weights_acquired": false
+  },
+  "record_id": "v0.3.1-closure:19aa0131f9b3b0e225dcf153bacc01b43585323693c861a3d7bd76d13816f20a",
+  "schema_version": "v0.3.1-closure-v1"
+}
