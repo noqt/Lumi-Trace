@@ -13,7 +13,11 @@ def test_observed_process_records_bounded_tree_resources(tmp_path: Path) -> None
     stderr_path = tmp_path / "stderr.bin"
     with stdout_path.open("wb") as stdout, stderr_path.open("wb") as stderr:
         observed = _run_observed(
-            [sys.executable, "-c", "value = bytearray(1024 * 1024); print(len(value))"],
+            [
+                sys.executable,
+                "-c",
+                "value = bytearray(1024 * 1024); print(sum(i * i for i in range(3000000)))",
+            ],
             stdout=stdout,
             stderr=stderr,
             environment=dict(os.environ),
@@ -25,6 +29,7 @@ def test_observed_process_records_bounded_tree_resources(tmp_path: Path) -> None
     assert observed["wall_time_ms"] >= 0
     assert observed["peak_process_count"] >= 1
     assert observed["peak_resident_bytes"] is None or observed["peak_resident_bytes"] > 0
+    assert observed["cpu_time_ms"] > 0
 
 
 def test_observed_process_terminates_on_wall_time_limit(tmp_path: Path) -> None:

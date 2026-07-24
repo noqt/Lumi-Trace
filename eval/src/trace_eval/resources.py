@@ -34,6 +34,15 @@ def _linux_rss(pid: int) -> int:
     return 0
 
 
+def _linux_cpu_time_ms(pid: int) -> int:
+    try:
+        fields = Path(f"/proc/{pid}/stat").read_text(encoding="ascii").split()
+        ticks = int(fields[13]) + int(fields[14])
+        return (ticks * 1000) // int(os.sysconf("SC_CLK_TCK"))
+    except (OSError, ValueError, IndexError):
+        return 0
+
+
 def _windows_processes() -> dict[int, int]:
     import ctypes
     from ctypes import wintypes
@@ -120,17 +129,57 @@ def _windows_rss(pid: int) -> int:
         kernel32.CloseHandle(handle)
 
 
-def process_tree_snapshot(root_pid: int) -> tuple[int, int]:
-    """Return current aggregate RSS and process count for a process tree."""
+def _windows_cpu_time_ms(pid: int) -> int:
+    import ctypes
+    from ctypes import wintypes
+
+    query = 0x1000
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.OpenProcess.restype = wintypes.HANDLE
+    kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+    kernel32.GetProcessTimes.argtypes = [
+        wintypes.HANDLE,
+        ctypes.POINTER(wintypes.FILETIME),
+        ctypes.POINTER(wintypes.FILETIME),
+        ctypes.POINTER(wintypes.FILETIME),
+        ctypes.POINTER(wintypes.FILETIME),
+    ]
+    handle = kernel32.OpenProcess(query, False, pid)
+    if not handle:
+        return 0
+    created = wintypes.FILETIME()
+    exited = wintypes.FILETIME()
+    kernel = wintypes.FILETIME()
+    user = wintypes.FILETIME()
+    try:
+        if not kernel32.GetProcessTimes(
+            handle,
+            ctypes.byref(created),
+            ctypes.byref(exited),
+            ctypes.byref(kernel),
+            ctypes.byref(user),
+        ):
+            return 0
+        kernel_ticks = (int(kernel.dwHighDateTime) << 32) | int(kernel.dwLowDateTime)
+        user_ticks = (int(user.dwHighDateTime) << 32) | int(user.dwLowDateTime)
+        return (kernel_ticks + user_ticks) // 10_000
+    finally:
+        kernel32.CloseHandle(handle)
+
+
+def process_tree_observation(root_pid: int) -> tuple[int, int, dict[int, int]]:
+    """Return aggregate RSS, process count, and per-process CPU time."""
 
     if sys.platform == "win32":
         relationships = _windows_processes()
         rss = _windows_rss
+        cpu_time_ms = _windows_cpu_time_ms
     elif os.name == "posix":
         relationships = _linux_processes()
         rss = _linux_rss
+        cpu_time_ms = _linux_cpu_time_ms
     else:
-        return 0, 0
+        return 0, 0, {}
     selected = {root_pid}
     changed = True
     while changed:
@@ -139,4 +188,15 @@ def process_tree_snapshot(root_pid: int) -> tuple[int, int]:
             if parent in selected and pid not in selected:
                 selected.add(pid)
                 changed = True
-    return sum(rss(pid) for pid in selected), len(selected)
+    return (
+        sum(rss(pid) for pid in selected),
+        len(selected),
+        {pid: cpu_time_ms(pid) for pid in selected},
+    )
+
+
+def process_tree_snapshot(root_pid: int) -> tuple[int, int]:
+    """Return current aggregate RSS and process count for a process tree."""
+
+    resident_bytes, process_count, _ = process_tree_observation(root_pid)
+    return resident_bytes, process_count

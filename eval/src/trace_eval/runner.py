@@ -18,7 +18,7 @@ from .errors import ContractError, RunnerError
 from .package import seal_package, verify_package
 from .policy import FAILURE_CODES, assert_runner_blind, sanitize_environment
 from .registry import load_registry, records_by_schema, validate_registry
-from .resources import process_tree_snapshot
+from .resources import process_tree_observation
 
 
 def _resolve_under(root: Path, relative: str, *, directory: bool) -> Path:
@@ -113,26 +113,32 @@ def _run_observed(
     started = time.perf_counter_ns()
     peak_resident_bytes = 0
     peak_process_count = 0
+    cpu_time_by_pid: dict[int, int] = {}
     timed_out = False
     while process.poll() is None:
-        resident_bytes, process_count = process_tree_snapshot(process.pid)
+        resident_bytes, process_count, cpu_times = process_tree_observation(process.pid)
         peak_resident_bytes = max(peak_resident_bytes, resident_bytes)
         peak_process_count = max(peak_process_count, process_count)
+        for pid, cpu_time_ms in cpu_times.items():
+            cpu_time_by_pid[pid] = max(cpu_time_by_pid.get(pid, 0), cpu_time_ms)
         elapsed_seconds = (time.perf_counter_ns() - started) / 1_000_000_000
         if elapsed_seconds >= timeout_seconds:
             timed_out = True
             _terminate_process_tree(process)
             break
         time.sleep(0.05)
-    resident_bytes, process_count = process_tree_snapshot(process.pid)
+    resident_bytes, process_count, cpu_times = process_tree_observation(process.pid)
     peak_resident_bytes = max(peak_resident_bytes, resident_bytes)
     peak_process_count = max(peak_process_count, process_count)
+    for pid, cpu_time_ms in cpu_times.items():
+        cpu_time_by_pid[pid] = max(cpu_time_by_pid.get(pid, 0), cpu_time_ms)
     return {
         "return_code": None if timed_out else process.returncode,
         "timed_out": timed_out,
         "wall_time_ms": (time.perf_counter_ns() - started) // 1_000_000,
         "peak_resident_bytes": peak_resident_bytes or None,
         "peak_process_count": peak_process_count,
+        "cpu_time_ms": sum(cpu_time_by_pid.values()),
     }
 
 
@@ -221,7 +227,6 @@ def _attempt(
     output_bytes = int(limits["subprocess_output_bytes"])
     disk_bytes = int(limits["case_disk_bytes"])
     started = time.perf_counter_ns()
-    process_times = os.times()
     failure_codes: list[str] = []
     status = "COMPLETED"
     return_code: int | None = None
@@ -229,6 +234,7 @@ def _attempt(
     termination_reason = "COMPLETED"
     peak_resident_bytes: int | None = None
     peak_process_count = 0
+    cpu_time_ms = 0
     stage_wall_time_ms: dict[str, int] = {}
     repository_file_count = 0
     repository_bytes = 0
@@ -297,6 +303,7 @@ def _attempt(
         return_code = observed["return_code"]
         peak_resident_bytes = observed["peak_resident_bytes"]
         peak_process_count = int(observed["peak_process_count"])
+        cpu_time_ms = int(observed["cpu_time_ms"])
         retained_log_bytes = stdout_log.stat().st_size + stderr_log.stat().st_size
         if observed["timed_out"]:
             status = "FAILED"
@@ -342,14 +349,6 @@ def _attempt(
         finally:
             _writable_tree(repository)
     elapsed_ms = (time.perf_counter_ns() - started) // 1_000_000
-    after_times = os.times()
-    cpu_ms = int(
-        (
-            (after_times.children_user + after_times.children_system)
-            - (process_times.children_user + process_times.children_system)
-        )
-        * 1000
-    )
     if any(code not in FAILURE_CODES for code in failure_codes):
         raise RunnerError("attempt produced an unknown failure code")
     attempt_id = stable_id("trace-eval-attempt", {"run_id": run_id, "group_id": group["record_id"]})
@@ -368,7 +367,7 @@ def _attempt(
         },
         observations={
             "wall_time_ms": elapsed_ms,
-            "cpu_time_ms": cpu_ms,
+            "cpu_time_ms": cpu_time_ms,
             "return_code": return_code,
             "retained_log_bytes": min(retained_log_bytes, output_bytes),
             "retained_artifact_bytes": sum(
