@@ -13,6 +13,7 @@ from .findings import validate_normalized_finding
 from .indexing import tokenize, verify_repository_index
 
 RANKING_ALGORITHM = "deterministic-candidate-ranking-v1"
+SCORE_REASON_MATCH_LIMIT = 20
 
 
 def _terms(values: list[str]) -> set[str]:
@@ -52,7 +53,12 @@ def _query(finding: dict[str, object]) -> dict[str, object]:
 def _reason(code: str, points: int, matches: list[str] | None = None) -> dict[str, object]:
     value: dict[str, object] = {"code": code, "points": points}
     if matches:
-        value["matches"] = sorted(matches)
+        canonical_matches = sorted(set(matches))
+        if len(canonical_matches) > SCORE_REASON_MATCH_LIMIT:
+            raise ValueError(
+                f"score reason matches exceed the canonical limit of {SCORE_REASON_MATCH_LIMIT}"
+            )
+        value["matches"] = canonical_matches
     return value
 
 
@@ -295,8 +301,10 @@ def verify_ranked_candidates(candidates: object) -> None:
                 or "matches" in reason
                 and (
                     not isinstance(reason["matches"], list)
-                    or len(reason["matches"]) > 8
+                    or not reason["matches"]
+                    or len(reason["matches"]) > SCORE_REASON_MATCH_LIMIT
                     or any(not isinstance(item, str) or not item for item in reason["matches"])
+                    or reason["matches"] != sorted(set(reason["matches"]))
                 )
             ):
                 raise IntegrityError("ranked candidate score reason is invalid")

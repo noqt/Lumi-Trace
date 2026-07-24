@@ -76,4 +76,4 @@ def test_pipeline_refuses_existing_output_directory(
 def test_source_revision_does_not_inherit_an_unrelated_parent_repository(tmp_path: Path) -> None:
     package_like_directory = tmp_path / "site-packages"
     package_like_directory.mkdir()
-    assert source_revision(package_like_directory) == "release:0.1.0"
+    assert source_revision(package_like_directory) == "release:0.1.1"

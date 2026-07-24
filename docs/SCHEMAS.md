@@ -31,6 +31,11 @@ At the time a release is sealed, every file named above must exist and validate
 the corresponding generated fixture. Missing schema files are release blockers,
 not permission to infer a contract from prose.
 
+`candidate-set-v1` score reasons use one canonical match contract in V0.1.1:
+`matches`, when present, contains 1 to 20 unique, non-empty strings in ascending
+code-point order. Producers omit an empty match list. Runtime verification
+enforces ordering in addition to the structural JSON Schema constraints.
+
 ## Accepted Input Contracts
 
 ### `manual-finding-v1`

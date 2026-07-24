@@ -434,11 +434,62 @@ REQUIRED_PAYLOAD_FIELDS: dict[str, set[str]] = {
         "publication_decision",
         "evidence_ids",
     },
+    "starting-state-verification-v1": {
+        "source_revision",
+        "v0_3_1_evidence_seal",
+        "v0_1_0_runtime_hash",
+        "v0_3_1_evaluator_hash",
+        "governed_roots",
+        "verified",
+    },
+    "runtime-contract-decision-v1": {
+        "runtime_version",
+        "candidate_schema",
+        "ranking_algorithm",
+        "score_reason_match_limit",
+        "producer_verifier_schema_agreement",
+        "ranking_behavior_preserved",
+        "regression_manifest_id",
+    },
+    "resource-failure-classification-v1": {
+        "runtime_version",
+        "configuration_id",
+        "attempt_count",
+        "completed_attempts",
+        "failure_counts",
+        "classifications",
+        "remediation",
+    },
+    "deterministic-experiment-v1": {
+        "experiment_id",
+        "runtime_version",
+        "algorithm",
+        "development_only",
+        "hypothesis",
+        "configuration_id",
+        "result_id",
+        "decision",
+    },
+    "v0.3.2-closure-v1": {
+        "closure_state",
+        "supported_envelope",
+        "runtime_version",
+        "evaluator_version",
+        "development_run",
+        "qualification_run",
+        "qualification_budget_consumed",
+        "training_run",
+        "weights_acquired",
+        "holdback_opened",
+        "publication_decision",
+        "training_recommendation",
+        "evidence_ids",
+    },
 }
 
 _SCHEMA = json.loads(
     files("trace_eval.schemas")
-    .joinpath("trace-eval-contract-v0.3.1.json")
+    .joinpath("trace-eval-contract-v0.3.2.json")
     .read_text(encoding="utf-8")
 )
 _VALIDATOR = Draft202012Validator(_SCHEMA)

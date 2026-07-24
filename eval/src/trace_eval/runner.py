@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import tempfile
 import time
+from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +18,7 @@ from .errors import ContractError, RunnerError
 from .package import seal_package, verify_package
 from .policy import FAILURE_CODES, assert_runner_blind, sanitize_environment
 from .registry import load_registry, records_by_schema, validate_registry
+from .resources import process_tree_snapshot
 
 
 def _resolve_under(root: Path, relative: str, *, directory: bool) -> Path:
@@ -67,6 +69,71 @@ def _artifacts(root: Path) -> list[dict[str, Any]]:
 def _tree_id(root: Path) -> str:
     manifest = {"algorithm": "lumi-tree-sha256-v1", "files": _artifacts(root)}
     return sha256_bytes(canonical_bytes(manifest))
+
+
+def _terminate_process_tree(process: subprocess.Popen[bytes]) -> None:
+    if process.poll() is not None:
+        return
+    if os.name == "nt":
+        subprocess.run(
+            ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+            check=False,
+            capture_output=True,
+            timeout=10,
+        )
+    else:
+        import signal
+
+        with suppress(ProcessLookupError):
+            os.killpg(process.pid, signal.SIGKILL)
+    try:
+        process.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait(timeout=10)
+
+
+def _run_observed(
+    command: list[str],
+    *,
+    stdout: Any,
+    stderr: Any,
+    environment: dict[str, str],
+    timeout_seconds: int,
+) -> dict[str, Any]:
+    creationflags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
+    process = subprocess.Popen(
+        command,
+        stdout=stdout,
+        stderr=stderr,
+        env=environment,
+        creationflags=creationflags,
+        start_new_session=os.name != "nt",
+    )
+    started = time.perf_counter_ns()
+    peak_resident_bytes = 0
+    peak_process_count = 0
+    timed_out = False
+    while process.poll() is None:
+        resident_bytes, process_count = process_tree_snapshot(process.pid)
+        peak_resident_bytes = max(peak_resident_bytes, resident_bytes)
+        peak_process_count = max(peak_process_count, process_count)
+        elapsed_seconds = (time.perf_counter_ns() - started) / 1_000_000_000
+        if elapsed_seconds >= timeout_seconds:
+            timed_out = True
+            _terminate_process_tree(process)
+            break
+        time.sleep(0.05)
+    resident_bytes, process_count = process_tree_snapshot(process.pid)
+    peak_resident_bytes = max(peak_resident_bytes, resident_bytes)
+    peak_process_count = max(peak_process_count, process_count)
+    return {
+        "return_code": None if timed_out else process.returncode,
+        "timed_out": timed_out,
+        "wall_time_ms": (time.perf_counter_ns() - started) // 1_000_000,
+        "peak_resident_bytes": peak_resident_bytes or None,
+        "peak_process_count": peak_process_count,
+    }
 
 
 def _identity_artifacts(root: Path) -> list[dict[str, Any]]:
@@ -159,20 +226,42 @@ def _attempt(
     status = "COMPLETED"
     return_code: int | None = None
     retained_log_bytes = 0
+    termination_reason = "COMPLETED"
+    peak_resident_bytes: int | None = None
+    peak_process_count = 0
+    stage_wall_time_ms: dict[str, int] = {}
+    repository_file_count = 0
+    repository_bytes = 0
+    indexed_observations: dict[str, Any] = {}
     with tempfile.TemporaryDirectory(prefix="trace-eval-case-", dir=workspace_root) as temporary:
         case_root = Path(temporary)
         repository_source = _resolve_under(source_root, runner_inputs["repository"], directory=True)
         finding_source = _resolve_under(source_root, runner_inputs["finding"], directory=False)
+        source_files = [
+            path
+            for path in repository_source.rglob("*")
+            if path.is_file() and not path.is_symlink()
+        ]
+        repository_file_count = len(source_files)
+        repository_bytes = sum(path.stat().st_size for path in source_files)
         input_hashes = payload["input_hashes"]
+        identity_started = time.perf_counter_ns()
         if sha256_file(finding_source) not in input_hashes:
             raise RunnerError("finding input does not match the governed group hashes")
         if _tree_id(repository_source) != payload["repository_tree_id"]:
             raise RunnerError("repository input does not match the governed tree identity")
+        stage_wall_time_ms["input_identity"] = (
+            time.perf_counter_ns() - identity_started
+        ) // 1_000_000
         repository = case_root / "repository"
         finding = case_root / "finding.json"
+        materialisation_started = time.perf_counter_ns()
         shutil.copytree(repository_source, repository)
         shutil.copy2(finding_source, finding)
         _readonly_tree(repository)
+        stage_wall_time_ms["evaluator_materialisation"] = (
+            time.perf_counter_ns() - materialisation_started
+        ) // 1_000_000
         output = case_root / "output"
         command = [
             str(executable),
@@ -196,40 +285,61 @@ def _attempt(
         environment = sanitize_environment(os.environ, temp_root=case_root)
         stdout_log = case_root / "stdout.bin"
         stderr_log = case_root / "stderr.bin"
-        try:
-            with stdout_log.open("wb") as stdout, stderr_log.open("wb") as stderr:
-                result = subprocess.run(
-                    command,
-                    check=False,
-                    stdout=stdout,
-                    stderr=stderr,
-                    env=environment,
-                    timeout=timeout_seconds,
-                )
-            return_code = result.returncode
-            retained_log_bytes = stdout_log.stat().st_size + stderr_log.stat().st_size
-            if retained_log_bytes > output_bytes:
-                status = "FAILED"
-                failure_codes.append("RESOURCE_LIMIT_REACHED")
-            elif result.returncode != 0 or not output.is_dir():
-                status = "FAILED"
-                failure_codes.append("RUNNER_OR_SCHEMA_FAILURE")
-            else:
-                shutil.copytree(output, destination / "evidence-package")
-                total = sum(path.stat().st_size for path in output.rglob("*") if path.is_file())
-                if total > disk_bytes:
-                    status = "FAILED"
-                    failure_codes.append("RESOURCE_LIMIT_REACHED")
-        except subprocess.TimeoutExpired:
+        with stdout_log.open("wb") as stdout, stderr_log.open("wb") as stderr:
+            observed = _run_observed(
+                command,
+                stdout=stdout,
+                stderr=stderr,
+                environment=environment,
+                timeout_seconds=timeout_seconds,
+            )
+        stage_wall_time_ms["runtime"] = int(observed["wall_time_ms"])
+        return_code = observed["return_code"]
+        peak_resident_bytes = observed["peak_resident_bytes"]
+        peak_process_count = int(observed["peak_process_count"])
+        retained_log_bytes = stdout_log.stat().st_size + stderr_log.stat().st_size
+        if observed["timed_out"]:
             status = "FAILED"
+            termination_reason = "WALL_TIME_LIMIT"
             failure_codes.append("RESOURCE_LIMIT_REACHED")
-        finally:
+        elif retained_log_bytes > output_bytes:
+            status = "FAILED"
+            termination_reason = "RETAINED_OUTPUT_LIMIT"
+            failure_codes.append("RESOURCE_LIMIT_REACHED")
+        elif return_code != 0 or not output.is_dir():
+            status = "FAILED"
+            termination_reason = "RUNTIME_OR_SCHEMA_FAILURE"
+            failure_codes.append("RUNNER_OR_SCHEMA_FAILURE")
+        else:
+            retain_started = time.perf_counter_ns()
+            shutil.copytree(output, destination / "evidence-package")
+            stage_wall_time_ms["evidence_retention"] = (
+                time.perf_counter_ns() - retain_started
+            ) // 1_000_000
+            total = sum(path.stat().st_size for path in output.rglob("*") if path.is_file())
+            if total > disk_bytes:
+                status = "FAILED"
+                termination_reason = "RETAINED_DISK_LIMIT"
+                failure_codes.append("RESOURCE_LIMIT_REACHED")
+            else:
+                index = load_json(output / "repository-index.json")
+                if isinstance(index, dict):
+                    indexed_observations = {
+                        "index_file_count": index.get("file_count"),
+                        "indexed_text_file_count": index.get("indexed_text_file_count"),
+                        "index_symbol_count": index.get("symbol_count"),
+                        "index_exclusions": index.get("exclusions"),
+                        "index_global_limit_reached": index.get("global_limit_reached"),
+                        "index_limits": index.get("limits"),
+                    }
+        try:
             for source, name in ((stdout_log, "stdout.bin"), (stderr_log, "stderr.bin")):
                 if source.exists():
                     with source.open("rb") as stream, (destination / name).open("wb") as target:
                         target.write(stream.read(output_bytes))
             if output.is_dir() and not (destination / "evidence-package").exists():
                 shutil.copytree(output, destination / "evidence-package")
+        finally:
             _writable_tree(repository)
     elapsed_ms = (time.perf_counter_ns() - started) // 1_000_000
     after_times = os.times()
@@ -265,11 +375,22 @@ def _attempt(
                 path.stat().st_size for path in destination.rglob("*") if path.is_file()
             ),
             "retained_file_count": sum(1 for path in destination.rglob("*") if path.is_file()),
-            "peak_resident_bytes": None,
-            "peak_resident_collection": "UNAVAILABLE_IN_PORTABLE_SUBPROCESS_CONTRACT",
+            "peak_resident_bytes": peak_resident_bytes,
+            "peak_resident_collection": "POLLED_PROCESS_TREE",
+            "peak_process_count": peak_process_count,
             "cache_state": "COLD_DISPOSABLE_WORKSPACE",
+            "termination_reason": termination_reason,
+            "repository_file_count": repository_file_count,
+            "repository_bytes": repository_bytes,
+            "stage_wall_time_ms": stage_wall_time_ms,
+            "index": indexed_observations,
             "configured_limits": limits,
-            "enforced_limits": ["wall_time", "retained_output_bytes", "retained_disk_bytes"],
+            "enforced_limits": [
+                "wall_time",
+                "retained_output_bytes",
+                "retained_disk_bytes",
+                "process_tree_termination",
+            ],
         },
     )
     return record

@@ -1,4 +1,4 @@
-# Lumi Trace V0.1 Architecture
+# Lumi Trace V0.1.1 Architecture
 
 ## Design Goal
 
@@ -99,6 +99,11 @@ paths receive a deterministic penalty unless directly reported.
 Candidates are sorted by score and explicit stable tie-breakers before `top_k`
 selection. Scores and confidence basis points are evidence descriptors, not
 probabilities.
+
+Score-reason match evidence has a single producer, verifier, and schema bound
+of 20. Match arrays are unique, non-empty, and canonically sorted; empty match
+arrays are omitted. V0.1.1 formalises the evidence already emitted by the
+ranking algorithm without changing its integer scores or candidate ordering.
 
 ### Qualified Docker Reproduction
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.2 - Capability recovery and micro-model readiness
+
+- Added the separately versioned V0.1.1 contract-recovery runtime with a
+  canonical 20-item score-reason match bound shared by producer, verifier,
+  schema, documentation, and boundary regression tests.
+- Added Trace-Eval 0.3.2 process-tree resource observations, stage timing,
+  explicit termination classification, and bounded process-tree cleanup.
+- Preserved the V0.1.0 wheel, V0.3.1 failed baseline, unopened qualification
+  partition, zero weights, and evaluation-only rights.
+
 ## 0.3.1 - Governed natural-corpus intake and unchanged baseline
 
 - Added proposal-before-fetch state transitions, separate rights dimensions,

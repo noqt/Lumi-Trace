@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
+import venv
 from copy import deepcopy
 from pathlib import Path
 
@@ -24,11 +26,31 @@ WHEEL = (
 )
 
 
-def _runtime_executable() -> Path:
+def _runtime_executable(tmp_path: Path) -> Path:
+    runtime = tmp_path / "v0.1.0-runtime"
+    scripts = runtime / ("Scripts" if os.name == "nt" else "bin")
+    python = scripts / ("python.exe" if os.name == "nt" else "python")
     name = "lumi-trace.exe" if os.name == "nt" else "lumi-trace"
-    executable = Path(sys.executable).parent / name
+    executable = scripts / name
     if not executable.is_file():
-        pytest.skip("the V0.1 development CLI is not installed in this test environment")
+        venv.EnvBuilder(with_pip=True, clear=False).create(runtime)
+        subprocess.run(
+            [
+                str(python),
+                "-m",
+                "pip",
+                "install",
+                "--disable-pip-version-check",
+                "--no-deps",
+                str(WHEEL),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+    if not executable.is_file():
+        pytest.skip("the exact V0.1.0 CLI could not be installed from sealed evidence")
     return executable
 
 
@@ -37,7 +59,7 @@ def _run(tmp_path: Path) -> Path:
     run_registry(
         registry_path=PUBLIC / "runner-registry.json",
         configuration_path=PUBLIC / "configuration.json",
-        executable=_runtime_executable(),
+        executable=_runtime_executable(tmp_path),
         runtime_artifact=WHEEL,
         source_root=ROOT,
         workspace_root=tmp_path / "workspace",
@@ -73,7 +95,7 @@ def test_public_fixture_run_score_replay_and_readiness_closure(tmp_path: Path) -
         original=run,
         registry=PUBLIC / "runner-registry.json",
         configuration=PUBLIC / "configuration.json",
-        executable=_runtime_executable(),
+        executable=_runtime_executable(tmp_path),
         runtime_artifact=WHEEL,
         source_root=ROOT,
         workspace_root=tmp_path / "replay-workspace",
@@ -130,7 +152,7 @@ def test_runtime_artifact_hash_mismatch_is_rejected(tmp_path: Path) -> None:
     wrong = tmp_path / "wrong.whl"
     wrong.write_bytes(b"not the approved runtime")
     with pytest.raises(RunnerError, match="artifact hash mismatch"):
-        verify_runtime(configuration, _runtime_executable(), wrong)
+        verify_runtime(configuration, _runtime_executable(tmp_path), wrong)
 
 
 def test_timeout_is_preserved_as_a_result_without_labels(tmp_path: Path) -> None:
@@ -144,7 +166,7 @@ def test_timeout_is_preserved_as_a_result_without_labels(tmp_path: Path) -> None
     run_registry(
         registry_path=PUBLIC / "runner-registry.json",
         configuration_path=configuration_path,
-        executable=_runtime_executable(),
+        executable=_runtime_executable(tmp_path),
         runtime_artifact=WHEEL,
         source_root=ROOT,
         workspace_root=tmp_path / "workspace",

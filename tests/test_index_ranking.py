@@ -11,7 +11,12 @@ from lumi_trace.canonical import stable_id
 from lumi_trace.errors import IntegrityError, UnsupportedError
 from lumi_trace.findings import import_manual
 from lumi_trace.indexing import build_repository_index, verify_repository_index
-from lumi_trace.ranking import rank_candidates
+from lumi_trace.ranking import (
+    SCORE_REASON_MATCH_LIMIT,
+    _reason,
+    rank_candidates,
+    verify_ranked_candidates,
+)
 from lumi_trace.repository import RepositoryWorkspace, compute_repository_identity
 
 
@@ -146,3 +151,62 @@ def test_rehashing_does_not_make_a_malformed_index_valid(
     malformed["index_id"] = stable_id("index", malformed, omit_keys=("index_id",))
     with pytest.raises(IntegrityError, match="file identity"):
         verify_repository_index(malformed)
+
+
+def _candidate_with_reason(reason: dict[str, object]) -> dict[str, object]:
+    identity: dict[str, object] = {
+        "kind": "file",
+        "path": "source.py",
+        "region": {
+            "start_line": 1,
+            "start_column": 1,
+            "end_line": 1,
+            "end_column": 1,
+        },
+    }
+    return {
+        **identity,
+        "integer_score": 1,
+        "score_reasons": [reason],
+        "candidate_id": stable_id("candidate", identity),
+        "rank": 1,
+    }
+
+
+@pytest.mark.parametrize("count", [0, 1, 8, 9, 10, 20])
+def test_score_reason_match_boundaries_round_trip(count: int) -> None:
+    matches = [f"match-{index:02d}" for index in range(count)]
+    reason = _reason("MESSAGE_CONTENT_MATCH", count, matches)
+
+    verify_ranked_candidates([_candidate_with_reason(reason)])
+
+    if count:
+        assert reason["matches"] == matches
+    else:
+        assert "matches" not in reason
+
+
+def test_score_reason_producer_rejects_more_than_canonical_match_limit() -> None:
+    matches = [f"match-{index:02d}" for index in range(SCORE_REASON_MATCH_LIMIT + 1)]
+
+    with pytest.raises(ValueError, match="canonical limit"):
+        _reason("MESSAGE_CONTENT_MATCH", 1, matches)
+
+
+@pytest.mark.parametrize(
+    "matches",
+    [
+        [],
+        ["duplicate", "duplicate"],
+        ["zulu", "alpha"],
+        ["valid", ""],
+        ["valid", 1],
+    ],
+)
+def test_score_reason_verifier_rejects_noncanonical_matches(matches: list[object]) -> None:
+    candidate = _candidate_with_reason(
+        {"code": "MESSAGE_CONTENT_MATCH", "points": 1, "matches": matches}
+    )
+
+    with pytest.raises(IntegrityError, match="score reason is invalid"):
+        verify_ranked_candidates([candidate])

@@ -88,6 +88,42 @@ def test_contract_schemas_validate_emitted_documents(
         Draft202012Validator(schemas[name], registry=registry).validate(document)
 
 
+@pytest.mark.parametrize("count", [1, 8, 9, 10, 20])
+def test_candidate_schema_accepts_canonical_reason_match_boundaries(
+    project_root: Path, count: int
+) -> None:
+    schemas, _ = _schemas(project_root)
+    validator = Draft202012Validator(schemas["candidate-set-v1.json"]["$defs"]["scoreReason"])
+    reason = {
+        "code": "MESSAGE_CONTENT_MATCH",
+        "points": count,
+        "matches": [f"match-{index:02d}" for index in range(count)],
+    }
+
+    assert not list(validator.iter_errors(reason))
+
+
+@pytest.mark.parametrize(
+    "matches",
+    [
+        [],
+        ["duplicate", "duplicate"],
+        [f"match-{index:02d}" for index in range(21)],
+        ["valid", ""],
+        ["valid", 1],
+    ],
+)
+def test_candidate_schema_rejects_invalid_reason_matches(
+    project_root: Path, matches: list[object]
+) -> None:
+    schemas, _ = _schemas(project_root)
+    validator = Draft202012Validator(schemas["candidate-set-v1.json"]["$defs"]["scoreReason"])
+
+    assert list(
+        validator.iter_errors({"code": "MESSAGE_CONTENT_MATCH", "points": 1, "matches": matches})
+    )
+
+
 def test_inventory_record_validates(project_root: Path) -> None:
     schemas, registry = _schemas(project_root)
     inventory = yaml.safe_load((project_root / "model-inventory.yaml").read_text(encoding="utf-8"))
