@@ -31,7 +31,7 @@ EXPECTED_V031_SEAL = (
 )
 EXPECTED_V010_WHEEL = "sha256:c3872c3ab25b1df4c4e2f31711f9072d25e4955a1cda3eecd89e421d901c0bba"
 EXPECTED_V012_WHEEL = "sha256:6c674f15eb2d0178e3d0054d05dd733127981e640e8891fe37c135d394d42173"
-EXPECTED_EVALUATOR = "sha256:1c597ae51e84a4f0b5f497f297ee3326c0e1adf7d8d624285a25a690927b5de8"
+EXPECTED_EVALUATOR = "sha256:1edf6597313106c7b546d666b018655b3ef76a90234a2e93079b1e5dba59e122"
 RUNTIME_SOURCE_REVISION = "1b7d4e713e367d1a1c98b54a03b47cd3978db36f"
 _REVISION = re.compile(r"^[0-9a-f]{40}$")
 
@@ -135,8 +135,8 @@ def seal(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("V0.3.1 public evidence is not the immutable starting seal")
 
     baseline_root = private / "manifests" / VERSION / "baseline-v0.1.1"
-    control_root = private / "manifests" / VERSION / "control-v0.1.2-sealed"
-    lock_root = private / "manifests" / VERSION / "capability-lock-v0.1.2-sealed"
+    control_root = private / "manifests" / VERSION / "control-v0.1.2-cpu-sealed"
+    lock_root = private / "manifests" / VERSION / "capability-lock-v0.1.2-cpu-sealed"
     baseline_package = verify_package(baseline_root)
     control_package = verify_package(control_root)
     lock_package = verify_package(lock_root)
@@ -148,12 +148,12 @@ def seal(args: argparse.Namespace) -> dict[str, Any]:
     ):
         raise ValueError("capability lock differs from the sealed artifacts")
 
-    development_root = active / "runs" / VERSION / "development-v0.1.2-sealed"
-    development_replay = active / "runs" / VERSION / "development-v0.1.2-sealed-replay"
+    development_root = active / "runs" / VERSION / "development-v0.1.2-cpu-sealed"
+    development_replay = active / "runs" / VERSION / "development-v0.1.2-cpu-sealed-replay"
     development_resource = _resource_projection(development_root)
     replay = load_json(development_replay / "replay-verification.json")["payload"]
     qualification_authorised = capability_lock["qualification_authorised"] is True
-    qualification_root = private / "manifests" / VERSION / "qualification-v0.1.2-sealed"
+    qualification_root = private / "manifests" / VERSION / "qualification-v0.1.2-cpu-sealed"
     if qualification_authorised and not qualification_root.is_dir():
         raise ValueError("authorised qualification must be sealed before public evidence")
     if not qualification_authorised and qualification_root.exists():
@@ -176,7 +176,7 @@ def seal(args: argparse.Namespace) -> dict[str, Any]:
             qualification_decision["payload"]["threshold_decision"]["passed"] is True
         )
         qualification_resource = _resource_projection(
-            active / "runs" / VERSION / "qualification-v0.1.2-sealed"
+            active / "runs" / VERSION / "qualification-v0.1.2-cpu-sealed"
         )
 
     closure_state = (
