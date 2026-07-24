@@ -189,7 +189,7 @@
           "const": 25000
         },
         "max_total_token_entries": {
-          "enum": [100000, 500000]
+          "enum": [100000, 250000, 500000]
         },
         "max_total_symbols": {
           "enum": [10000, 50000]
@@ -208,6 +208,9 @@
         },
         "max_index_json_bytes": {
           "const": 62914560
+        },
+        "max_index_json_items": {
+          "const": 900000
         }
       }
     },

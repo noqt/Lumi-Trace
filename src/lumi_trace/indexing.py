@@ -20,13 +20,14 @@ DEFAULT_MAX_TEXT_BYTES = 2 * 1024 * 1024
 MAX_UNIQUE_TOKENS = 50_000
 MAX_SYMBOLS_PER_FILE = 5_000
 MAX_INDEX_FILE_RECORDS = 25_000
-MAX_TOTAL_TOKEN_ENTRIES = 500_000
+MAX_TOTAL_TOKEN_ENTRIES = 250_000
 MAX_TOTAL_SYMBOLS = 50_000
 MAX_SYMBOL_TOKENS = 16
 MAX_SYMBOL_NAME_CHARS = 256
 MAX_QUALIFIED_SYMBOL_CHARS = 1_024
 MAX_PYTHON_AST_NODES = 200_000
 MAX_INDEX_JSON_BYTES = 60 * 1024 * 1024
+MAX_INDEX_JSON_ITEMS = 900_000
 
 LANGUAGE_BY_SUFFIX = {
     ".c": "c",
@@ -472,6 +473,7 @@ def build_repository_index(
             "max_qualified_symbol_chars": MAX_QUALIFIED_SYMBOL_CHARS,
             "max_python_ast_nodes": MAX_PYTHON_AST_NODES,
             "max_index_json_bytes": MAX_INDEX_JSON_BYTES,
+            "max_index_json_items": MAX_INDEX_JSON_ITEMS,
         },
         "files": files,
     }
@@ -479,6 +481,10 @@ def build_repository_index(
     if _serialized_index_size(payload) > MAX_INDEX_JSON_BYTES:
         raise UnsupportedError(
             f"repository index exceeds JSON artifact limit of {MAX_INDEX_JSON_BYTES} bytes"
+        )
+    if _index_json_item_count(payload) > MAX_INDEX_JSON_ITEMS:
+        raise UnsupportedError(
+            f"repository index exceeds JSON item limit of {MAX_INDEX_JSON_ITEMS}"
         )
     return payload
 
@@ -491,6 +497,23 @@ def _serialized_index_size(index: dict[str, object]) -> int:
             json.dumps(index, allow_nan=False, ensure_ascii=True, indent=2, sort_keys=True) + "\n"
         ).encode("utf-8")
     )
+
+
+def _index_json_item_count(index: object) -> int:
+    """Count JSON value nodes exactly as the evaluator's bounded loader does."""
+
+    count = 0
+    pending = [index]
+    while pending:
+        value = pending.pop()
+        count += 1
+        if count > MAX_INDEX_JSON_ITEMS:
+            return count
+        if isinstance(value, dict):
+            pending.extend(value.values())
+        elif isinstance(value, list):
+            pending.extend(value)
+    return count
 
 
 def verify_repository_identity(repository: dict[str, object]) -> None:
@@ -583,6 +606,7 @@ def verify_repository_index(index: dict[str, object]) -> None:
         "max_qualified_symbol_chars",
         "max_python_ast_nodes",
         "max_index_json_bytes",
+        "max_index_json_items",
     }
     if (
         not isinstance(limits, dict)
@@ -599,6 +623,7 @@ def verify_repository_index(index: dict[str, object]) -> None:
         or limits["max_qualified_symbol_chars"] != MAX_QUALIFIED_SYMBOL_CHARS
         or limits["max_python_ast_nodes"] != MAX_PYTHON_AST_NODES
         or limits["max_index_json_bytes"] != MAX_INDEX_JSON_BYTES
+        or limits["max_index_json_items"] != MAX_INDEX_JSON_ITEMS
     ):
         raise IntegrityError("repository index limits are invalid")
     global_limit_reached = index.get("global_limit_reached")
@@ -776,6 +801,8 @@ def verify_repository_index(index: dict[str, object]) -> None:
         raise IntegrityError("repository index identity mismatch")
     if _serialized_index_size(index) > MAX_INDEX_JSON_BYTES:
         raise IntegrityError("repository index JSON artifact limit is exceeded")
+    if _index_json_item_count(index) > MAX_INDEX_JSON_ITEMS:
+        raise IntegrityError("repository index JSON item limit is exceeded")
 
 
 def _safe_index_path(value: str) -> bool:

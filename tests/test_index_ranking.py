@@ -164,6 +164,22 @@ def test_index_refuses_an_artifact_larger_than_its_json_loader_limit(
         build_repository_index(repository, identity)
 
 
+def test_index_refuses_an_artifact_above_the_evaluator_item_limit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    (repository / "source.py").write_text(
+        "def bounded_output():\n    return 1\n",
+        encoding="utf-8",
+    )
+    identity = compute_repository_identity(repository)
+    monkeypatch.setattr(indexing, "MAX_INDEX_JSON_ITEMS", 20)
+
+    with pytest.raises(UnsupportedError, match="JSON item limit"):
+        build_repository_index(repository, identity)
+
+
 def test_rehashing_does_not_make_a_malformed_index_valid(
     fixture_repository: Path,
 ) -> None:
