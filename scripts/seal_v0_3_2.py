@@ -63,6 +63,10 @@ def _resource_projection(run_root: Path) -> dict[str, Any]:
         "failure_code_counts": dict(sorted(failures.items())),
         "termination_reason_counts": dict(sorted(terminations.items())),
         "total_wall_time_ms": sum(int(item.get("wall_time_ms") or 0) for item in observations),
+        "total_cpu_time_ms": sum(int(item.get("cpu_time_ms") or 0) for item in observations),
+        "attempts_with_cpu_time": sum(
+            int(item.get("cpu_time_ms") or 0) > 0 for item in observations
+        ),
         "maximum_wall_time_ms": max(
             (int(item.get("wall_time_ms") or 0) for item in observations), default=0
         ),

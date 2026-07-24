@@ -97,6 +97,8 @@ def verify(root: Path) -> dict[str, object]:
         or resources["development"]["attempt_count"] != 40
         or resources["development"]["completed_attempts"] != 40
         or resources["development"]["failed_attempts"] != 0
+        or resources["development"]["total_cpu_time_ms"] <= 0
+        or resources["development"]["attempts_with_cpu_time"] != 40
         or resources["diagnostic"]["resource_failure_count"] != 4
         or resources["declared_hardware_envelope"]["case_wall_limit_seconds"] != 600
         or resources["declared_hardware_envelope"]["maximum_index_json_items"] != 900_000
@@ -147,6 +149,8 @@ def verify(root: Path) -> dict[str, object]:
         if (
             qualification_aggregate["aggregate"] is None
             or resources["qualification"]["attempt_count"] != 18
+            or resources["qualification"]["attempts_with_cpu_time"] != 18
+            or resources["qualification"]["total_cpu_time_ms"] <= 0
             or closure["qualification_passed"] != qualification["passed"]
             or closure["closure_state"] != expected_closure
         ):
