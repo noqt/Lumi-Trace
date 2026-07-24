@@ -4,14 +4,17 @@
 
 `DO_NOT_BEGIN_TRACE_001`
 
-As of Lumi Trace V0.3.1, the V0.2 and V0.3 evidence seals and exact V0.1
-runtime identity remain verified. A governed pilot admitted 58
-evaluation-only groups from 10 unrelated repository families. The full
-unchanged V0.1 development run reproduced, but 32 of 40 attempts failed
-closed: 28 on a runtime score-reason contract mismatch and 4 on declared
-resource limits. The completion-integrity gate declined the baseline,
-qualification remained unopened, and the programme closes
-`NOT_QUALIFIED / REMEDIATION_REQUIRED`.
+As of Lumi Trace V0.3.2, all earlier seals and the exact V0.1.0 wheel remain
+verified. A governed pilot contains 58 evaluation-only groups from 10 unrelated
+repository families. V0.3.2 repaired the earlier contract and resource
+failures, produced a valid 40-group baseline and separately evaluated the
+V0.1.2 deterministic recovery. The disclosure-safe V0.3.2 seal is
+authoritative for its exact development and qualification outcome.
+
+That outcome cannot authorise training. The pilot has zero training-eligible
+groups, zero training-eligible repository families, no approved training split,
+and no training-data rights. The 500-group and 25-family learned-lane entry
+gates therefore fail before model acquisition or training.
 
 The owned-lab Trace IR fixture result `IR_FEASIBILITY_SUPPORTED` establishes
 only that the evidence architecture can parse, rank, replay, and score inert
@@ -27,9 +30,9 @@ CyberGym task consumption, or protected-holdback opening is authorised.
 | At least 500 useful labelled candidate-ranking groups | `UNMET / EVIDENCE_REQUIRED` | 58 evaluation-only groups were admitted; at least 442 additional useful, rights-cleared groups and separate future-training rights are still required. |
 | At least 25 unrelated training repositories | `UNMET / EVIDENCE_REQUIRED` | 10 unrelated evaluation repository families were admitted; at least 15 additional unrelated repositories and training rights are still required. |
 | Repository-disjoint development and holdback sets | `UNMET / EVIDENCE_REQUIRED` | The pilot has a repository-family-disjoint development/qualification split with zero overlap. It does not create an approved training split or open the protected holdback. |
-| Meaningful hard negatives and controls | `UNMET / EVIDENCE_REQUIRED` | The pilot includes natural hard negatives and fixed safe controls, but the invalid development baseline and subscale corpus cannot establish training sufficiency. |
+| Meaningful hard negatives and controls | `UNMET / SCALE_REQUIRED` | The valid evaluation pilot includes natural hard negatives and fixed safe controls, but 58 evaluation-only groups cannot establish training sufficiency or grant training use. |
 | Audited location and reproduction labels | `UNMET / EVIDENCE_REQUIRED` | Pilot location labels have controlled-review provenance. Reproduction labels were intentionally absent, future training use is false, and full-scale audit evidence is still required. |
-| Adequate deterministic candidate recall | `UNMET / REMEDIATION_REQUIRED` | The run produced diagnostic file recall at 20 of 0.15 and target indexability of 0.20, but only 8 of 40 attempts completed. Runtime and resource failures invalidate a capability conclusion. |
+| Adequate deterministic candidate recall | `SEPARATELY EVALUATED / SEE V0.3.2 SEAL` | V0.3.2 records valid development and, if authorised, single-use qualification metrics. This gate alone cannot overcome the failed scale, rights, split, and holdback gates. |
 
 The 58 pilot groups are private evaluation evidence, not training data.
 Future training use was not granted. No item may be inferred from aggregate
@@ -51,11 +54,11 @@ before a gate is marked satisfied.
 
 ## Authority Gate
 
-Separate, explicit user approval to begin `TRACE-001` is also
-`UNMET / EVIDENCE_REQUIRED`. Completing V0.1, qualifying the V0.2 environment,
-completing V0.3 contracts, admitting the V0.3.1 evaluation pilot, opening a
-review, or later making the source repository public does not satisfy this
-authority gate.
+The V0.3.2 brief supplies conditional programme authority for a bounded
+`TRACE-001` experiment only after every learned-lane entry gate passes. It does
+not waive data rights, scale, lineage, split, label-audit, holdback,
+supply-chain, or objective-lock requirements. Because those gates are unmet,
+the current execution decision remains `DO_NOT_BEGIN_TRACE_001`.
 
 ## Reconsideration Rule
 

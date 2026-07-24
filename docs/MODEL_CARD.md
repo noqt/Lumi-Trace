@@ -1,9 +1,9 @@
-# Lumi Trace V0.3.1 Model Card
+# Lumi Trace V0.3.2 Model Card
 
 ## Status
 
-Lumi Trace V0.3.1 continues to test the exact V0.1.0 deterministic local
-vulnerability-evidence instrument. It is **not an ML model**.
+Lumi Trace V0.3.2 evaluates the separately versioned V0.1.2 deterministic
+local vulnerability-evidence instrument. It is **not an ML model**.
 
 | Field | Value |
 | --- | --- |
@@ -33,17 +33,18 @@ documented program logic and are not probabilities or learned predictions.
 The runtime does not call a model provider, use hosted inference, or require an
 API key.
 
-V0.2, V0.3, and V0.3.1 add no learned component. Trace-Eval measures the
-pinned V0.1 wheel in a separate environment using rights-bound registries,
+V0.2 through V0.3.2 add no learned component. Trace-Eval measures each pinned
+runtime wheel in a separate environment using rights-bound registries,
 label-blind subprocess runs, raw-output sealing, reproducible metrics, and
 replay. V0.3.1 natural labels and source snapshots are private evaluation
 evidence. They are not training data and are not included in this repository.
 
-The V0.3.1 natural development baseline reproduced, but only 8 of 40 attempts
-completed. Twenty-eight failed on a V0.1 ranked-score-reason validation
-mismatch and four reached the sealed resource limit. The resulting
-`NOT_QUALIFIED / REMEDIATION_REQUIRED` closure is a fail-closed engineering
-result, not evidence of model capability.
+V0.3.2 preserves the failed V0.3.1 result, repairs its runtime contract and
+bounded resource envelope, establishes a valid 40-group baseline, and evaluates
+the V0.1.2 deterministic recovery under a separately versioned metric
+specification. The exact development and qualification outcome is recorded in
+the disclosure-safe V0.3.2 evidence seal. No deterministic result is evidence
+that a learned model exists.
 
 ## Intended Use
 
@@ -67,11 +68,11 @@ be represented as a trained vulnerability model.
 
 ## Training and Lineage
 
-No training or fine-tuning was performed for V0.1 through V0.3.1. No model
+No training or fine-tuning was performed for V0.1 through V0.3.2. No model
 weights were downloaded. No training dataset, learned adapter, or checkpoint
 is included. Governed V0.3.1 evaluation labels have
 `future_training_use_permitted: false` and do not satisfy the 500-group,
-25-repository, holdback, performance, or training-authority gates.
+25-repository-family, holdback, rights, or lineage gates.
 
 Lumi Trace does **not** inherit or incorporate:
 
@@ -82,9 +83,11 @@ Lumi Trace does **not** inherit or incorporate:
 - CyberGym tasks or task contents.
 
 The proposed future `TRACE-001` direction is a compact code-location ranker.
-It remains unauthorised and must not begin until every gate in
+V0.3.2 supplies conditional programme authority only after every evidence gate
+passes. Those data, rights, lineage, and holdback gates remain unmet, so
+training must not begin until every gate in
 [`TRAINING_READINESS.md`](TRAINING_READINESS.md) is satisfied and separate
-approval is recorded.
+execution authority is recorded for the resulting locked experiment.
 
 ## Limitations
 
