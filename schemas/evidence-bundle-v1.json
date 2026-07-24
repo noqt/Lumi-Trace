@@ -117,7 +117,10 @@
           "pattern": "^index:[0-9a-f]{64}$"
         },
         "algorithm": {
-          "const": "deterministic-lexical-index-v1"
+          "enum": [
+            "deterministic-lexical-index-v1",
+            "deterministic-lexical-index-v2"
+          ]
         },
         "file_count": {
           "type": "integer",

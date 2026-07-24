@@ -184,6 +184,14 @@ REQUIRED_PAYLOAD_FIELDS: dict[str, set[str]] = {
         "aggregation",
         "integrity_floors",
     },
+    "trace-code-metric-specification-v2": {
+        "cutoffs",
+        "matching",
+        "denominators",
+        "primary_metrics",
+        "aggregation",
+        "integrity_floors",
+    },
     "trace-code-case-result-v1": {
         "group_id",
         "repository_id",
@@ -489,7 +497,7 @@ REQUIRED_PAYLOAD_FIELDS: dict[str, set[str]] = {
 
 _SCHEMA = json.loads(
     files("trace_eval.schemas")
-    .joinpath("trace-eval-contract-v0.3.2.json")
+    .joinpath("trace-eval-contract-v0.3.3.json")
     .read_text(encoding="utf-8")
 )
 _VALIDATOR = Draft202012Validator(_SCHEMA)

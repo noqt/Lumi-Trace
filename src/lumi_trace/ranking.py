@@ -12,22 +12,94 @@ from .errors import IntegrityError
 from .findings import validate_normalized_finding
 from .indexing import tokenize, verify_repository_index
 
-RANKING_ALGORITHM = "deterministic-candidate-ranking-v1"
+RANKING_ALGORITHM = "deterministic-candidate-ranking-v2"
 SCORE_REASON_MATCH_LIMIT = 20
+MAX_CANDIDATES_PER_PATH = 2
+QUERY_STOP_TERMS = {
+    "advisory",
+    "allow",
+    "allows",
+    "an",
+    "and",
+    "are",
+    "arbitrary",
+    "as",
+    "at",
+    "attack",
+    "attacker",
+    "be",
+    "before",
+    "by",
+    "can",
+    "code",
+    "could",
+    "corpus",
+    "does",
+    "execution",
+    "for",
+    "from",
+    "has",
+    "have",
+    "if",
+    "in",
+    "into",
+    "is",
+    "issue",
+    "it",
+    "its",
+    "may",
+    "natural",
+    "not",
+    "of",
+    "on",
+    "or",
+    "other",
+    "potential",
+    "possible",
+    "public",
+    "security",
+    "that",
+    "the",
+    "their",
+    "them",
+    "then",
+    "this",
+    "to",
+    "under",
+    "used",
+    "using",
+    "vulnerability",
+    "vulnerable",
+    "when",
+    "where",
+    "which",
+    "will",
+    "with",
+    "without",
+}
 
 
 def _terms(values: list[str]) -> set[str]:
-    return {term for value in values for term in tokenize(value) if len(term) > 1}
+    return {
+        term
+        for value in values
+        for term in tokenize(value)
+        if len(term) > 1 and term not in QUERY_STOP_TERMS
+    }
 
 
 def _query(finding: dict[str, object]) -> dict[str, object]:
     rule = finding["rule"]
     message = finding["message"]
     locations = finding.get("locations", [])
-    identifier_values = [str(rule.get("id", "")), str(rule.get("name", ""))]
+    identifier_values = [str(rule.get("id", ""))]
     identifier_values.extend(map(str, rule.get("cwes", [])))
     identifier_values.extend(map(str, rule.get("tags", [])))
-    message_values = [str(message.get("title", "")), str(message.get("text", ""))]
+    message_values = [
+        str(rule.get("name", "")),
+        str(message.get("title", "")),
+        str(message.get("text", "")),
+    ]
     message_values.extend(map(str, finding.get("keywords", [])))
     reported_paths: set[str] = set()
     reported_symbols: set[str] = set()
@@ -84,6 +156,22 @@ def _base_file_score(
         points = min(len(path_matches), 4) * 500
         score += points
         reasons.append(_reason("PATH_TOKEN_MATCH", points, path_matches[:4]))
+    message_basename_matches = sorted(basename_terms & query["message_terms"])
+    if message_basename_matches:
+        points = min(len(message_basename_matches), 2) * 1_500
+        score += points
+        reasons.append(
+            _reason(
+                "MESSAGE_PATH_BASENAME_MATCH",
+                points,
+                message_basename_matches[:2],
+            )
+        )
+    message_path_matches = sorted((path_terms - basename_terms) & query["message_terms"])
+    if message_path_matches:
+        points = min(len(message_path_matches), 4) * 250
+        score += points
+        reasons.append(_reason("MESSAGE_PATH_TOKEN_MATCH", points, message_path_matches[:4]))
 
     file_tokens = set(file.get("tokens", {}))
     identifier_matches = sorted(file_tokens & query["identifier_terms"])
@@ -181,6 +269,17 @@ def rank_candidates(
                 points = min(len(symbol_matches), 4) * 2_000
                 symbol_score += points
                 symbol_reasons.append(_reason("SYMBOL_TOKEN_MATCH", points, symbol_matches[:4]))
+            symbol_message_matches = sorted(set(symbol.get("tokens", [])) & query["message_terms"])
+            if symbol_message_matches:
+                points = min(len(symbol_message_matches), 4) * 750
+                symbol_score += points
+                symbol_reasons.append(
+                    _reason(
+                        "SYMBOL_MESSAGE_TOKEN_MATCH",
+                        points,
+                        symbol_message_matches[:4],
+                    )
+                )
             candidates.append(
                 _candidate(
                     kind="symbol",
@@ -208,7 +307,16 @@ def rank_candidates(
             str(item["candidate_id"]),
         )
     )
-    selected = candidates[:top_k]
+    selected: list[dict[str, object]] = []
+    candidates_per_path: dict[str, int] = {}
+    for candidate in candidates:
+        path = str(candidate["path"])
+        if candidates_per_path.get(path, 0) >= MAX_CANDIDATES_PER_PATH:
+            continue
+        candidates_per_path[path] = candidates_per_path.get(path, 0) + 1
+        selected.append(candidate)
+        if len(selected) == top_k:
+            break
     for rank, candidate in enumerate(selected, start=1):
         candidate["rank"] = rank
     result: dict[str, object] = {

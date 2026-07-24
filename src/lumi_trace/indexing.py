@@ -15,13 +15,13 @@ from .canonical import stable_id
 from .errors import IntegrityError, UnsupportedError
 from .repository import repository_manifest
 
-INDEX_ALGORITHM = "deterministic-lexical-index-v1"
+INDEX_ALGORITHM = "deterministic-lexical-index-v2"
 DEFAULT_MAX_TEXT_BYTES = 2 * 1024 * 1024
 MAX_UNIQUE_TOKENS = 50_000
 MAX_SYMBOLS_PER_FILE = 5_000
 MAX_INDEX_FILE_RECORDS = 25_000
-MAX_TOTAL_TOKEN_ENTRIES = 100_000
-MAX_TOTAL_SYMBOLS = 10_000
+MAX_TOTAL_TOKEN_ENTRIES = 500_000
+MAX_TOTAL_SYMBOLS = 50_000
 MAX_SYMBOL_TOKENS = 16
 MAX_SYMBOL_NAME_CHARS = 256
 MAX_QUALIFIED_SYMBOL_CHARS = 1_024
@@ -85,6 +85,42 @@ def tokenize(value: str) -> list[str]:
 
 def _language(path: str) -> str:
     return LANGUAGE_BY_SUFFIX.get(Path(path).suffix.lower(), "text")
+
+
+def _index_priority(path: str) -> int:
+    """Allocate global index budgets to implementation source before observations."""
+
+    parsed = PurePosixPath(path)
+    parts = {part.casefold() for part in parsed.parts}
+    stem = parsed.stem.casefold()
+    source = parsed.suffix.casefold() in LANGUAGE_BY_SUFFIX
+    test_or_harness = bool(parts & {"test", "tests", "testing", "spec", "specs"}) or (
+        stem.startswith(("test_", "spec_")) or stem.endswith(("_test", "_spec"))
+    )
+    documentation_or_example = bool(
+        parts
+        & {
+            "doc",
+            "docs",
+            "documentation",
+            "example",
+            "examples",
+            "demo",
+            "demos",
+            "benchmark",
+            "benchmarks",
+        }
+    )
+    localisation = parsed.suffix.casefold() in {".mo", ".po", ".pot"} or bool(
+        parts & {"i18n", "l10n", "locale", "locales", "translations"}
+    )
+    if source and not (test_or_harness or documentation_or_example):
+        return 0
+    if source:
+        return 1
+    if localisation or documentation_or_example:
+        return 3
+    return 2
 
 
 def _looks_text(path: str, data: bytes) -> bool:
@@ -328,7 +364,14 @@ def build_repository_index(
     global_symbol_limit_reached = False
     exclusions = Counter()
 
-    for source_record in manifest:
+    processing_order = sorted(
+        manifest,
+        key=lambda item: (
+            _index_priority(str(item["path"])),
+            str(item["path"]).encode("utf-8"),
+        ),
+    )
+    for source_record in processing_order:
         path = str(source_record["path"])
         size = int(source_record["size_bytes"])
         record: dict[str, object] = {
@@ -404,6 +447,7 @@ def build_repository_index(
         symbol_count += len(symbols)
         files.append(record)
 
+    files.sort(key=lambda item: str(item["path"]).encode("utf-8"))
     payload: dict[str, object] = {
         "schema_version": "repository-index-v1",
         "algorithm": INDEX_ALGORITHM,

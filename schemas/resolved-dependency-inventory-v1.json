@@ -19,7 +19,7 @@
       "const": "skylark-lumi-trace"
     },
     "project_version": {
-      "const": "0.1.1"
+      "const": "0.1.2"
     },
     "runtime_dependency_count": {
       "const": 0

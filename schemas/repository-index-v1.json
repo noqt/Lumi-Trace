@@ -22,7 +22,10 @@
       "const": "repository-index-v1"
     },
     "algorithm": {
-      "const": "deterministic-lexical-index-v1"
+      "enum": [
+        "deterministic-lexical-index-v1",
+        "deterministic-lexical-index-v2"
+      ]
     },
     "repository": {
       "$ref": "#/$defs/repositoryIdentity"
@@ -186,10 +189,10 @@
           "const": 25000
         },
         "max_total_token_entries": {
-          "const": 100000
+          "enum": [100000, 500000]
         },
         "max_total_symbols": {
-          "const": 10000
+          "enum": [10000, 50000]
         },
         "max_symbol_tokens": {
           "const": 16

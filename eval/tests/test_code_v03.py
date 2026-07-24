@@ -94,7 +94,65 @@ def test_harness_outranking_implementation_is_counted_separately() -> None:
     assert ranking["region_first_rank"] == 2
     assert ranking["top_one_role"] == "HARNESS"
     assert ranking["wrong_location_role_top_one"] is True
+    assert ranking["hard_negative_eligible"] is True
     assert ranking["hard_negative_outranked"] is True
+
+
+def test_hard_negative_denominator_requires_an_accepted_target() -> None:
+    safe_label = _label(
+        "safe-negative",
+        expected="INSUFFICIENT_EVIDENCE",
+        safe=True,
+        negatives=[
+            {
+                "path": "tests/witness.py",
+                "role": "WITNESS",
+                "family": "SAFE_CONTROL_WITNESS",
+            }
+        ],
+    )
+    safe_case = score_trace_code_case(
+        safe_label,
+        candidates=[{"rank": 1, "path": "tests/witness.py"}],
+        indexed_files=["tests/witness.py"],
+        indexed_symbols=[],
+        observed_disposition="INSUFFICIENT_EVIDENCE",
+    )
+    assert safe_case["payload"]["ranking"]["hard_negative_eligible"] is False
+    aggregate = aggregate_trace_code_metrics([safe_case], default_metric_specification())
+    assert aggregate["payload"]["micro"]["hard_negative_outrank"] == {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": None,
+    }
+
+
+def test_labelled_hard_negative_remains_in_denominator_when_not_retrieved() -> None:
+    label = _label(
+        "unretrieved-negative",
+        negatives=[
+            {
+                "path": "tests/witness.py",
+                "role": "WITNESS",
+                "family": "UNRETRIEVED_WITNESS",
+            }
+        ],
+    )
+    case = score_trace_code_case(
+        label,
+        candidates=[{"rank": 1, "path": "src/unretrieved-negative.py"}],
+        indexed_files=["src/unretrieved-negative.py", "tests/witness.py"],
+        indexed_symbols=[],
+        observed_disposition="INSUFFICIENT_EVIDENCE",
+    )
+    assert case["payload"]["ranking"]["hard_negative_eligible"] is True
+    assert case["payload"]["ranking"]["hard_negative_first_rank"] is None
+    aggregate = aggregate_trace_code_metrics([case], default_metric_specification())
+    assert aggregate["payload"]["micro"]["hard_negative_outrank"] == {
+        "numerator": 0,
+        "denominator": 1,
+        "rate": 0.0,
+    }
 
 
 def test_observation_is_not_accepted_as_vulnerable_implementation() -> None:
@@ -240,6 +298,10 @@ def test_micro_repository_and_family_macro_denominators_are_distinct() -> None:
     assert aggregate["payload"]["micro"]["file_recall"]["1"]["rate"] == pytest.approx(1 / 3)
     assert aggregate["payload"]["repository_macro"]["count"] == 3
     assert aggregate["payload"]["repository_family_macro"]["count"] == 2
+    family_recall = aggregate["payload"]["repository_family_macro"]["file_recall"]["20"]
+    assert family_recall["minimum"] == 0.5
+    assert family_recall["maximum"] == 1.0
+    assert family_recall["zero_unit_count"] == 0
 
 
 def test_label_validation_rejects_unknown_role_and_non_append_only_correction() -> None:
@@ -266,6 +328,6 @@ def test_fix_only_site_cannot_stand_in_for_vulnerable_implementation() -> None:
 def test_metric_definition_is_locked_against_safety_denominator_changes() -> None:
     changed = deepcopy(default_metric_specification())
     changed["payload"]["denominators"]["safety"] = "only successful cases"
-    changed = make_record("trace-code-metric-specification-v1", changed["payload"])
+    changed = make_record("trace-code-metric-specification-v2", changed["payload"])
     with pytest.raises(ContractError, match="denominators"):
         validate_metric_specification(changed)

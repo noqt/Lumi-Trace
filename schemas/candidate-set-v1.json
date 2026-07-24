@@ -20,7 +20,10 @@
       "const": "candidate-set-v1"
     },
     "algorithm": {
-      "const": "deterministic-candidate-ranking-v1"
+      "enum": [
+        "deterministic-candidate-ranking-v1",
+        "deterministic-candidate-ranking-v2"
+      ]
     },
     "finding_id": {
       "type": "string",

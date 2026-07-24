@@ -1,10 +1,12 @@
 # Lumi Trace
 
-> **V0.3.2 capability recovery.** Runtime 0.1.1 and Trace-Eval 0.3.2 repair
-> the V0.3.1 producer/verifier disagreement and instrument the bounded
-> resource failures. Natural development recovery is in progress;
-> qualification, public release, and `TRACE-001` training remain
-> unauthorised until their locked evidence gates pass.
+> **V0.3.2 capability recovery.** Runtime 0.1.1 and Trace-Eval 0.3.2 produced
+> the first valid 40-group natural baseline after repairing the V0.3.1
+> contract and resource failures. Runtime 0.1.2 and Trace-Eval 0.3.3 are the
+> separately versioned deterministic capability candidate. Qualification is
+> controlled by the sealed one-run gate documented in
+> [V0.3.2 evidence](docs/V0.3.2_EVIDENCE.md); public release and `TRACE-001`
+> training remain unauthorised.
 
 Lumi Trace is a customer-local vulnerability evidence instrument. It imports a
 finding, creates a clean-room snapshot of a local repository or archive, builds
@@ -18,13 +20,13 @@ baseline, not a trained ML model.
 
 ## Current Status and Hard Stops
 
-- Runtime version: `0.1.1`; evaluator version: `0.3.2`.
+- Runtime version: `0.1.2`; evaluator version: `0.3.3`.
 - Inventory identity: `skylark.lumi.trace`.
 - Model status: `PROPOSED_NOT_TRAINED`; checkpoint: none; active parameters: 0.
 - V0.3.1 natural corpus: 58 evaluation groups across 10 repository families.
-- V0.3.1 Trace Code state: `NOT_QUALIFIED / REMEDIATION_REQUIRED`; only 8
-  of 40 unchanged V0.1 development attempts completed, so qualification did
-  not run.
+- V0.3.1 Trace Code remains an immutable failed baseline. V0.3.2 preserves its
+  unopened qualification partition and records every later runtime, evaluator,
+  metric, and run identity separately.
 - V0.3 Trace IR state: `IR_FEASIBILITY_SUPPORTED` on owned inert lab fixtures
   only; this is not a live attack-detection result.
 - `TRACE-001` recommendation: `DO_NOT_BEGIN_TRACE_001`.

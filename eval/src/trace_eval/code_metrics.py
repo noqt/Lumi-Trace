@@ -40,6 +40,9 @@ DEFAULT_DENOMINATORS = {
     "retrieval": "all primary-metric groups with an accepted target at the named level",
     "indexability": "all primary-metric groups with an accepted target",
     "disposition": "all primary-metric groups",
+    "hard_negative": (
+        "all primary-metric groups with an accepted target and at least one labelled hard negative"
+    ),
 }
 DEFAULT_PRIMARY_METRICS = [
     "false_vulnerability_rate",
@@ -63,7 +66,7 @@ DEFAULT_INTEGRITY_FLOORS = {
 def default_metric_specification() -> dict[str, Any]:
     """Return the locked V0.3 metric contract."""
     return make_record(
-        "trace-code-metric-specification-v1",
+        "trace-code-metric-specification-v2",
         {
             "cutoffs": [1, 5, 10, 20],
             "matching": {
@@ -82,7 +85,7 @@ def default_metric_specification() -> dict[str, Any]:
 
 def validate_metric_specification(record: dict[str, Any]) -> dict[str, Any]:
     validate_record(record)
-    if record["schema_version"] != "trace-code-metric-specification-v1":
+    if record["schema_version"] != "trace-code-metric-specification-v2":
         raise ContractError("Trace Code metric specification has the wrong schema")
     payload = record["payload"]
     if payload["cutoffs"] != [1, 5, 10, 20]:
@@ -292,8 +295,11 @@ def score_trace_code_case(
     wrong_role_top_one = bool(
         candidates and top_role is not None and top_role != payload["primary_role"]
     )
-    hard_negative_outranked = hard_negative_rank is not None and (
-        file_rank is None or hard_negative_rank < file_rank
+    hard_negative_eligible = bool(primary_targets) and bool(payload["hard_negatives"])
+    hard_negative_outranked = (
+        hard_negative_eligible
+        and hard_negative_rank is not None
+        and (file_rank is None or hard_negative_rank < file_rank)
     )
     indexed_file_set = set(indexed_files)
     indexed_symbol_set = {
@@ -353,6 +359,7 @@ def score_trace_code_case(
                 "role_correct_first_rank": role_rank,
                 "top_one_role": top_role,
                 "wrong_location_role_top_one": wrong_role_top_one,
+                "hard_negative_eligible": hard_negative_eligible,
                 "hard_negative_first_rank": hard_negative_rank,
                 "hard_negative_outranked": hard_negative_outranked,
                 "candidate_count": len(candidates),
@@ -391,6 +398,9 @@ def _macro(rows: list[dict[str, Any]], key: str, cutoffs: list[int]) -> dict[str
         result["file_recall"][str(cutoff)] = {
             "units": len(values),
             "mean": sum(values) / len(values) if values else None,
+            "minimum": min(values) if values else None,
+            "maximum": max(values) if values else None,
+            "zero_unit_count": sum(value == 0 for value in values),
         }
     safety_values = [
         sum(
@@ -437,7 +447,7 @@ def aggregate_trace_code_metrics(
         if row["expected_disposition"]
         in {"BENIGN_CONTROL", "INSUFFICIENT_EVIDENCE", "UNSUPPORTED_INPUT"}
     ]
-    hard_negative = [row for row in rows if row["ranking"]["hard_negative_first_rank"] is not None]
+    hard_negative = [row for row in rows if row["ranking"]["hard_negative_eligible"]]
     false_supported_count = sum(
         row["observed_disposition"] == "SUPPORTED" and row["expected_disposition"] != "SUPPORTED"
         for row in rows

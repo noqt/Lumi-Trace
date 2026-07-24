@@ -7,6 +7,15 @@
   schema, documentation, and boundary regression tests.
 - Added Trace-Eval 0.3.2 process-tree resource observations, stage timing,
   explicit termination classification, and bounded process-tree cleanup.
+- Added the separately versioned V0.1.2 deterministic recovery runtime. Its
+  V2 index allocates enlarged but hard-bounded token and symbol budgets to
+  implementation source before observational text, and its V2 ranking admits
+  at most two candidates per path.
+- Added Trace-Eval 0.3.3 and
+  `trace-code-metric-specification-v2`. Hard-negative outrank now has the
+  declared denominator of accepted-target groups with labelled hard negatives;
+  safe controls without targets and unretrieved negatives cannot distort the
+  denominator. Family dispersion now records extrema and zero-recall units.
 - Preserved the V0.1.0 wheel, V0.3.1 failed baseline, unopened qualification
   partition, zero weights, and evaluation-only rights.
 

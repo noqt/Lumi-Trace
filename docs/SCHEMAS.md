@@ -110,9 +110,9 @@ validator. Passing it does not replace release-time Draft 2020-12 validation.
 
 ## Trace-Eval V0.3 Records
 
-Trace-Eval uses a separately packaged canonical envelope schema under
-`eval/src/trace_eval/schemas/trace-eval-contract-v0.3.json`. It retains every
-V0.2 record type and adds:
+Trace-Eval uses separately packaged, versioned canonical envelope schemas under
+`eval/src/trace_eval/schemas/`. V0.3.3 retains every earlier record type and
+adds:
 
 - programme boundary, natural-corpus registry, and repository-lineage audit;
 - Trace Code location labels, metric specifications, case results, and
@@ -122,6 +122,10 @@ V0.2 record type and adds:
 - the V0.3 closure record.
 
 Payload invariants are enforced by evaluator code in addition to the envelope.
+`trace-code-metric-specification-v2` defines hard-negative outrank over all
+primary-metric groups that have both an accepted target and at least one
+labelled hard negative. A missing retrieved negative remains in that
+denominator as a non-outrank; a safe control with no target is ineligible.
 Location labels require an explicit role, controlled-review receipt, and a
 contiguous append-only correction history. Trace IR accepts only bounded inert
 JSON, verifies owned immutable provenance and rights, rejects remote or
