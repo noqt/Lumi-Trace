@@ -17,9 +17,9 @@ from trace_eval.replay import replay_run
 from trace_eval.runner import run_registry
 
 VERSION = "v0.3.2"
-SOURCE_REVISION = "176bccc30d8f4f45aec3b3dab1621be40e38c95d"
-RUNTIME_HASH = "sha256:1d48337cec0b797a72d09eaf06e93957eade75bd0413f9a7e32210819168bef9"
-EVALUATOR_HASH = "sha256:561518d090d8a948f49761e6ae4c6c3285f2414510c43a81cafc70b23dd83838"
+SOURCE_REVISION = "ec3a848277d3d71815546520b555d9480414ef7e"
+RUNTIME_HASH = "sha256:2373128324868dd231b936d7c2b1836dde17244c162c7473668d181d350287bb"
+EVALUATOR_HASH = "sha256:3d1aa0f68b7df32651d59b42d2f4e5b12041fd855a32602d6bb74cd7a98c5ce3"
 
 
 def _root(path: Path, drive: str) -> Path:
@@ -138,7 +138,7 @@ def prepare(args: argparse.Namespace) -> dict[str, Any]:
     ):
         raise ValueError("protected qualification budget is not unopened at 0 of 1")
 
-    root = private / "manifests" / VERSION / "control-v0.1.2"
+    root = private / "manifests" / VERSION / "control-v0.1.2-final"
     if root.exists():
         raise ValueError("refusing to overwrite V0.1.2 control package")
     root.mkdir(parents=True)
@@ -179,7 +179,7 @@ def development(args: argparse.Namespace) -> dict[str, Any]:
     active = _root(args.active_root, "F:")
     private = _root(args.private_root, "G:")
     corpus = private / "manifests" / "v0.3.1" / "corpus"
-    control = private / "manifests" / VERSION / "control-v0.1.2"
+    control = private / "manifests" / VERSION / "control-v0.1.2-final"
     control_manifest = verify_package(control)
     verify_package(corpus)
     if sha256_file(args.runtime_wheel) != RUNTIME_HASH:
@@ -187,18 +187,18 @@ def development(args: argparse.Namespace) -> dict[str, Any]:
     if sha256_file(args.evaluator_wheel) != EVALUATOR_HASH:
         raise ValueError("Trace-Eval V0.3.3 wheel changed after lock")
 
-    run_root = active / "runs" / VERSION / "development-v0.1.2"
+    run_root = active / "runs" / VERSION / "development-v0.1.2-final"
     result = run_registry(
         registry_path=corpus / "runner-registry.json",
         configuration_path=control / "development-configuration.json",
         executable=args.runtime_executable,
         runtime_artifact=args.runtime_wheel,
         source_root=private / "artifacts" / "v0.3.1" / "runner-inputs",
-        workspace_root=active / "workspace" / VERSION / "v0.1.2-development",
+        workspace_root=active / "workspace" / VERSION / "v0.1.2-final-development",
         output=run_root,
     )
     metric_spec = load_json(control / "metric-specification.json")
-    scored_root = active / "runs" / VERSION / "development-v0.1.2-scored"
+    scored_root = active / "runs" / VERSION / "development-v0.1.2-final-scored"
     scored = _score_code_run(
         run_root=run_root,
         registry_path=corpus / "runner-registry.json",
@@ -206,7 +206,7 @@ def development(args: argparse.Namespace) -> dict[str, Any]:
         metric_spec=metric_spec,
         output=scored_root,
     )
-    replay_root = active / "runs" / VERSION / "development-v0.1.2-replay"
+    replay_root = active / "runs" / VERSION / "development-v0.1.2-final-replay"
     replay = replay_run(
         original=run_root,
         registry=corpus / "runner-registry.json",
@@ -214,7 +214,7 @@ def development(args: argparse.Namespace) -> dict[str, Any]:
         executable=args.runtime_executable,
         runtime_artifact=args.runtime_wheel,
         source_root=private / "artifacts" / "v0.3.1" / "runner-inputs",
-        workspace_root=active / "workspace" / VERSION / "v0.1.2-development-replay",
+        workspace_root=active / "workspace" / VERSION / "v0.1.2-final-development-replay",
         output=replay_root,
     )
     attempts = result["attempts"]
@@ -273,7 +273,7 @@ def development(args: argparse.Namespace) -> dict[str, Any]:
             "decision": "LOCK_FOR_QUALIFICATION" if qualification_authorised else "REJECT",
         },
     )
-    decision_root = private / "manifests" / VERSION / "capability-lock-v0.1.2"
+    decision_root = private / "manifests" / VERSION / "capability-lock-v0.1.2-final"
     if decision_root.exists():
         raise ValueError("refusing to overwrite V0.1.2 capability lock")
     decision_root.mkdir(parents=True)
@@ -308,7 +308,7 @@ def qualify(args: argparse.Namespace) -> dict[str, Any]:
     active = _root(args.active_root, "F:")
     private = _root(args.private_root, "G:")
     corpus = private / "manifests" / "v0.3.1" / "corpus"
-    lock_root = private / "manifests" / VERSION / "capability-lock-v0.1.2"
+    lock_root = private / "manifests" / VERSION / "capability-lock-v0.1.2-final"
     verify_package(lock_root)
     lock = load_json(lock_root / "capability-lock.json")
     if lock["qualification_authorised"] is not True:
@@ -321,14 +321,14 @@ def qualify(args: argparse.Namespace) -> dict[str, Any]:
     if sha256_file(args.evaluator_wheel) != EVALUATOR_HASH:
         raise ValueError("Trace-Eval V0.3.3 wheel changed after capability lock")
 
-    run_root = active / "runs" / VERSION / "qualification-v0.1.2"
+    run_root = active / "runs" / VERSION / "qualification-v0.1.2-final"
     result = run_registry(
         registry_path=corpus / "runner-registry.json",
         configuration_path=lock_root / "qualification-configuration.json",
         executable=args.runtime_executable,
         runtime_artifact=args.runtime_wheel,
         source_root=private / "artifacts" / "v0.3.1" / "runner-inputs",
-        workspace_root=active / "workspace" / VERSION / "v0.1.2-qualification",
+        workspace_root=active / "workspace" / VERSION / "v0.1.2-final-qualification",
         output=run_root,
     )
     scored = _score_code_run(
@@ -336,9 +336,9 @@ def qualify(args: argparse.Namespace) -> dict[str, Any]:
         registry_path=corpus / "runner-registry.json",
         labels_path=corpus / "labels-evaluator-only.json",
         metric_spec=load_json(
-            private / "manifests" / VERSION / "control-v0.1.2" / "metric-specification.json"
+            private / "manifests" / VERSION / "control-v0.1.2-final" / "metric-specification.json"
         ),
-        output=active / "runs" / VERSION / "qualification-v0.1.2-scored",
+        output=active / "runs" / VERSION / "qualification-v0.1.2-final-scored",
     )
     attempts = result["attempts"]
     all_completed = all(item["payload"]["status"] == "COMPLETED" for item in attempts)
@@ -382,7 +382,7 @@ def qualify(args: argparse.Namespace) -> dict[str, Any]:
             "holdback_opened": False,
         },
     )
-    decision_root = private / "manifests" / VERSION / "qualification-v0.1.2"
+    decision_root = private / "manifests" / VERSION / "qualification-v0.1.2-final"
     if decision_root.exists():
         raise ValueError("refusing to overwrite V0.1.2 qualification decision")
     decision_root.mkdir(parents=True)
@@ -414,7 +414,7 @@ def parser() -> argparse.ArgumentParser:
         "--runtime-wheel",
         type=Path,
         default=Path(
-            "G:/Data/skylark-lumi-trace-eval/artifacts/v0.1.2-build-a/"
+            "G:/Data/skylark-lumi-trace-eval/artifacts/v0.1.2-final-a/"
             "skylark_lumi_trace-0.1.2-py3-none-any.whl"
         ),
     )
@@ -422,14 +422,16 @@ def parser() -> argparse.ArgumentParser:
         "--evaluator-wheel",
         type=Path,
         default=Path(
-            "G:/Data/skylark-lumi-trace-eval/artifacts/v0.3.3-build-a/"
+            "G:/Data/skylark-lumi-trace-eval/artifacts/v0.3.3-final-a/"
             "skylark_lumi_trace_eval-0.3.3-py3-none-any.whl"
         ),
     )
     value.add_argument(
         "--runtime-executable",
         type=Path,
-        default=Path("F:/Data/skylark-lumi-trace-eval/runtime/sut-v0.1.2/Scripts/lumi-trace.exe"),
+        default=Path(
+            "F:/Data/skylark-lumi-trace-eval/runtime/sut-v0.1.2-final/Scripts/lumi-trace.exe"
+        ),
     )
     return value
 
