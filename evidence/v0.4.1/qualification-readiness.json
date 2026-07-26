@@ -1,0 +1,19 @@
+{
+  "confidence_bounds_available": false,
+  "decision": "QUALIFICATION_NOT_READY / CONTINUE_DEVELOPMENT",
+  "deterministic_route_claim_authorised": false,
+  "development_final_gates_passed": false,
+  "fresh_model_selection_opened": false,
+  "fresh_model_selection_supply_ready": false,
+  "fresh_qualification_opened": false,
+  "fresh_qualification_supply_ready": false,
+  "full_adversarial_review_complete": false,
+  "guard_bands_evaluated": false,
+  "integrity_restored": true,
+  "learned_capability_claim_authorised": false,
+  "product_runtime_integrated": true,
+  "protected_holdback_opened": false,
+  "qualification_capacity_consumed": 0,
+  "record_id": "v0.4.1-public-qualification-readiness:b90f852261a6dd8e07e4764f01193d6e4c77bd34005d8ddd1434e403638f0c28",
+  "schema_version": "lumi-trace-v0.4.1-public-qualification-readiness-v1"
+}

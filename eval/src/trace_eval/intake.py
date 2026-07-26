@@ -81,6 +81,13 @@ _LICENCE_MARKERS = {
         "neither the name",
     ),
 }
+_COPYLEFT_LICENCE_MARKERS = (
+    "affero general public license",
+    "eclipse public license",
+    "gnu general public license",
+    "lesser general public license",
+    "mozilla public license",
+)
 
 
 @dataclass(frozen=True)
@@ -393,14 +400,30 @@ def scan_tree_entries(
 
 def detect_code_licence(text: str) -> str:
     lowered = text.casefold()
+    if any(marker in lowered for marker in _COPYLEFT_LICENCE_MARKERS):
+        raise PolicyError("COPYLEFT_OR_MIXED_CODE_LICENCE")
     matches = [
         identifier
         for identifier, markers in _LICENCE_MARKERS.items()
         if all(marker in lowered for marker in markers)
     ]
-    if len(matches) != 1:
+    if not matches:
         raise PolicyError("MISSING_OR_AMBIGUOUS_CODE_LICENCE")
-    return matches[0]
+    if len(matches) == 1:
+        return matches[0]
+    # Some projects append complete MIT/BSD notices for bundled components
+    # after their primary Apache/MIT/BSD-3 grant.  All recognised grants are
+    # permissive; bind the earliest complete grant while continuing to reject
+    # any file containing a copyleft grant.
+    positions = {
+        identifier: min(lowered.find(marker) for marker in _LICENCE_MARKERS[identifier])
+        for identifier in matches
+    }
+    earliest = min(positions.values())
+    primary = [identifier for identifier, position in positions.items() if position == earliest]
+    if len(primary) != 1:
+        raise PolicyError("MISSING_OR_AMBIGUOUS_CODE_LICENCE")
+    return primary[0]
 
 
 def verify_licence_evidence(

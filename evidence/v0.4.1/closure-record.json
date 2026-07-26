@@ -1,0 +1,16 @@
+{
+  "candidate_generation": "LABEL_BLIND_PRODUCT_INTEGRATED",
+  "closure_id": "v0.4.1-public-closure:9d8195cfea80d1166ddcbc3fd25e073f6d3c469d5ff7e903e1a48d43a9f49a81",
+  "data_supply": "EXTERNAL_DATA_SUPPLY_INSUFFICIENT",
+  "deterministic_route_claim": "NOT_MADE",
+  "integrity_remediation": "COMPLETE",
+  "model_selection": "NOT_OPENED",
+  "pilot": "NOT_READY",
+  "protected_holdback": "SEALED_UNOPENED",
+  "public_weight_release": "NOT_AUTHORISED",
+  "qualification": "NOT_OPENED_OR_CONSUMED",
+  "ranking": "DEVELOPMENT_CANDIDATES_RETAINED_FINAL_GATES_NOT_MET",
+  "release": "NOT_AUTHORISED",
+  "schema_version": "lumi-trace-v0.4.1-public-closure-v1",
+  "state": "QUALIFICATION_NOT_READY / CONTINUE_DEVELOPMENT"
+}

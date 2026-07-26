@@ -1,0 +1,14 @@
+{
+  "case_or_label_substance_included": false,
+  "customer_data_included": false,
+  "decision": "APPROVED_AGGREGATE_ONLY",
+  "local_absolute_paths_included": false,
+  "private_checkpoint_included": false,
+  "protected_holdback_substance_included": false,
+  "repository_paths_or_symbols_included": false,
+  "repository_publication_authorised": false,
+  "review_id": "v0.4.1-public-boundary-review:c399dfbd778dc89b9209cf4eba6d30f0e8657dbcc6fd303d892e80e739e70803",
+  "schema_version": "lumi-trace-v0.4.1-public-boundary-review-v1",
+  "third_party_source_included": false,
+  "weight_publication_authorised": false
+}

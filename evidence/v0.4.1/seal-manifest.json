@@ -1,0 +1,69 @@
+{
+  "closure_id": "v0.4.1-public-closure:9d8195cfea80d1166ddcbc3fd25e073f6d3c469d5ff7e903e1a48d43a9f49a81",
+  "members": [
+    {
+      "path": "adversarial-review.json",
+      "sha256": "sha256:a6a3195ce6899b4689191aa89f8f938258500f82a57132efc4f4add3e538e218",
+      "size_bytes": 1622
+    },
+    {
+      "path": "closure-record.json",
+      "sha256": "sha256:d3501be53a47f6037ecb523bc3ac1d5491d8e5824c27659f9188e195801cfe1e",
+      "size_bytes": 716
+    },
+    {
+      "path": "continuation-package.json",
+      "sha256": "sha256:71327ab3de02999c8c9b89ace003029ee1d4c02b5d9c7e209387cfe459019017",
+      "size_bytes": 919
+    },
+    {
+      "path": "data-readiness.json",
+      "sha256": "sha256:91965f91777205e1e3a7078fffb8a18fce84c93f1f6d53f196d90dacc11dd9cd",
+      "size_bytes": 941
+    },
+    {
+      "path": "development-summary.json",
+      "sha256": "sha256:b5c3fd13e95f65331fe8b474a12171def4af3e928824728eaf50e5ed20d79038",
+      "size_bytes": 5834
+    },
+    {
+      "path": "integrity-remediation.json",
+      "sha256": "sha256:53121dfa29ee193a3c1740d9f9580a20f8d1f66884cd129afa2222f170515ad3",
+      "size_bytes": 1090
+    },
+    {
+      "path": "model-summary.json",
+      "sha256": "sha256:ae272c9d74d3c41b3c6a085c25c03a56a3d28ec5853d7d1add9e40fee9977d33",
+      "size_bytes": 1177
+    },
+    {
+      "path": "public-boundary-review.json",
+      "sha256": "sha256:3e0acc807895f86fd5847c8459a0a11a30fa75b043437e137e580b89dae42c3a",
+      "size_bytes": 613
+    },
+    {
+      "path": "qualification-readiness.json",
+      "sha256": "sha256:d5a8ed7b8d7e02bb5a3cd7a8ebfee7058d88e0f1c073fd8bb3020a03e3a95ef2",
+      "size_bytes": 840
+    },
+    {
+      "path": "resource-summary.json",
+      "sha256": "sha256:c492ac6ea1c1a26cda55e3c29f1c3dd661e1598ff5664eeb6c80a3ef27edffb7",
+      "size_bytes": 1017
+    },
+    {
+      "path": "runtime-integration.json",
+      "sha256": "sha256:eb94eb66cadb40e834d70d43028649f9fd04071ba0507fb58913eb95d49266ee",
+      "size_bytes": 1384
+    },
+    {
+      "path": "starting-state.json",
+      "sha256": "sha256:0f4b5075a14c7c2650ec0ef5731d3a4199c7f9396a8781ded89806a9d2781d61",
+      "size_bytes": 541
+    }
+  ],
+  "public_boundary_review_id": "v0.4.1-public-boundary-review:c399dfbd778dc89b9209cf4eba6d30f0e8657dbcc6fd303d892e80e739e70803",
+  "schema_version": "lumi-trace-v0.4.1-public-evidence-seal-v1",
+  "seal_id": "lumi-trace-v0.4.1-public-evidence:9af0bed633a802cdc37ff5a3e5e8f1d973c877e41bcf48d35949c0b80f857259",
+  "source_state_id": "lumi-trace-v0.4.1-source-state:3d248cfaa1e959ee49f9f0f7f7c921e32fcc2420acf23925db523b7fc8aba82b"
+}

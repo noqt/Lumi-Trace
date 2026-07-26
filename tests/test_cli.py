@@ -12,7 +12,7 @@ def test_version_reports_zero_weights(capsys) -> None:
     assert main(["version"]) == 0
     output = json.loads(capsys.readouterr().out)
     assert output["inventory_id"] == "skylark.lumi.trace"
-    assert output["model_status"] == "PROPOSED_NOT_TRAINED"
+    assert output["model_status"] == "DEVELOPMENT_RUNTIME_NO_PACKAGED_WEIGHTS"
     assert output["checkpoint"] is None
     assert output["current_weights"] == 0
 

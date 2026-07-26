@@ -1,0 +1,23 @@
+{
+  "active_parameters": 10455,
+  "algorithm": "FAMILY_BALANCED_PAIRWISE_INTEGER_PERCEPTRON",
+  "bounded_classical_candidate_count": 3,
+  "checkpoint_packaged": false,
+  "compact_encoder_disposition": "NOT_CREDIBLE_UNDER_CURRENT_DATA_AND_SUPPLY_CHAIN_ENVELOPE",
+  "completed_epochs": 16,
+  "development_model_screen_id": "v0.4.1-private-model-screen:6cd88bb541980499ff423ad144e26c7292e4cf32cfb03318201b01fda13ea0f0",
+  "development_selection_reason": "NO_MATERIAL_CHALLENGER_GAIN_RETAIN_SMALLER_REFERENCE",
+  "exact_training_replay": true,
+  "external_weights_downloaded": false,
+  "feature_contract": "label-blind-hashed-role-features-v0.4.1.1",
+  "foundation_model": null,
+  "model_artifact_id": "lumi-trace-localization-model:c04f15d502040bb0a18715d367a58b16726ecf4a331e27e77de46e58dcff1745",
+  "pair_updates": 10806,
+  "public_weight_release_authorised": false,
+  "record_id": "v0.4.1-public-model-summary:716d662a4cbf3d680232e24996ad21ff937609bf3bdec7df3ba208ab0babc32d",
+  "schema_version": "lumi-trace-v0.4.1-public-model-summary-v1",
+  "status": "PRIVATE_DEVELOPMENT_CANDIDATE_NOT_QUALIFIED",
+  "tokenizer": null,
+  "training_families": 303,
+  "training_groups": 506
+}

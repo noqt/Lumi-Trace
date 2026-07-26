@@ -11,6 +11,25 @@ Schema names and `schema_version` values are part of the V0.1 compatibility
 contract. A breaking change requires a new schema-version name; an existing v1
 contract must not be silently reinterpreted.
 
+## V0.4.1 Label-Blind Localization
+
+- `localization-inference-request-v0.4.1.json` is the only inference-side
+  request accepted by the isolated builder. It contains the normalized finding,
+  immutable repository artifact identity, bounded configuration, and optional
+  canonical model binding. Audit receipts, targets, fixed revisions, labels,
+  and qualification state are not accepted.
+- `localization-raw-ranking-v0.4.1.json` defines the bounded candidate
+  inventory, exported ranking, source-visible role classes, telemetry,
+  abstention, ranking identity, and raw-output seal.
+- `localization-linear-model-v0.4.1.json` defines the safe JSON-only sparse
+  integer model. It permits no foundation model, tokenizer, remote code, or
+  hosted-service binding.
+
+Runtime verification applies canonical identities and cross-field invariants
+that JSON Schema alone cannot express, including ordered unique sparse weights,
+request and model hash binding, inventory/ranking membership, sequential ranks,
+candidate identities, and the complete raw-output seal.
+
 ## Published Schema Files
 
 | Schema | Purpose |
@@ -26,6 +45,9 @@ contract must not be silently reinterpreted.
 | `schemas/reproduction-receipt-v1.json` | Local image and policy identity, qualification attestations, bounded step results, repository immutability, and receipt identity. |
 | `schemas/resolved-dependency-inventory-v1.json` | Sanitized installed tool closure with canonical package name, version, licence, and direct/transitive relationship only. |
 | `schemas/model-inventory-v1.json` | Skylark micro-model inventory record, including proposed, private experimental, and release states. |
+| `schemas/localization-inference-request-v0.4.1.json` | Strict allowed-field request for the isolated V0.4.1 product localizer. |
+| `schemas/localization-raw-ranking-v0.4.1.json` | Bounded candidate inventory, ranked head, telemetry, abstention, and raw seal. |
+| `schemas/localization-linear-model-v0.4.1.json` | Safe bounded sparse integer model artifact with no executable serialization. |
 
 At the time a release is sealed, every file named above must exist and validate
 the corresponding generated fixture. Missing schema files are release blockers,

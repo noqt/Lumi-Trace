@@ -30,6 +30,7 @@ from verify_v0_1_evidence import verify_seal_manifest  # noqa: E402
 from verify_v0_3_1_evidence import verify as verify_v0_3_1_evidence  # noqa: E402
 from verify_v0_3_2_evidence import verify as verify_v0_3_2_evidence  # noqa: E402
 from verify_v0_3_evidence import verify as verify_v0_3_evidence  # noqa: E402
+from verify_v0_4_1_evidence import verify as verify_v0_4_1_evidence  # noqa: E402
 from verify_v0_4_evidence import verify as verify_v0_4_evidence  # noqa: E402
 
 REVISION = "a" * 40
@@ -276,3 +277,20 @@ def test_v0_4_public_evidence_verifies_and_detects_tamper(
     closure.write_text(json.dumps(value), encoding="utf-8")
     with pytest.raises(ValueError, match="artifact mismatch"):
         verify_v0_4_evidence(copied)
+
+
+def test_v0_4_1_public_evidence_verifies_and_detects_tamper(
+    tmp_path: Path, project_root: Path
+) -> None:
+    evidence = project_root / "evidence" / "v0.4.1"
+    if not evidence.is_dir():
+        pytest.skip("V0.4.1 seal is generated after final development evidence")
+    manifest = verify_v0_4_1_evidence(evidence)
+    assert manifest["seal_id"].startswith("lumi-trace-v0.4.1-public-evidence:")
+
+    copied = tmp_path / "v0.4.1"
+    shutil.copytree(evidence, copied)
+    payload = copied / "closure-record.json"
+    payload.write_text('{"tampered":true}\n', encoding="utf-8")
+    with pytest.raises(Exception, match="does not match"):
+        verify_v0_4_1_evidence(copied)

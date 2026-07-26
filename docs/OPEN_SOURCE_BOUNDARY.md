@@ -9,9 +9,11 @@ AI model.
 
 The source repository contains no checkpoint, model-weight file, training
 dataset, private feature group, or governed natural-corpus artifact. V0.4
-produced one bounded private checkpoint after its evidence gates passed. The
-checkpoint did not advance through model selection; its existence does not
-place it under Apache-2.0 or authorise product integration or publication.
+produced one bounded private checkpoint after its evidence gates passed. That
+checkpoint was invalidated for selection and qualification by the V0.4.1
+integrity review. V0.4.1 development checkpoints and their receipts remain in
+governed private storage; their existence does not place them under Apache-2.0
+or authorise weight publication.
 
 ## Excluded Materials
 
@@ -108,3 +110,20 @@ data or weights. A private training run does not authorise checkpoint
 publication. The public evidence must record `weight_files_published: false`,
 and repository publication remains `NO_GO_PENDING_USER_REVIEW` until the user
 reviews the sealed build.
+
+V0.4.1 invalidates contaminated V0.4 model-selection and qualification
+derivatives, preserves the unopened historical holdback, and regenerates
+development evidence through separated builder and scorer roles. Private
+development models may be exercised by an explicit local model path, but no
+model is bundled in a wheel, source distribution, container, or public evidence
+package. Fresh model-selection and qualification inputs, raw rankings, labels,
+scored results, information-flow logs, and checkpoint files remain exclusively
+on governed F:/G: storage.
+
+The disclosure-reviewed V0.4.1 evidence may contain aggregate remediation,
+development, adversarial-review, product-integration, resource, readiness, and
+continuation records. It must not contain repository, organisation, family,
+group, advisory, target, path, symbol, label, or partition-member identity. A
+V0.4.1 seal is evidence for the recorded qualification decision only; it does
+not authorise repository publication, checkpoint publication, a release, or
+TRACE-001 training.

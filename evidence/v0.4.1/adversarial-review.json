@@ -1,0 +1,46 @@
+{
+  "findings": [
+    {
+      "disposition": "CLOSED_BY_INVALIDATION_AND_LABEL_BLIND_REBUILD",
+      "finding": "predecessor target access before raw seal",
+      "id": "ADV-001",
+      "retest": "PASS",
+      "severity": "CRITICAL"
+    },
+    {
+      "disposition": "CLOSED_BY_IDENTITY_BUMP_AND_REGENERATION",
+      "finding": "candidate implementation changed under a stale identity",
+      "id": "ADV-002",
+      "retest": "PASS",
+      "severity": "HIGH"
+    },
+    {
+      "disposition": "CLOSED_BY_RUNTIME_AUDIT_GUARD",
+      "finding": "builder inherited host file, socket, and process capabilities",
+      "id": "ADV-003",
+      "retest": "PASS",
+      "severity": "HIGH"
+    },
+    {
+      "disposition": "CLOSED_BY_HYBRID_TOP_1000_SUPPORT_CONTRACT",
+      "finding": "learned inference exceeded its training candidate support",
+      "id": "ADV-004",
+      "retest": "PASS",
+      "severity": "HIGH"
+    },
+    {
+      "disposition": "CLOSED_BY_ALL_ATTEMPT_AGGREGATION",
+      "finding": "failed attempts were excluded from capability denominators",
+      "id": "ADV-005",
+      "retest": "PASS",
+      "severity": "HIGH"
+    }
+  ],
+  "fresh_partition_overlap_review_completed": false,
+  "qualification_clearance": false,
+  "reason_full_prequalification_review_incomplete": "FRESH_PARTITIONS_NOT_CREATED_OR_OPENED",
+  "review_id": "v0.4.1-public-adversarial-review:a252bad19025bcace7dfc7b0a9e11ee435e3c76f407b6ba55dbce10a6594c605",
+  "review_scope": "PREQUALIFICATION_DEVELOPMENT_STOP_THE_LINE",
+  "schema_version": "lumi-trace-v0.4.1-public-adversarial-review-v1",
+  "unresolved_critical_or_high_findings": 0
+}

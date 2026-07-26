@@ -88,6 +88,76 @@ def test_contract_schemas_validate_emitted_documents(
         Draft202012Validator(schemas[name], registry=registry).validate(document)
 
 
+def test_v041_localization_schemas_validate_product_documents(
+    project_root: Path,
+    fixture_repository: Path,
+    manual_finding_path: Path,
+) -> None:
+    from lumi_trace.learned_ranker import (
+        ALGORITHM,
+        BASE_RANKER,
+        DIMENSIONS,
+        FEATURE_CONTRACT,
+        MODEL_SCHEMA,
+    )
+    from lumi_trace.localization import (
+        build_raw_localization,
+        construct_inference_request,
+        repository_artifact_identity,
+    )
+
+    schemas, registry = _schemas(project_root)
+    finding = import_manual(manual_finding_path, fixture_repository)
+    repository_sha256, source_kind = repository_artifact_identity(fixture_repository)
+    request = construct_inference_request(
+        finding=finding,
+        repository_artifact_sha256=repository_sha256,
+        source_kind=source_kind,
+        top_k=100,
+    )
+    raw = build_raw_localization(request, repository_source=fixture_repository)
+    Draft202012Validator(
+        schemas["localization-inference-request-v0.4.1.json"],
+        registry=registry,
+    ).validate(request)
+    Draft202012Validator(
+        schemas["localization-raw-ranking-v0.4.1.json"],
+        registry=registry,
+    ).validate(raw)
+
+    model = {
+        "schema_version": MODEL_SCHEMA,
+        "algorithm": ALGORITHM,
+        "feature_contract": FEATURE_CONTRACT,
+        "dimensions": DIMENSIONS,
+        "base_ranker": BASE_RANKER,
+        "weights": [{"index": 0, "weight": 1}],
+        "active_parameters": 1,
+        "training_manifest_id": "manifest:test",
+        "training_data_id": "data:test",
+        "training_config": {
+            "epochs": 1,
+            "margin": 1,
+            "maximum_candidates_per_group": 2,
+            "maximum_pairs_per_group": 1,
+            "seed": 0,
+        },
+        "completed_epochs": 1,
+        "pair_updates": 1,
+        "family_balanced": True,
+        "foundation_model": None,
+        "tokenizer": None,
+        "remote_code": False,
+        "hosted_service": False,
+        "cpu_inference": True,
+    }
+    model["artifact_id"] = stable_id("lumi-trace-localization-model", model)
+    Draft202012Validator(
+        schemas["localization-linear-model-v0.4.1.json"],
+        registry=registry,
+    ).validate(model)
+
+
 @pytest.mark.parametrize("count", [1, 8, 9, 10, 20])
 def test_candidate_schema_accepts_canonical_reason_match_boundaries(
     project_root: Path, count: int

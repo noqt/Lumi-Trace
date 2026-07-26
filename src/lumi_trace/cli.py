@@ -20,6 +20,17 @@ from .findings import (
     validate_normalized_finding,
 )
 from .indexing import build_repository_index, verify_repository_index
+from .learned_ranker import LEARNED_RANKER, verify_model_artifact
+from .localization import (
+    DEFAULT_RANKER,
+    RAW_OUTPUT_SCHEMA,
+    REQUEST_SCHEMA,
+    build_raw_localization,
+    construct_inference_request,
+    repository_artifact_identity,
+    validate_inference_request,
+    verify_raw_localization,
+)
 from .pipeline import load_bundle, trace_repository
 from .ranking import rank_candidates, verify_candidate_set
 from .reporting import classify_evidence, export_sarif, verify_evidence_bundle
@@ -87,6 +98,28 @@ def build_parser() -> argparse.ArgumentParser:
     rank.add_argument("--index", type=_path, required=True)
     rank.add_argument("--output", "-o", type=_path, required=True)
     rank.add_argument("--top-k", type=int, default=20)
+
+    localize = commands.add_parser(
+        "localize",
+        help="run the label-blind role-aware V0.4.1 pre-release localizer",
+    )
+    localize.add_argument("--finding", type=_path, required=True)
+    localize.add_argument("--repository", type=_path, required=True)
+    localize.add_argument("--output", "-o", type=_path, required=True)
+    localize.add_argument(
+        "--ranker",
+        choices=(
+            "role-aware-sparse-v0.4.1.1",
+            "role-aware-sparse-v0.4.1.2",
+            "role-aware-sparse-v0.4.1.3",
+            "structured-role-sparse-v0.4.1.4",
+            LEARNED_RANKER,
+        ),
+        default=DEFAULT_RANKER,
+    )
+    localize.add_argument("--top-k", type=int, default=1000)
+    localize.add_argument("--maximum-candidates", type=int, default=10_000)
+    localize.add_argument("--model", type=_path)
 
     reproduce = commands.add_parser("reproduce", help="run a plan in a network-denied OCI sandbox")
     reproduce.add_argument("--repository", type=_path, required=True)
@@ -161,6 +194,10 @@ def _validate_document(path: Path) -> str:
         verify_repository_index(value)
     elif version == "candidate-set-v1":
         verify_candidate_set(value)
+    elif version == REQUEST_SCHEMA:
+        validate_inference_request(value)
+    elif version == RAW_OUTPUT_SCHEMA:
+        verify_raw_localization(value)
     elif version in {"reproduction-plan-v1", "reproduction-receipt-v1"}:
         if version == "reproduction-plan-v1":
             validate_reproduction_plan(value)
@@ -364,7 +401,7 @@ def dispatch(args: argparse.Namespace) -> None:
             name="Lumi Trace",
             version=__version__,
             inventory_id="skylark.lumi.trace",
-            model_status="PROPOSED_NOT_TRAINED",
+            model_status="DEVELOPMENT_RUNTIME_NO_PACKAGED_WEIGHTS",
             checkpoint=None,
             current_weights=0,
         )
@@ -397,6 +434,36 @@ def dispatch(args: argparse.Namespace) -> None:
         result = rank_candidates(finding, index, top_k=args.top_k)
         dump_json(args.output, result)
         _write_summary(candidate_set_id=result["candidate_set_id"], output=str(args.output))
+    elif args.command == "localize":
+        finding = load_normalized_finding(args.finding)
+        artifact_sha256, source_kind = repository_artifact_identity(args.repository)
+        model = None
+        if args.model is not None:
+            loaded_model = load_json(args.model)
+            if not isinstance(loaded_model, dict):
+                raise InputError("localization model must be a JSON object")
+            model = verify_model_artifact(loaded_model)
+        request = construct_inference_request(
+            finding=finding,
+            repository_artifact_sha256=artifact_sha256,
+            source_kind=source_kind,
+            ranker=args.ranker,
+            top_k=args.top_k,
+            maximum_candidates=args.maximum_candidates,
+            model_artifact=model,
+        )
+        result = build_raw_localization(
+            request,
+            repository_source=args.repository,
+            model_artifact=model,
+        )
+        dump_json(args.output, result)
+        _write_summary(
+            raw_output_seal=result["raw_output_seal"],
+            ranking_id=result["ranking_id"],
+            abstained=result["abstention"]["abstained"],
+            output=str(args.output),
+        )
     elif args.command == "reproduce":
         plan = load_reproduction_plan(args.plan)
         with RepositoryWorkspace(args.repository) as workspace:

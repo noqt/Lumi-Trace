@@ -1,12 +1,12 @@
 # Lumi Trace
 
-> **V0.4 negative experiment.** Trace-Eval 0.4.0 admitted 541
-> training-eligible groups across 317 families and authorised one bounded,
-> from-scratch eight-parameter TRACE-001 experiment. The learned reranker did
-> not beat sparse on grouped model selection. Sparse then failed four locked
-> gates on the single-use 202-group qualification partition. The closure is
-> `NO_MODEL_ADVANTAGE / DETERMINISTIC_ROUTE`; pilot activation, repository
-> release, and weight publication remain unauthorised.
+> **V0.4.1 integrity recovery in development.** The V0.4 label-aware
+> candidate-generation defect is recorded and its derived evidence is
+> invalidated. V0.4.1 adds a label-blind product localizer, isolated
+> builder/scorer/custodian roles, a private from-scratch linear development
+> candidate, and fail-closed fresh-evidence gates. Fresh model selection,
+> qualification, pilot activation, repository release, and weight publication
+> remain unauthorised.
 
 Lumi Trace is a customer-local vulnerability evidence instrument. It imports a
 finding, creates a clean-room snapshot of a local repository or archive, builds
@@ -14,17 +14,19 @@ a deterministic file and symbol index, ranks relevant locations, optionally
 attempts an explicitly supplied reproduction plan in a network-denied Docker
 sandbox, and exports an auditable evidence package.
 
-V0.1 has zero third-party Python runtime dependencies, zero model weights, no
-hosted inference, and no API-key requirement. It is a deterministic software
-baseline, not a trained ML model.
+The package has zero third-party Python runtime dependencies, no packaged model
+weights, no hosted inference, and no API-key requirement. The optional learned
+V0.4.1 development route accepts only an explicitly supplied, hash-bound local
+model artifact; the governed development checkpoint is not distributed.
 
 ## Current Status and Hard Stops
 
-- Runtime version: `0.1.2`; evaluator version: `0.4.0`.
+- Runtime version: `0.4.1-dev.0`; evaluator version: `0.4.1`.
 - Inventory identity: `skylark.lumi.trace`.
-- Model status: `EXPERIMENTAL_PRIVATE_NOT_SELECTED`; one eight-parameter
-  checkpoint is retained on governed private storage and is not integrated,
-  packaged, or publication-authorised.
+- Model status: `PRIVATE_DEVELOPMENT_CANDIDATE_NOT_QUALIFIED`; one
+  10,455-parameter sparse integer checkpoint is retained on governed private
+  storage. Its loader and hybrid ranker are product-integrated, but the
+  checkpoint is not packaged or publication-authorised.
 - V0.4 governed corpus: 1,228 groups in family-disjoint training,
   engineering-development, model-selection, qualification, and protected
   holdback partitions.
@@ -32,11 +34,14 @@ baseline, not a trained ML model.
   V0.3.2 qualification partition was not used for V0.4 development.
 - V0.3 Trace IR state: `IR_FEASIBILITY_SUPPORTED` on owned inert lab fixtures
   only; this is not a live attack-detection result.
-- V0.4 training-entry recommendation: `TRACE_001_EXECUTION_AUTHORISED`
-  (fulfilled once); current closure: `NO_MODEL_ADVANTAGE /
-  DETERMINISTIC_ROUTE`.
-- V0.4 qualification: consumed once, not qualified; protected holdback:
-  sealed and unopened.
+- V0.4 qualification is spent and invalid for capability decisions after the
+  controlled-review defect. Fresh V0.4.1 model-selection and qualification
+  inputs remain custodian-closed and were not opened as executable partitions;
+  the protected holdback remains unopened.
+- V0.4.1 candidate generation is end-to-end label-blind and the isolated
+  builder denies scorer/custodian filesystem access, sockets, and subprocesses.
+- Fresh independent data supply is below the predeclared raw and family floors,
+  so no V0.4.1 qualification claim or `DETERMINISTIC_ROUTE` claim is made.
 - Historical Lumi evidence, customer evidence, protected holdbacks, CyberGym
   tasks, and rejected V2.7 adapters are outside this build.
 
@@ -49,6 +54,10 @@ decision, negative learned experiment, and single-use qualification are
 documented in [V0.4 assurance](docs/V0.4_ASSURANCE.md). The disclosure-safe
 seal and verification command are documented in [V0.4
 evidence](docs/V0.4_EVIDENCE.md).
+
+The V0.4.1 remediation, development result, evidence limits, and exact
+ready-to-resume condition are documented in [V0.4.1
+evidence](docs/V0.4.1_EVIDENCE.md).
 
 The owned-fixture V0.1 release seal and its controlled verification workflow
 are documented in [V0.1 Release Evidence](docs/RELEASE_EVIDENCE.md).
@@ -123,6 +132,25 @@ The quickstart intentionally omits a reproduction plan, so its deterministic
 classification is `INSUFFICIENT_EVIDENCE` with reason
 `NO_REPRODUCTION_PLAN`. That is an abstention, not an error.
 
+The V0.4.1 development localizer is a separate bounded command:
+
+```sh
+PYTHONPATH=src python -m lumi_trace import-manual \
+  tests/data/manual-finding.json \
+  --repository tests/fixtures/demo-repository \
+  --output out/normalized.json
+
+PYTHONPATH=src python -m lumi_trace localize \
+  --finding out/normalized.json \
+  --repository tests/fixtures/demo-repository \
+  --ranker role-aware-sparse-v0.4.1.3 \
+  --output out/localization.json
+```
+
+The learned ranker additionally requires `--model` with an explicitly supplied
+local canonical JSON artifact. No model is bundled, downloaded, selected, or
+qualified by the public package.
+
 For local command help:
 
 ```sh
@@ -154,6 +182,7 @@ and archive links fail closed in V0.1.
 | `import-sarif` | Convert selected or all SARIF 2.1.0 results to normalized findings. |
 | `index` | Snapshot and deterministically index a directory or archive. |
 | `rank` | Rank files and symbols from a normalized finding and repository index. |
+| `localize` | Run the bounded label-blind V0.4.1 localizer with a deterministic ranker or explicitly supplied hash-bound local model. |
 | `reproduce` | Run an explicit plan in the qualified network-denied sandbox. |
 | `trace` | Run the complete import-to-export pipeline. |
 | `export-sarif` | Project a verified evidence bundle to SARIF 2.1.0. |

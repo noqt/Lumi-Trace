@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.4.1-dev.0 - Integrity remediation and qualification recovery
+
+- Recorded the V0.4 ground-truth target-access defect, preserved the historical
+  seal, and invalidated all contaminated candidate, feature, model-selection,
+  qualification, and closure derivatives.
+- Added an explicit allowed-field inference schema and product-runtime
+  file/symbol localizer with target-agnostic quarantine, deterministic
+  candidate generation, role-aware ranking, bounded output, and exact seals.
+- Separated builder, scorer, and qualification-custodian stores. The isolated
+  builder rejects label-bearing inputs and denies out-of-root file access,
+  sockets, and subprocess creation during inference.
+- Regenerated training and engineering-development candidates from immutable
+  source inputs, retained failed development routes, and trained an exact-
+  replay 10,455-parameter sparse integer pairwise ranker without external
+  weights, tokenizers, hosted services, or repository-code execution.
+- Integrated the learned model loader and a bounded hybrid route into the
+  product CLI. No checkpoint is packaged or publication-authorised.
+- Added source-state-bound final validation and package qualification,
+  including two byte-identical wheel/source builds, installed deterministic
+  and learned replays, historical-evidence verification, live network-denied
+  Docker tests, and explicit exclusion of the complete evidence tree.
+- Made the resolved dependency-inventory schema version-aware while retaining
+  exact historical release-version checks in the corresponding evidence
+  verifiers.
+- Kept V0.4 qualification spent, protected holdback unopened, and all fresh
+  model-selection and qualification labels closed. Predeclared fresh-data
+  supply floors were not met, so qualification was not consumed and no
+  deterministic or learned capability claim was made.
+
 ## 0.4.0 - Cross-family generalisation and training-data assurance
 
 - Added enforceable source, data-state, per-material rights, quarantine,

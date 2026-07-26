@@ -2,14 +2,14 @@ schema_version: model-inventory-v1
 id: skylark.lumi.trace
 name: Lumi Trace
 parent: skylark.lumi.frontier
-stage: negative-experiment
+stage: integrity-restored-development
 runtime: customer-local
-model_status: EXPERIMENTAL_PRIVATE_NOT_SELECTED
+model_status: PRIVATE_DEVELOPMENT_CANDIDATE_NOT_QUALIFIED
 checkpoint: private_governed_not_published
-active_parameters: 8
-skylark_trained_parameters: 8
+active_parameters: 10455
+skylark_trained_parameters: 10455
 code_license: Apache-2.0
 weight_license: internal_evaluation_only_pending_release_decision
-training_data: governed_private_v0.4_541_groups_317_families
+training_data: governed_private_v0.4.1_506_groups_303_families
 api_keys_required: false
 hosted_inference: false

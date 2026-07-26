@@ -31,6 +31,18 @@
     {
       "path": "tests/fixtures/demo-repository/tests/reproduce.sh",
       "sha256": "f3c1d5a34df3a4f5dcfb25dcfad9b82b8fc4110090a4e2b5dcea7180af955804"
+    },
+    {
+      "path": "tests/fixtures/localization-repository/LICENSE",
+      "sha256": "aec3264b50d3cbdf908769a8db7b867d37cf8a25ce39e5c9797690623b6dd3e7"
+    },
+    {
+      "path": "tests/fixtures/localization-repository/src/archive.py",
+      "sha256": "933021ba3fed8d38e54e34dfb86f8b0ec670c11724c66c81751c3fd9e28ef4de"
+    },
+    {
+      "path": "tests/fixtures/localization-repository/tests/archive_case.py",
+      "sha256": "71d3425cbccadc4279a26ab9f36c8321f981e20b306eb1c2c62ba48a51942899"
     }
   ]
 }

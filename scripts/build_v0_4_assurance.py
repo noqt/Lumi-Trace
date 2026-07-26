@@ -119,9 +119,22 @@ _LICENCE_NAMES = (
     "LICENSE-APACHE",
     "LICENSE-APACHE.txt",
     "LICENSE-APACHE-2.0",
+    "LICENSE.APACHE",
+    "LICENSE.BSD",
+    "LICENSE.MIT",
+    "LICENSE-2.0.txt",
+    "APACHE-2.0.txt",
+    "COPYRIGHT",
+    "COPYRIGHT.txt",
     "LICENSES/Apache-2.0.txt",
+    "LICENSES/Apache-2.0",
+    "LICENSES/Apache-2.0.md",
     "LICENSES/MIT.txt",
+    "LICENSES/MIT",
+    "LICENSES/MIT.md",
     "LICENSES/BSD-3-Clause.txt",
+    "LICENSES/BSD-3-Clause",
+    "LICENSES/BSD-3-Clause.md",
 )
 _MODEL_INPUT_TEXT_SUFFIXES = frozenset(
     {

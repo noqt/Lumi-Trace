@@ -306,6 +306,16 @@ def test_missing_mismatched_and_unapproved_licence_fails_closed() -> None:
         )
 
 
+def test_primary_permissive_grant_can_precede_bundled_permissive_notices() -> None:
+    from trace_eval.intake import detect_code_licence
+
+    apache = "Apache License\nVersion 2.0\n"
+    bundled_mit = "Permission is hereby granted, free of charge\n"
+    assert detect_code_licence(apache + bundled_mit) == "Apache-2.0"
+    with pytest.raises(PolicyError, match="COPYLEFT_OR_MIXED"):
+        detect_code_licence(apache + bundled_mit + "\nGNU General Public License\n")
+
+
 def test_rights_dimensions_are_separate_and_training_defaults_false() -> None:
     validate_rights_dimensions(_rights())
     with pytest.raises(PolicyError, match="TRAINING_ELIGIBILITY"):

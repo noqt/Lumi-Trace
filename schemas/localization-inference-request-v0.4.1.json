@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "localization-inference-request-v0.4.1.json",
+  "title": "Lumi Trace V0.4.1 allowed-field inference request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "finding",
+    "repository",
+    "configuration",
+    "request_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "localization-inference-request-v0.4.1"
+    },
+    "finding": {
+      "$ref": "normalized-finding-v1.json"
+    },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_sha256",
+        "source_kind"
+      ],
+      "properties": {
+        "artifact_sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "source_kind": {
+          "enum": [
+            "archive",
+            "directory"
+          ]
+        }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtime_identity",
+        "quarantine_policy",
+        "candidate_algorithm",
+        "ranker",
+        "top_k",
+        "maximum_candidates",
+        "maximum_files",
+        "maximum_total_bytes",
+        "maximum_file_bytes",
+        "measure_peak_memory",
+        "model"
+      ],
+      "properties": {
+        "runtime_identity": {
+          "const": "lumi-trace-runtime-v0.4.1-pre-release.8"
+        },
+        "quarantine_policy": {
+          "const": "target-agnostic-source-quarantine-v0.4.1.1"
+        },
+        "candidate_algorithm": {
+          "const": "label-blind-python-role-candidates-v0.4.1.5"
+        },
+        "ranker": {
+          "enum": [
+            "role-aware-sparse-v0.4.1.1",
+            "role-aware-sparse-v0.4.1.2",
+            "role-aware-sparse-v0.4.1.3",
+            "structured-role-sparse-v0.4.1.4",
+            "learned-role-hybrid-v0.4.1.3"
+          ]
+        },
+        "top_k": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "maximum_candidates": {
+          "type": "integer",
+          "minimum": 20,
+          "maximum": 100000
+        },
+        "maximum_files": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "maximum_total_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 17179869184
+        },
+        "maximum_file_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777216
+        },
+        "measure_peak_memory": {
+          "type": "boolean"
+        },
+        "model": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "artifact_id",
+                "canonical_sha256"
+              ],
+              "properties": {
+                "artifact_id": {
+                  "type": "string",
+                  "pattern": "^lumi-trace-localization-model:[0-9a-f]{64}$"
+                },
+                "canonical_sha256": {
+                  "type": "string",
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^localization-request:[0-9a-f]{64}$"
+    }
+  }
+}

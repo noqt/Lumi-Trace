@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "skylark-lumi-trace"
-version = "0.1.2"
+version = "0.4.1-dev.0"
 description = "Deterministic local vulnerability evidence instrument"
 readme = "README.md"
 requires-python = ">=3.11"
