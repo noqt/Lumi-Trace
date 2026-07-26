@@ -30,6 +30,7 @@ from verify_v0_1_evidence import verify_seal_manifest  # noqa: E402
 from verify_v0_3_1_evidence import verify as verify_v0_3_1_evidence  # noqa: E402
 from verify_v0_3_2_evidence import verify as verify_v0_3_2_evidence  # noqa: E402
 from verify_v0_3_evidence import verify as verify_v0_3_evidence  # noqa: E402
+from verify_v0_4_evidence import verify as verify_v0_4_evidence  # noqa: E402
 
 REVISION = "a" * 40
 
@@ -256,3 +257,22 @@ def test_v0_3_2_public_evidence_verifies_and_detects_tamper(
     resource.write_text(json.dumps(value), encoding="utf-8")
     with pytest.raises(ValueError, match="artifact mismatch"):
         verify_v0_3_2_evidence(copied)
+
+
+def test_v0_4_public_evidence_verifies_and_detects_tamper(
+    tmp_path: Path, project_root: Path
+) -> None:
+    evidence = project_root / "evidence" / "v0.4"
+    if not evidence.is_dir():
+        pytest.skip("V0.4 seal is generated after the qualification decision")
+    manifest = verify_v0_4_evidence(evidence)
+    assert manifest["source_revision"]
+
+    copied = tmp_path / "v0.4"
+    shutil.copytree(evidence, copied)
+    closure = copied / "closure-record.json"
+    value = json.loads(closure.read_text(encoding="utf-8"))
+    value["public_release"] = True
+    closure.write_text(json.dumps(value), encoding="utf-8")
+    with pytest.raises(ValueError, match="artifact mismatch"):
+        verify_v0_4_evidence(copied)

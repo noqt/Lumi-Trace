@@ -10,6 +10,18 @@ from pathlib import Path
 from typing import Any
 
 from . import __version__
+from .assurance import (
+    audit_partition_independence,
+    build_sample_plan,
+    build_training_manifest,
+    evaluate_training_readiness,
+    scan_quarantine_entries,
+    seal_partitions,
+    v04_metric_specification,
+    validate_group_audit_card,
+    validate_rights_matrix,
+    verify_transition_chain,
+)
 from .canonical import dump_json, load_json
 from .code_metrics import default_metric_specification
 from .contracts import validate_record
@@ -131,6 +143,34 @@ def build_parser() -> argparse.ArgumentParser:
     ir_rank = ir_commands.add_parser("rank")
     ir_rank.add_argument("episode_package", type=_path)
     ir_rank.add_argument("--output", type=_path, required=True)
+
+    assurance = domains.add_parser("assurance")
+    assurance_commands = assurance.add_subparsers(dest="command", required=True)
+    sample_plan = assurance_commands.add_parser("sample-plan")
+    sample_plan.add_argument("--output", type=_path, required=True)
+    metrics = assurance_commands.add_parser("metric-specification")
+    metrics.add_argument("--output", type=_path, required=True)
+    scan = assurance_commands.add_parser("scan-quarantine")
+    scan.add_argument("entries", type=_path)
+    scan.add_argument("--subject-id", required=True)
+    scan.add_argument("--output", type=_path, required=True)
+    transitions = assurance_commands.add_parser("verify-transitions")
+    transitions.add_argument("records", type=_path)
+    card = assurance_commands.add_parser("validate-card")
+    card.add_argument("card", type=_path)
+    card.add_argument("--rights", type=_path)
+    partitions = assurance_commands.add_parser("seal-partitions")
+    partitions.add_argument("cards", type=_path)
+    partitions.add_argument("--independence-audit-id", required=True)
+    partitions.add_argument("--duplicate-audit-id", required=True)
+    partitions.add_argument("--output", type=_path, required=True)
+    admission = assurance_commands.add_parser("training-admission")
+    admission.add_argument("cards", type=_path)
+    admission.add_argument("--rights", type=_path, required=True)
+    admission.add_argument("--partition-seal", type=_path, required=True)
+    admission.add_argument("--gates", type=_path, required=True)
+    admission.add_argument("--created-at", required=True)
+    admission.add_argument("--output", type=_path, required=True)
     return parser
 
 
@@ -285,6 +325,87 @@ def dispatch(args: argparse.Namespace) -> None:
         dump_json(args.output / "result.json", result)
         manifest = seal_package(args.output)
         _summary(result_id=result["record_id"], package_id=manifest["package_id"])
+    elif args.domain == "assurance" and args.command == "sample-plan":
+        if args.output.exists():
+            raise TraceEvalError("sample plan output already exists")
+        record = build_sample_plan()
+        dump_json(args.output, record)
+        _summary(record_id=record["record_id"])
+    elif args.domain == "assurance" and args.command == "metric-specification":
+        if args.output.exists():
+            raise TraceEvalError("metric specification output already exists")
+        record = v04_metric_specification()
+        dump_json(args.output, record)
+        _summary(record_id=record["record_id"])
+    elif args.domain == "assurance" and args.command == "scan-quarantine":
+        entries = load_json(args.entries)
+        if not isinstance(entries, list) or not all(isinstance(item, dict) for item in entries):
+            raise TraceEvalError("quarantine entries must be a JSON array of objects")
+        record = scan_quarantine_entries(entries, subject_id=args.subject_id)
+        dump_json(args.output, record)
+        _summary(record_id=record["record_id"], decision=record["payload"]["decision"])
+    elif args.domain == "assurance" and args.command == "verify-transitions":
+        records = load_json(args.records)
+        if not isinstance(records, list) or not all(isinstance(item, dict) for item in records):
+            raise TraceEvalError("transition input must be a JSON array of records")
+        _summary(valid=True, final_state=verify_transition_chain(records))
+    elif args.domain == "assurance" and args.command == "validate-card":
+        card_record = load_json(args.card)
+        rights_record = load_json(args.rights) if args.rights else None
+        if not isinstance(card_record, dict) or (
+            rights_record is not None and not isinstance(rights_record, dict)
+        ):
+            raise TraceEvalError("audit card and rights inputs must be records")
+        if rights_record is not None:
+            validate_rights_matrix(rights_record)
+        validate_group_audit_card(card_record, rights_matrix=rights_record)
+        _summary(valid=True, record_id=card_record["record_id"])
+    elif args.domain == "assurance" and args.command == "seal-partitions":
+        cards = load_json(args.cards)
+        if not isinstance(cards, list) or not all(isinstance(item, dict) for item in cards):
+            raise TraceEvalError("cards input must be a JSON array of records")
+        audit = audit_partition_independence(cards)
+        record = seal_partitions(
+            cards,
+            independence_audit_id=args.independence_audit_id,
+            duplicate_audit_id=args.duplicate_audit_id,
+        )
+        dump_json(args.output, record)
+        _summary(
+            record_id=record["record_id"],
+            group_count=audit["group_count"],
+            family_count=audit["family_count"],
+        )
+    elif args.domain == "assurance" and args.command == "training-admission":
+        cards = load_json(args.cards)
+        rights = load_json(args.rights)
+        seal = load_json(args.partition_seal)
+        gates = load_json(args.gates)
+        if (
+            not isinstance(cards, list)
+            or not all(isinstance(item, dict) for item in cards)
+            or not isinstance(rights, list)
+            or not all(isinstance(item, dict) for item in rights)
+            or not isinstance(seal, dict)
+            or not isinstance(gates, dict)
+        ):
+            raise TraceEvalError("training-admission inputs are malformed")
+        rights_by_id = {item["record_id"]: item for item in rights}
+        manifest = build_training_manifest(
+            cards,
+            rights_by_id,
+            partition_seal=seal,
+            created_at=args.created_at,
+        )
+        readiness_record = evaluate_training_readiness(manifest, gates=gates)
+        args.output.mkdir(parents=True)
+        dump_json(args.output / "training-eligibility-manifest.json", manifest)
+        dump_json(args.output / "training-readiness.json", readiness_record)
+        _summary(
+            recommendation=readiness_record["payload"]["recommendation"],
+            manifest_id=manifest["record_id"],
+            readiness_id=readiness_record["record_id"],
+        )
 
 
 def main(argv: list[str] | None = None) -> int:

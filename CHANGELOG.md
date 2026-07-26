@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.4.0 - Cross-family generalisation and training-data assurance
+
+- Added enforceable source, data-state, per-material rights, quarantine,
+  controlled-label, audit-card, lineage, duplicate, leakage, poisoning,
+  privacy, partition-seal, and training-admission contracts.
+- Added inert bounded two-pass Python revision-pair analysis and append-only
+  reconsideration of policy rejections without executing repository code.
+- Added label-blind bounded candidates, lexical and sparse baselines, random
+  and always-abstain controls, V0.1.2 replay, family-aware V0.4 metrics, Wilson
+  intervals, and development-only candidate and threshold locking.
+- Retained failed development candidate-generation attempts and sealed a
+  query-aware IDF file/symbol hybrid that reached 1.000 target indexability on
+  development and training while preserving label-blind ranking.
+- Added a fail-closed, from-scratch eight-parameter pairwise linear TRACE-001
+  experiment with deterministic resume, checkpoint identity, CPU inference,
+  quantisation comparison, and no model, tokenizer, weight, hosted-service, or
+  remote-code download path.
+- Added grouped development and model-selection comparison, cue ablations,
+  material-gain selection, and a one-run unified qualification workflow with
+  network denial and no protected-holdback command.
+- Added aggregate-only V0.4 evidence sealing and verification. Governed
+  repositories, labels, features, private results, checkpoints, and protected
+  partitions remain outside the source repository and source distribution.
+- Recorded a pre-optimisation canonical-identity failure, superseded only the
+  affected execution lock, and reproduced the remediated eight-parameter
+  checkpoint across two clean local runs.
+- Recorded `NO_MODEL_ADVANTAGE`: TRACE-001 underperformed sparse on grouped
+  model selection. Sparse then failed four gates on the consumed 202-group
+  qualification partition. The protected holdback remains unopened and the
+  pilot remains not ready.
+- Preserved the V0.3.2 source and evidence seal, spent V0.3.2 qualification
+  boundary, Trace IR separation, customer-local boundary, and publication hard
+  stops.
+
 ## 0.3.2 - Capability recovery and micro-model readiness
 
 - Added the separately versioned V0.1.1 contract-recovery runtime with a

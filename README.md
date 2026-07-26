@@ -1,12 +1,12 @@
 # Lumi Trace
 
-> **V0.3.2 capability recovery.** Runtime 0.1.1 and Trace-Eval 0.3.2 produced
-> the first valid 40-group natural baseline after repairing the V0.3.1
-> contract and resource failures. Runtime 0.1.2 and Trace-Eval 0.3.3 are the
-> separately versioned deterministic capability candidate. Qualification is
-> controlled by the sealed one-run gate documented in
-> [V0.3.2 evidence](docs/V0.3.2_EVIDENCE.md); public release and `TRACE-001`
-> training remain unauthorised.
+> **V0.4 negative experiment.** Trace-Eval 0.4.0 admitted 541
+> training-eligible groups across 317 families and authorised one bounded,
+> from-scratch eight-parameter TRACE-001 experiment. The learned reranker did
+> not beat sparse on grouped model selection. Sparse then failed four locked
+> gates on the single-use 202-group qualification partition. The closure is
+> `NO_MODEL_ADVANTAGE / DETERMINISTIC_ROUTE`; pilot activation, repository
+> release, and weight publication remain unauthorised.
 
 Lumi Trace is a customer-local vulnerability evidence instrument. It imports a
 finding, creates a clean-room snapshot of a local repository or archive, builds
@@ -20,22 +20,35 @@ baseline, not a trained ML model.
 
 ## Current Status and Hard Stops
 
-- Runtime version: `0.1.2`; evaluator version: `0.3.3`.
+- Runtime version: `0.1.2`; evaluator version: `0.4.0`.
 - Inventory identity: `skylark.lumi.trace`.
-- Model status: `PROPOSED_NOT_TRAINED`; checkpoint: none; active parameters: 0.
-- V0.3.1 natural corpus: 58 evaluation groups across 10 repository families.
-- V0.3.1 Trace Code remains an immutable failed baseline. V0.3.2 preserves its
-  unopened qualification partition and records every later runtime, evaluator,
-  metric, and run identity separately.
+- Model status: `EXPERIMENTAL_PRIVATE_NOT_SELECTED`; one eight-parameter
+  checkpoint is retained on governed private storage and is not integrated,
+  packaged, or publication-authorised.
+- V0.4 governed corpus: 1,228 groups in family-disjoint training,
+  engineering-development, model-selection, qualification, and protected
+  holdback partitions.
+- V0.3.1 Trace Code and the V0.3.2 evidence seal remain immutable. The spent
+  V0.3.2 qualification partition was not used for V0.4 development.
 - V0.3 Trace IR state: `IR_FEASIBILITY_SUPPORTED` on owned inert lab fixtures
   only; this is not a live attack-detection result.
-- `TRACE-001` recommendation: `DO_NOT_BEGIN_TRACE_001`.
+- V0.4 training-entry recommendation: `TRACE_001_EXECUTION_AUTHORISED`
+  (fulfilled once); current closure: `NO_MODEL_ADVANTAGE /
+  DETERMINISTIC_ROUTE`.
+- V0.4 qualification: consumed once, not qualified; protected holdback:
+  sealed and unopened.
 - Historical Lumi evidence, customer evidence, protected holdbacks, CyberGym
   tasks, and rejected V2.7 adapters are outside this build.
 
 See the [model card](docs/MODEL_CARD.md), [training-readiness
 record](docs/TRAINING_READINESS.md), and [open-source
 boundary](docs/OPEN_SOURCE_BOUNDARY.md).
+
+The item-level corpus assurance, label-blind candidate baseline, training
+decision, negative learned experiment, and single-use qualification are
+documented in [V0.4 assurance](docs/V0.4_ASSURANCE.md). The disclosure-safe
+seal and verification command are documented in [V0.4
+evidence](docs/V0.4_EVIDENCE.md).
 
 The owned-fixture V0.1 release seal and its controlled verification workflow
 are documented in [V0.1 Release Evidence](docs/RELEASE_EVIDENCE.md).

@@ -1,73 +1,141 @@
-# TRACE-001 Training Readiness
+# TRACE-001 Training Readiness and Outcome
 
-## Recommendation
+## Decisions
 
-`DO_NOT_BEGIN_TRACE_001`
+V0.4 recorded the binding entry recommendation:
 
-As of Lumi Trace V0.3.2, all earlier seals and the exact V0.1.0 wheel remain
-verified. A governed pilot contains 58 evaluation-only groups from 10 unrelated
-repository families. V0.3.2 repaired the earlier contract and resource
-failures, produced a valid 40-group baseline and separately evaluated the
-V0.1.2 deterministic recovery. The disclosure-safe V0.3.2 seal is
-authoritative for its exact development and qualification outcome.
+`TRACE_001_EXECUTION_AUTHORISED`
 
-That outcome cannot authorise training. The pilot has zero training-eligible
-groups, zero training-eligible repository families, no approved training split,
-and no training-data rights. The 500-group and 25-family learned-lane entry
-gates therefore fail before model acquisition or training.
+That conditional authority was fulfilled by one bounded, local, from-scratch
+experiment. The post-experiment decision is:
 
-The owned-lab Trace IR fixture result `IR_FEASIBILITY_SUPPORTED` establishes
-only that the evidence architecture can parse, rank, replay, and score inert
-events with matched benign controls. It does not count as natural
-candidate-ranking evidence or training data. V0.3 sealing is not training
-authority. No training, fine-tuning, weight download, model acquisition,
-CyberGym task consumption, or protected-holdback opening is authorised.
+`NO_MODEL_ADVANTAGE / DETERMINISTIC_ROUTE`
 
-## Candidate-Ranking Evidence Gates
+V0.4 grants no authority for further training, qualification reuse, pilot
+activation, product integration, repository release, or weight publication.
 
-| Gate | State | Evidence required before the gate can pass |
-| --- | --- | --- |
-| At least 500 useful labelled candidate-ranking groups | `UNMET / EVIDENCE_REQUIRED` | 58 evaluation-only groups were admitted; at least 442 additional useful, rights-cleared groups and separate future-training rights are still required. |
-| At least 25 unrelated training repositories | `UNMET / EVIDENCE_REQUIRED` | 10 unrelated evaluation repository families were admitted; at least 15 additional unrelated repositories and training rights are still required. |
-| Repository-disjoint development and holdback sets | `UNMET / EVIDENCE_REQUIRED` | The pilot has a repository-family-disjoint development/qualification split with zero overlap. It does not create an approved training split or open the protected holdback. |
-| Meaningful hard negatives and controls | `UNMET / SCALE_REQUIRED` | The valid evaluation pilot includes natural hard negatives and fixed safe controls, but 58 evaluation-only groups cannot establish training sufficiency or grant training use. |
-| Audited location and reproduction labels | `UNMET / EVIDENCE_REQUIRED` | Pilot location labels have controlled-review provenance. Reproduction labels were intentionally absent, future training use is false, and full-scale audit evidence is still required. |
-| Adequate deterministic candidate recall | `SEPARATELY EVALUATED / SEE V0.3.2 SEAL` | V0.3.2 records valid development and, if authorised, single-use qualification metrics. This gate alone cannot overcome the failed scale, rights, split, and holdback gates. |
+## Section 17 Entry Gate
 
-The 58 pilot groups are private evaluation evidence, not training data.
-Future training use was not granted. No item may be inferred from aggregate
-counts alone: rights, provenance, quality, exposure, repository independence,
-audit evidence, and a valid deterministic baseline must all be available
-before a gate is marked satisfied.
+Every gate was recomputed from identity-bearing evidence before optimisation:
 
-## Future Weight and Release Gates
+| Gate | Final state |
+| --- | --- |
+| At least 500 useful training groups | Passed: 541 |
+| At least 25 unrelated training families | Passed: 317 |
+| Item-level audit cards | Passed |
+| Training rights | Passed |
+| Lineage and cross-partition duplicate audit | Passed |
+| Controlled blind labels | Passed |
+| Poisoning, secret, privacy, provenance, and leakage audits | Passed |
+| Target indexability at least 0.95 | Passed: 1.000 |
+| Candidate presence | Passed |
+| Remaining ordering or role gap | Passed |
+| Deterministic and simple baselines locked | Passed |
+| Objective and metrics locked | Passed |
+| Family-disjoint partitions sealed | Passed |
+| Model and tokenizer supply chain | Passed: neither used |
+| Training code, dependency, resource, and checkpoint locks | Passed |
+| Qualification and protected holdback blind | Passed |
 
-| Gate | State | Evidence required before the gate can pass |
-| --- | --- | --- |
-| Explicit weight licence | `UNMET / EVIDENCE_REQUIRED` | A reviewed licence that expressly applies to the proposed `TRACE-001` weights. Apache-2.0 on source code is not sufficient. |
-| Trained-model card | `UNMET / EVIDENCE_REQUIRED` | A model card describing the actual trained checkpoint, intended use, limitations, metrics, lineage, and licences. The V0.1 no-model card does not satisfy this gate. |
-| Training code | `UNMET / EVIDENCE_REQUIRED` | Rights-cleared, reviewable training code with a reproducible configuration and environment. |
-| Training-data provenance and data information | `UNMET / EVIDENCE_REQUIRED` | Dataset manifests, source and licence provenance, collection and labelling methods, filtering, exposure controls, and data information sufficient for audit. |
-| Evaluation manifests | `UNMET / EVIDENCE_REQUIRED` | Immutable development and holdback manifests, metric definitions, evaluation configuration, and result receipts. |
-| Foundation-model licence verification | `UNMET / EVIDENCE_REQUIRED` | A documented verification of the selected foundation model and every inherited artefact, including compatibility with the intended training and weight release. |
-| Reproducible local inference instructions | `UNMET / EVIDENCE_REQUIRED` | Versioned local inference code, environment and hardware requirements, model hashes, commands, and an independently reproducible receipt. |
+The corpus contains 1,228 accepted groups across sealed training,
+engineering-development, model-selection, qualification, and protected
+holdback partitions. There are zero cross-partition family collisions.
 
-## Authority Gate
+## Execution Record
 
-The V0.3.2 brief supplies conditional programme authority for a bounded
-`TRACE-001` experiment only after every learned-lane entry gate passes. It does
-not waive data rights, scale, lineage, split, label-audit, holdback,
-supply-chain, or objective-lock requirements. Because those gates are unmet,
-the current execution decision remains `DO_NOT_BEGIN_TRACE_001`.
+The first authorised command failed during training-data identity construction,
+before optimisation, because one monolithic canonical object exceeded the
+hardened one-million-item bound. No checkpoint was written. The failure was
+retained as governed evidence.
 
-## Reconsideration Rule
+The remediation preserved the safety limit and changed only identity
+construction: each validated group is canonicalised separately, then the
+ordered group identities are bound by one aggregate identity. The execution
+lock and final gate record were superseded before training resumed.
 
-The recommendation may change only in a new, reviewable evidence record that:
+The remediated experiment:
 
-1. evaluates every gate above individually;
-2. cites immutable supporting artefacts and their hashes;
-3. confirms that no protected holdback, historical Lumi evidence, customer
-   evidence, or unauthorised task material was used; and
-4. records separate approval for the proposed training objective.
+- trained an eight-parameter pairwise linear ranker from scratch;
+- used 541 groups from 317 families;
+- ran 12 epochs and 1,522,092 pair updates;
+- reproduced exactly across two clean CPU runs;
+- used no foundation model, tokenizer, external weights, download, remote
+  code, hosted service, API key, CyberGym task, customer evidence, historical
+  holdback, or protected V0.4 holdback;
+- retained its checkpoint only on governed private storage; and
+- left qualification unopened until grouped model selection finished.
 
-Until then, the binding recommendation remains `DO_NOT_BEGIN_TRACE_001`.
+The int8 projection failed its 0.95 top-one-agreement gate at 0.93.
+
+## Grouped Selection Decision
+
+TRACE-001 did not beat the locked sparse comparator.
+
+| Model-selection metric | Sparse | TRACE-001 |
+| --- | ---: | ---: |
+| File Recall@20 | 0.809 | 0.718 |
+| Location-role Recall@20 | 0.450 | 0.313 |
+| MRR | 0.549 | 0.465 |
+| Family-macro Recall@20 | 0.725 | 0.672 |
+| Zero-recall families | 3 | 3 |
+
+TRACE-001 improved two families and regressed five. Identifier ablation File
+Recall@20 was 0.275. It did not satisfy the locked material-gain,
+safety-preservation, and cue-ablation rule, so sparse advanced to
+qualification.
+
+## Single-Use Qualification
+
+Qualification was consumed once on 202 groups across 10 families with 202
+matched safe controls. No run remains.
+
+| Locked metric | Gate | Sparse result | State |
+| --- | ---: | ---: | --- |
+| Valid attempts | 1.00 | 1.000 | Passed |
+| Target indexability | ≥0.95 | 1.000 | Passed |
+| File Recall@5 | ≥0.65 | 0.644 | Failed |
+| File Recall@10 | ≥0.75 | 0.767 | Passed |
+| File Recall@20 | ≥0.85 | 0.866 | Passed |
+| Location-role Recall@20 | ≥0.70 | 0.559 | Failed |
+| MRR | ≥0.35 | 0.509 | Passed |
+| Hard-negative outrank | ≤0.20 | 0.211 | Failed |
+| Wrong-role top one | ≤0.15 | 0.252 | Failed |
+| Family-macro Recall@20 | ≥0.80 | 0.978 | Passed |
+| Minimum-family Recall@20 | ≥0.60 | 0.855 | Passed |
+| Zero-recall families | 0 | 0 | Passed |
+
+False supported disposition, false vulnerability on matched safe controls,
+and unsafe non-abstention were zero observed. The sealed Wilson intervals
+remain the appropriate uncertainty statement.
+
+## Current Recommendation
+
+Do not integrate or publish TRACE-001. Do not reuse qualification, open the
+protected holdback, or begin another training run under V0.4.
+
+The ready continuation route is deterministic and evidence-led:
+
+1. retain the sparse and learned negative results;
+2. improve early precision, role discrimination, and hard-negative ordering
+   using engineering-development evidence only;
+3. source and seal a new independent qualification partition before making a
+   new claim; and
+4. obtain new user authority before training, qualification, pilot activation,
+   release, or weight publication.
+
+## Weight and Release Gates
+
+| Gate | State |
+| --- | --- |
+| Explicit public weight licence | Unmet |
+| Model card for the actual private experiment | Met |
+| Reproducible training code and lock | Met |
+| Training-data provenance and data information | Met for governed internal evaluation |
+| Evaluation manifests | Met |
+| Foundation-model licence verification | Not applicable; trained from scratch |
+| Reproducible local inference instructions | Met for governed private evaluation |
+| Product integration approval | Unmet |
+| Public weight release approval | Unmet |
+
+Apache-2.0 covers source code only. The private checkpoint remains
+`INTERNAL_EVALUATION_ONLY_PENDING_USER_RELEASE_DECISION`.

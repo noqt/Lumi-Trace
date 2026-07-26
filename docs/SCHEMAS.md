@@ -25,7 +25,7 @@ contract must not be silently reinterpreted.
 | `schemas/reproduction-plan-v1.json` | Explicit argv-only plan, predicates, output-preview policy, and resource limits. |
 | `schemas/reproduction-receipt-v1.json` | Local image and policy identity, qualification attestations, bounded step results, repository immutability, and receipt identity. |
 | `schemas/resolved-dependency-inventory-v1.json` | Sanitized installed tool closure with canonical package name, version, licence, and direct/transitive relationship only. |
-| `schemas/model-inventory-v1.json` | Skylark micro-model inventory record, including the `PROPOSED_NOT_TRAINED`, zero-weight state. |
+| `schemas/model-inventory-v1.json` | Skylark micro-model inventory record, including proposed, private experimental, and release states. |
 
 At the time a release is sealed, every file named above must exist and validate
 the corresponding generated fixture. Missing schema files are release blockers,
@@ -130,6 +130,32 @@ Location labels require an explicit role, controlled-review receipt, and a
 contiguous append-only correction history. Trace IR accepts only bounded inert
 JSON, verifies owned immutable provenance and rights, rejects remote or
 executable fields, and keeps labels outside runner input.
+
+## Trace-Eval V0.4 Assurance Records
+
+Trace-Eval 0.4.0 publishes the
+`eval/src/trace_eval/schemas/trace-eval-contract-v0.4.0.json` canonical
+envelope schema and enforces payload invariants in code. New identity-bearing
+records include:
+
+- source candidates and append-only data-state transitions;
+- per-material, per-use rights matrices;
+- quarantine scans and answer-leakage audits;
+- controlled label passes and resolutions;
+- group audit cards;
+- partition seals, sample plans, and metric specifications;
+- training-eligibility manifests; and
+- final training-readiness decisions.
+
+A `TRAINING_ELIGIBLE` card must be in the training partition, cite an approved
+rights matrix whose model-input materials permit training, pass every item
+audit, and appear in the final partition seal. Preprocessing is an exact
+audit-card-identity allowlist operation. Evaluation-only, rejected, retired,
+superseded, unsealed, or identity-mismatched records fail closed.
+
+The private feature and experiment records used by the V0.4 build are not
+public interchange schemas and are not included in package data. The public
+V0.4 evidence seal contains aggregate projections only.
 
 ## Privacy Properties
 

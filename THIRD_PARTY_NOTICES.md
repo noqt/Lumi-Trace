@@ -6,7 +6,7 @@ repository. It does not replace the licence supplied by a third-party author.
 ## Distributed Third-Party Material
 
 No third-party source code, model weights, training data, customer repository
-contents, CyberGym tasks, or protected Lumi evidence is vendored in the V0.3.1
+contents, CyberGym tasks, or protected Lumi evidence is vendored in the V0.4
 source distribution.
 
 Public test fixtures must be Skylark-authored synthetic content or must include
@@ -70,6 +70,29 @@ vendored into Lumi Trace nor redistributed in its evidence seal. Security
 advisory records, exact revisions, source snapshots, fixing diffs, labels, and
 case-level output are private evaluation inputs rather than distributed
 third-party material.
+
+V0.4 governed intake uses a locally retained snapshot of the OSV PyPI advisory
+export and PyPA advisory data. Advisory material is governed by its upstream
+terms, including CC-BY-4.0 attribution requirements:
+
+- OSV data and licence information:
+  <https://google.github.io/osv.dev/data/>
+- PyPA Advisory Database:
+  <https://github.com/pypa/advisory-database>
+- GitHub Advisory Database terms:
+  <https://docs.github.com/en/code-security/concepts/vulnerability-reporting-and-management/github-advisory-database>
+
+The advisory archive, advisory prose, repository catalogue, third-party
+repository objects, revisions, diffs, labels, and features are not distributed
+with Lumi Trace. Each admitted repository revision has a private item-level
+licence record and historical licence receipt. Those records authorise only
+the uses they expressly mark; they do not relicense repository contents under
+Apache-2.0.
+
+TRACE-001 training code uses no external foundation model, tokenizer, model
+weights, hosted service, or remote code. The governed experiment produced one
+eight-parameter checkpoint that did not advance through model selection. It
+remains private and is not distributed by this source release.
 
 ## Prohibited Inputs
 
