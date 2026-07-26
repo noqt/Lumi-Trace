@@ -1,0 +1,16 @@
+{
+  "api_keys_required": false,
+  "customer_data": "LOCAL_EVALUATION_ONLY",
+  "excluded_claims": [
+    "vulnerability discovery",
+    "automated repair",
+    "attack detection",
+    "safe-repository certification"
+  ],
+  "hosted_inference": false,
+  "human_review_required": true,
+  "protected_holdback_opened": false,
+  "readiness": "NOT_READY",
+  "schema_version": "lumi-trace-v0.4-public-pilot-package-v1",
+  "supported_use": "Finding-guided Python candidate ranking on authorised local repositories."
+}

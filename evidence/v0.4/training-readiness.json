@@ -1,0 +1,29 @@
+{
+  "external_model_or_tokenizer_used": false,
+  "gates": {
+    "baselines_locked": true,
+    "candidate_presence": true,
+    "controlled_labels": true,
+    "item_audits": true,
+    "lineage_and_duplicate_audit": true,
+    "minimum_25_families": true,
+    "minimum_500_groups": true,
+    "model_supply_chain": true,
+    "objective_and_metrics_locked": true,
+    "ordering_gap": true,
+    "partitions_sealed_disjoint": true,
+    "poison_secret_privacy_provenance": true,
+    "qualification_holdback_blind": true,
+    "target_indexability": true,
+    "training_code_and_resources": true,
+    "training_rights": true
+  },
+  "hosted_service_used": false,
+  "protected_holdback_opened": false,
+  "recommendation": "TRACE_001_EXECUTION_AUTHORISED",
+  "schema_version": "lumi-trace-v0.4-public-training-readiness-v1",
+  "training_family_count": 317,
+  "training_group_count": 541,
+  "training_started": true,
+  "weights_downloaded": false
+}

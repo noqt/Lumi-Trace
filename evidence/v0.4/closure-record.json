@@ -1,0 +1,13 @@
+{
+  "active_parameters": 8,
+  "closure_state": "NO_MODEL_ADVANTAGE / DETERMINISTIC_ROUTE",
+  "next_step": "DETERMINISTIC_ROUTE_AND_NEW_INDEPENDENT_EVIDENCE",
+  "protected_holdback_opened": false,
+  "public_release": false,
+  "publication_decision": "NO_GO_PENDING_USER_REVIEW",
+  "qualification_budget_consumed": 1,
+  "qualification_passed": false,
+  "schema_version": "lumi-trace-v0.4-public-closure-v1",
+  "training_run": true,
+  "weight_files_published": false
+}
