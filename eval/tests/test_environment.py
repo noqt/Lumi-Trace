@@ -9,6 +9,8 @@ from trace_eval import environment
 from trace_eval.canonical import sha256_file
 from trace_eval.errors import PolicyError
 
+RPDS_PYTHON_312_WINDOWS_SHA256 = "2c958bf94822e9290a40aaf2a822d4bc5c88099093e3948ad6c571eca9272e5f"
+
 
 def test_environment_qualification_binds_both_artifacts_and_separated_roots(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -50,3 +52,8 @@ def test_environment_rejects_nested_and_prohibited_product_roots(tmp_path: Path)
         )
     with pytest.raises(PolicyError, match="prohibited product boundary"):
         environment._ensure_isolated_roots({"cache": str(tmp_path / "Yumi-Train" / "cache")})
+
+
+def test_dependency_lock_covers_the_supported_python_312_windows_wheel() -> None:
+    lock = Path(__file__).parents[1] / "requirements" / "trace-eval.lock"
+    assert f"--hash=sha256:{RPDS_PYTHON_312_WINDOWS_SHA256}" in lock.read_text(encoding="utf-8")
