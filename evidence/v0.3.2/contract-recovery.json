@@ -1,0 +1,19 @@
+{
+  "boundary_cases_tested": [
+    0,
+    1,
+    8,
+    9,
+    10,
+    20,
+    21
+  ],
+  "evaluator_v0_3_3_clean_builds_byte_identical": true,
+  "package_installed_execution": true,
+  "producer_verifier_schema_agreement": true,
+  "runtime_v0_1_1_clean_builds_byte_identical": true,
+  "runtime_v0_1_2_clean_builds_byte_identical": true,
+  "schema_version": "lumi-trace-v0.3.2-public-contract-recovery-v1",
+  "score_reason_canonical_maximum": 20,
+  "superseded_failed_experiments_preserved": true
+}

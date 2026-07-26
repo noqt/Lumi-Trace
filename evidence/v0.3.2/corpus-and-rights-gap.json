@@ -1,0 +1,10 @@
+{
+  "evaluation_material_repurposed_for_training": false,
+  "evaluation_only_groups": 58,
+  "evaluation_repository_families": 10,
+  "required_training_groups": 500,
+  "required_training_repository_families": 25,
+  "schema_version": "lumi-trace-v0.3.2-public-corpus-rights-gap-v1",
+  "training_eligible_groups": 0,
+  "training_eligible_repository_families": 0
+}

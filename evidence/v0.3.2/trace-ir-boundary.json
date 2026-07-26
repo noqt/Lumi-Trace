@@ -1,0 +1,8 @@
+{
+  "attack_detection_claim": false,
+  "feasibility_lane_run": false,
+  "live_integrations": false,
+  "new_trace_ir_artifacts": 0,
+  "response_actions": false,
+  "schema_version": "lumi-trace-v0.3.2-trace-ir-boundary-v1"
+}

@@ -1,0 +1,214 @@
+{
+  "aggregate_record_id": "trace-code-aggregate-metrics:b5f723a6a69be4d68a94accb4344a1aa7d22e1cfbc164fc947114f92a8422287",
+  "excluded_counts": {},
+  "metric_spec_id": "trace-code-metric-specification-v2:df6bb5af4f40e70f6615f3729c50590b41d1b3ddeba4fd8e7b291be02815ffda",
+  "micro": {
+    "abstention_coverage": {
+      "denominator": 40,
+      "numerator": 40,
+      "rate": 1.0
+    },
+    "disposition_confusion": {
+      "INSUFFICIENT_EVIDENCE->INSUFFICIENT_EVIDENCE": 40
+    },
+    "false_supported_disposition": {
+      "count": 0,
+      "rate": {
+        "denominator": 40,
+        "numerator": 0,
+        "rate": 0.0
+      }
+    },
+    "false_vulnerability_rate": {
+      "denominator": 20,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "file_recall": {
+      "1": {
+        "denominator": 20,
+        "numerator": 8,
+        "rate": 0.4
+      },
+      "10": {
+        "denominator": 20,
+        "numerator": 16,
+        "rate": 0.8
+      },
+      "20": {
+        "denominator": 20,
+        "numerator": 20,
+        "rate": 1.0
+      },
+      "5": {
+        "denominator": 20,
+        "numerator": 15,
+        "rate": 0.75
+      }
+    },
+    "group_count": 40,
+    "hard_negative_outrank": {
+      "denominator": 18,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "location_role_correct_recall": {
+      "1": {
+        "denominator": 20,
+        "numerator": 0,
+        "rate": 0.0
+      },
+      "10": {
+        "denominator": 20,
+        "numerator": 6,
+        "rate": 0.3
+      },
+      "20": {
+        "denominator": 20,
+        "numerator": 7,
+        "rate": 0.35
+      },
+      "5": {
+        "denominator": 20,
+        "numerator": 4,
+        "rate": 0.2
+      }
+    },
+    "mean_reciprocal_rank": {
+      "denominator": 20,
+      "mean": 0.548724652540442,
+      "sum": 10.97449305080884
+    },
+    "no_relevant_candidate": {
+      "denominator": 20,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "region_recall": {
+      "1": {
+        "denominator": 20,
+        "numerator": 0,
+        "rate": 0.0
+      },
+      "10": {
+        "denominator": 20,
+        "numerator": 6,
+        "rate": 0.3
+      },
+      "20": {
+        "denominator": 20,
+        "numerator": 7,
+        "rate": 0.35
+      },
+      "5": {
+        "denominator": 20,
+        "numerator": 4,
+        "rate": 0.2
+      }
+    },
+    "symbol_recall": {
+      "1": {
+        "denominator": 19,
+        "numerator": 0,
+        "rate": 0.0
+      },
+      "10": {
+        "denominator": 19,
+        "numerator": 5,
+        "rate": 0.2631578947368421
+      },
+      "20": {
+        "denominator": 19,
+        "numerator": 5,
+        "rate": 0.2631578947368421
+      },
+      "5": {
+        "denominator": 19,
+        "numerator": 4,
+        "rate": 0.21052631578947367
+      }
+    },
+    "target_indexability": {
+      "denominator": 20,
+      "numerator": 20,
+      "rate": 1.0
+    },
+    "unsafe_non_abstention": {
+      "denominator": 40,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "unsupported_input_acceptance": {
+      "denominator": 0,
+      "numerator": 0,
+      "rate": null
+    },
+    "wrong_location_role_top_one": {
+      "denominator": 20,
+      "numerator": 0,
+      "rate": 0.0
+    }
+  },
+  "repository_family_macro": {
+    "count": 7,
+    "false_supported": {
+      "mean": 0.0,
+      "units": 7
+    },
+    "file_recall": {
+      "1": {
+        "maximum": 0.6666666666666666,
+        "mean": 0.38095238095238093,
+        "minimum": 0.0,
+        "units": 7,
+        "zero_unit_count": 2
+      },
+      "10": {
+        "maximum": 1.0,
+        "mean": 0.8095238095238095,
+        "minimum": 0.3333333333333333,
+        "units": 7,
+        "zero_unit_count": 0
+      },
+      "20": {
+        "maximum": 1.0,
+        "mean": 1.0,
+        "minimum": 1.0,
+        "units": 7,
+        "zero_unit_count": 0
+      },
+      "5": {
+        "maximum": 1.0,
+        "mean": 0.7619047619047619,
+        "minimum": 0.3333333333333333,
+        "units": 7,
+        "zero_unit_count": 0
+      }
+    }
+  },
+  "runtime_version": "0.1.2",
+  "schema_version": "lumi-trace-v0.3.2-public-development-aggregate-v1",
+  "strata_counts": {
+    "cwe=CWE-150": 2,
+    "cwe=CWE-20": 4,
+    "cwe=CWE-22": 6,
+    "cwe=CWE-352": 2,
+    "cwe=CWE-400": 4,
+    "cwe=CWE-426": 2,
+    "cwe=CWE-502": 2,
+    "cwe=CWE-601": 2,
+    "cwe=CWE-693": 2,
+    "cwe=CWE-770": 6,
+    "cwe=CWE-78": 2,
+    "cwe=CWE-79": 4,
+    "cwe=CWE-835": 2,
+    "direct_cue=UNKNOWN": 40,
+    "finding_format=manual": 40,
+    "hard_negative_family=UNKNOWN": 40,
+    "label_source=UNKNOWN": 40,
+    "language=Python": 40,
+    "repository_size_band=LARGE": 4,
+    "repository_size_band=MEDIUM": 6,
+    "repository_size_band=SMALL": 30
+  }
+}

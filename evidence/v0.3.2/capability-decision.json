@@ -1,0 +1,83 @@
+{
+  "all_development_attempts_completed": true,
+  "case_specific_rules_added": false,
+  "evaluated_envelope": "PYTHON_SECURITY_FINDING_LOCALISATION",
+  "performance_gates_passed": true,
+  "qualification_authorised": true,
+  "qualification_evidence_used_for_development": false,
+  "replay_identity_agreement": true,
+  "replay_semantic_agreement": true,
+  "schema_version": "lumi-trace-v0.3.2-public-capability-decision-v1",
+  "threshold_checks": [
+    {
+      "metric": "target_indexability",
+      "observed": 1.0,
+      "operator": ">=",
+      "passed": true,
+      "threshold": 0.9
+    },
+    {
+      "metric": "file_recall_at_20",
+      "observed": 1.0,
+      "operator": ">=",
+      "passed": true,
+      "threshold": 0.7
+    },
+    {
+      "metric": "hard_negative_outrank",
+      "observed": 0.0,
+      "operator": "<=",
+      "passed": true,
+      "threshold": 0.25
+    },
+    {
+      "metric": "wrong_location_role_top_one",
+      "observed": 0.0,
+      "operator": "<=",
+      "passed": true,
+      "threshold": 0.25
+    },
+    {
+      "metric": "false_supported_disposition",
+      "observed": 0.0,
+      "operator": "==",
+      "passed": true,
+      "threshold": 0.0
+    },
+    {
+      "metric": "false_vulnerability_rate",
+      "observed": 0.0,
+      "operator": "==",
+      "passed": true,
+      "threshold": 0.0
+    },
+    {
+      "metric": "unsafe_non_abstention",
+      "observed": 0.0,
+      "operator": "==",
+      "passed": true,
+      "threshold": 0.0
+    },
+    {
+      "metric": "repository_family_macro_recall_at_20",
+      "observed": 1.0,
+      "operator": ">=",
+      "passed": true,
+      "threshold": 0.7
+    },
+    {
+      "metric": "minimum_family_recall_at_20",
+      "observed": 1.0,
+      "operator": ">=",
+      "passed": true,
+      "threshold": 0.5
+    },
+    {
+      "metric": "zero_recall_family_count",
+      "observed": 0,
+      "operator": "==",
+      "passed": true,
+      "threshold": 0
+    }
+  ]
+}
