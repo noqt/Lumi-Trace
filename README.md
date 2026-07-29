@@ -89,19 +89,23 @@ lumi-trace verify ./trace-evidence
 
 PowerShell:
 
+The virtual-environment executables are called directly, so script activation
+and execution-policy changes are not required.
+
 ```powershell
 py -3.12 -m venv lumi-trace-env
-.\lumi-trace-env\Scripts\Activate.ps1
-python -m pip install --no-index --no-deps --disable-pip-version-check `
+.\lumi-trace-env\Scripts\python.exe -m pip install `
+  --no-index --no-deps --disable-pip-version-check `
   .\skylark_lumi_trace-0.4.1.dev0-py3-none-any.whl
-python .\public-ghsa-8359-h9fx-j6v9\fetch_example.py `
+.\lumi-trace-env\Scripts\python.exe `
+  .\public-ghsa-8359-h9fx-j6v9\fetch_example.py `
   --output .\public-ghsa-8359-h9fx-j6v9
-lumi-trace trace `
+.\lumi-trace-env\Scripts\lumi-trace.exe trace `
   --finding .\public-ghsa-8359-h9fx-j6v9\finding.json `
   --finding-format manual `
   --repository .\public-ghsa-8359-h9fx-j6v9\datamodel-code-generator-2dbe5b5794472a4cad8e9286c942dffda7359816.zip `
   --output .\trace-evidence
-lumi-trace verify .\trace-evidence
+.\lumi-trace-env\Scripts\lumi-trace.exe verify .\trace-evidence
 ```
 
 The example fetch command downloads the pinned public archive when it is
