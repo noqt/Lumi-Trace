@@ -9,12 +9,17 @@ from pathlib import Path
 
 import pytest
 
-from lumi_trace.errors import InputError
+import lumi_trace.localization as localization
+from lumi_trace.canonical import stable_id
+from lumi_trace.errors import InputError, IntegrityError, UnsupportedError
 from lumi_trace.findings import import_manual, import_sarif
 from lumi_trace.localization import (
+    CANDIDATE_ALGORITHM,
     CANDIDATE_TRUNCATION_ABSTENTION,
     DEFAULT_RANKER,
     RUNTIME_IDENTITY,
+    STEP1_DEFECTIVE_CANDIDATE_ALGORITHM,
+    STEP1_DEFECTIVE_RUNTIME_IDENTITY,
     V041_EVIDENCE_DEFAULT_RANKER,
     V041_EVIDENCE_RUNTIME_IDENTITY,
     build_access_policy,
@@ -85,7 +90,8 @@ def test_product_default_freezes_the_reviewed_deterministic_runtime(
     request = _request(fixture_repository, manual_finding_path)
     assert request["configuration"]["ranker"] == "role-aware-sparse-v0.4.1.3"
     assert request["configuration"]["runtime_identity"] == RUNTIME_IDENTITY
-    assert RUNTIME_IDENTITY == "lumi-trace-runtime-v0.4.1-pre-release.9"
+    assert request["configuration"]["candidate_algorithm"] == CANDIDATE_ALGORITHM
+    assert RUNTIME_IDENTITY == "lumi-trace-runtime-v0.4.1-pre-release.10"
 
 
 def test_sarif_projection_preserves_required_source_provenance(
@@ -126,15 +132,85 @@ def test_historical_runtime_request_remains_explicitly_reconstructable(
         "localization-request:7b25e65517680a3851e253258609391c288663ee2384215737479a5f198af927"
     )
     assert validate_inference_request(request) == request
-    raw = build_raw_localization(request, repository_source=fixture_repository)
-    assert raw["runtime_identity"] == V041_EVIDENCE_RUNTIME_IDENTITY
-    assert raw["ranker"] == V041_EVIDENCE_DEFAULT_RANKER
+    if sys.implementation.name == "cpython" and sys.version_info[:2] == (3, 12):
+        raw = build_raw_localization(request, repository_source=fixture_repository)
+        assert raw["runtime_identity"] == V041_EVIDENCE_RUNTIME_IDENTITY
+        assert raw["ranker"] == V041_EVIDENCE_DEFAULT_RANKER
+    else:
+        with pytest.raises(InputError, match="requires CPython 3.12"):
+            build_raw_localization(request, repository_source=fixture_repository)
     assert (
         information_flow_manifest(runtime_identity=V041_EVIDENCE_RUNTIME_IDENTITY)[
             "runtime_identity"
         ]
         == V041_EVIDENCE_RUNTIME_IDENTITY
     )
+
+
+def test_defective_step1_runtime_is_verification_only(
+    fixture_repository: Path,
+    manual_finding_path: Path,
+) -> None:
+    finding = import_manual(manual_finding_path, fixture_repository)
+    identity, source_kind = repository_artifact_identity(fixture_repository)
+    with pytest.raises(InputError, match="verification-only"):
+        construct_inference_request(
+            finding=finding,
+            repository_artifact_sha256=identity,
+            source_kind=source_kind,
+            runtime_identity=STEP1_DEFECTIVE_RUNTIME_IDENTITY,
+        )
+
+    request = _request(fixture_repository, manual_finding_path)
+    request["configuration"]["runtime_identity"] = STEP1_DEFECTIVE_RUNTIME_IDENTITY
+    request["configuration"]["candidate_algorithm"] = STEP1_DEFECTIVE_CANDIDATE_ALGORITHM
+    request["request_id"] = stable_id("localization-request", request, omit_keys=("request_id",))
+    assert validate_inference_request(request) == request
+    with pytest.raises(InputError, match="verification-only"):
+        build_raw_localization(request, repository_source=fixture_repository)
+
+    mismatched = json.loads(json.dumps(request))
+    mismatched["configuration"]["candidate_algorithm"] = CANDIDATE_ALGORITHM
+    with pytest.raises(InputError, match="configuration"):
+        validate_inference_request(mismatched)
+
+
+def test_sealed_defective_step1_raw_output_remains_verifiable_but_not_cross_paired(
+    fixture_repository: Path,
+    manual_finding_path: Path,
+) -> None:
+    raw = build_raw_localization(
+        _request(fixture_repository, manual_finding_path),
+        repository_source=fixture_repository,
+    )
+    raw["runtime_identity"] = STEP1_DEFECTIVE_RUNTIME_IDENTITY
+    raw["candidate_algorithm"] = STEP1_DEFECTIVE_CANDIDATE_ALGORITHM
+    raw["raw_output_seal"] = stable_id(
+        "localization-raw-output",
+        raw,
+        omit_keys=("raw_output_seal",),
+    )
+    assert verify_raw_localization(raw) == raw
+
+    mismatched = json.loads(json.dumps(raw))
+    mismatched["candidate_algorithm"] = CANDIDATE_ALGORITHM
+    mismatched["raw_output_seal"] = stable_id(
+        "localization-raw-output",
+        mismatched,
+        omit_keys=("raw_output_seal",),
+    )
+    with pytest.raises(IntegrityError, match="contract"):
+        verify_raw_localization(mismatched)
+
+
+def test_step1_localization_symbol_grammar_is_frozen_to_python_311() -> None:
+    source = "type Alias = int\n\nclass Python312Only:\n    pass\n"
+
+    symbols, limited = localization._symbols(source)
+
+    assert localization.PYTHON_AST_FEATURE_VERSION == (3, 11)
+    assert symbols == []
+    assert limited is False
 
 
 def test_step1_runtime_abstains_when_candidate_generation_is_truncated(
@@ -341,14 +417,23 @@ def test_frozen_v012_comparator_ranking_is_unchanged(
     fixture_repository: Path,
     manual_finding_path: Path,
 ) -> None:
-    from lumi_trace.indexing import build_repository_index
+    from lumi_trace.indexing import LEGACY_INDEX_ALGORITHM, build_repository_index
     from lumi_trace.ranking import rank_candidates
     from lumi_trace.repository import compute_repository_identity
 
     finding = import_manual(manual_finding_path, fixture_repository)
+    if sys.implementation.name != "cpython" or sys.version_info[:2] != (3, 12):
+        with pytest.raises(UnsupportedError, match="requires CPython 3.12"):
+            build_repository_index(
+                fixture_repository,
+                compute_repository_identity(fixture_repository),
+                algorithm=LEGACY_INDEX_ALGORITHM,
+            )
+        return
     index = build_repository_index(
         fixture_repository,
         compute_repository_identity(fixture_repository),
+        algorithm=LEGACY_INDEX_ALGORITHM,
     )
     result = rank_candidates(finding, index, top_k=20)
     assert (

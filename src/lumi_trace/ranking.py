@@ -10,7 +10,7 @@ from typing import Any
 from .canonical import stable_id
 from .errors import IntegrityError
 from .findings import validate_normalized_finding
-from .indexing import tokenize, verify_repository_index
+from .indexing import INDEX_ALGORITHM, tokenize, verify_repository_index
 from .localization import (
     CANDIDATE_ALGORITHM as PRODUCT_CANDIDATE_ALGORITHM,
 )
@@ -19,6 +19,7 @@ from .localization import (
     FINDING_GUIDED_SCORE_COMPONENTS,
     NO_SIGNAL_ABSTENTION,
     RUNTIME_IDENTITY,
+    V041_EVIDENCE_CANDIDATE_ALGORITHM,
     verify_raw_localization,
 )
 from .localization import DEFAULT_RANKER as PRODUCT_RANKING_ALGORITHM
@@ -28,6 +29,9 @@ SUPPORTED_RANKING_ALGORITHMS = frozenset({RANKING_ALGORITHM, PRODUCT_RANKING_ALG
 SCORE_REASON_MATCH_LIMIT = 20
 MAX_CANDIDATES_PER_PATH = 2
 PRODUCT_ROLES = frozenset({"implementation", "wrapper", "test", "fixture", "generated", "vendor"})
+SUPPORTED_PRODUCT_CANDIDATE_ALGORITHMS = frozenset(
+    {V041_EVIDENCE_CANDIDATE_ALGORITHM, PRODUCT_CANDIDATE_ALGORITHM}
+)
 QUERY_STOP_TERMS = {
     "advisory",
     "allow",
@@ -363,6 +367,7 @@ def project_localization_candidates(
         verified.get("runtime_identity") != RUNTIME_IDENTITY
         or verified.get("ranker") != PRODUCT_RANKING_ALGORITHM
         or verified.get("candidate_algorithm") != PRODUCT_CANDIDATE_ALGORITHM
+        or index.get("algorithm") != INDEX_ALGORITHM
         or verified.get("model_artifact_id") is not None
         or not isinstance(repository, dict)
         or repository.get("manifest_id") != index["repository"]["manifest_id"]
@@ -608,7 +613,7 @@ def verify_candidate_set(candidate_set: dict[str, object]) -> None:
     if require_role:
         abstention = candidate_set.get("abstention")
         if (
-            candidate_set.get("candidate_algorithm") != PRODUCT_CANDIDATE_ALGORITHM
+            candidate_set.get("candidate_algorithm") not in SUPPORTED_PRODUCT_CANDIDATE_ALGORITHMS
             or not isinstance(abstention, dict)
             or set(abstention) != {"abstained", "reason"}
             or not isinstance(abstention.get("abstained"), bool)
@@ -635,7 +640,7 @@ def verify_candidate_set(candidate_set: dict[str, object]) -> None:
                 raise IntegrityError("product candidate set has no positive finding-guided signal")
         ranking_identity = {
             "algorithm": PRODUCT_RANKING_ALGORITHM,
-            "candidate_algorithm": PRODUCT_CANDIDATE_ALGORITHM,
+            "candidate_algorithm": candidate_set["candidate_algorithm"],
             "finding_id": candidate_set["finding_id"],
             "index_id": candidate_set["index_id"],
             "candidate_ids": [candidate["candidate_id"] for candidate in candidates],

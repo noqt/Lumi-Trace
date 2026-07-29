@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -70,6 +71,41 @@ def test_python_symbol_accumulation_stops_at_the_requested_cap() -> None:
         "function_1",
         "function_2",
     ]
+
+
+def test_step1_python_symbol_grammar_is_frozen_to_python_311() -> None:
+    source = "type Alias = int\n\nclass Python312Only:\n    pass\n"
+
+    symbols, issue, limited = indexing._python_symbols(source)
+
+    assert indexing.PYTHON_AST_FEATURE_VERSION == (3, 11)
+    assert symbols == []
+    assert issue == "syntax_error"
+    assert limited is False
+
+
+def test_legacy_index_algorithm_remains_explicitly_verifiable(tmp_path: Path) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    (repository / "source.py").write_text("def retained():\n    return 1\n", encoding="utf-8")
+
+    if sys.implementation.name != "cpython" or sys.version_info[:2] != (3, 12):
+        with pytest.raises(UnsupportedError, match="requires CPython 3.12"):
+            build_repository_index(
+                repository,
+                compute_repository_identity(repository),
+                algorithm=indexing.LEGACY_INDEX_ALGORITHM,
+            )
+        return
+
+    index = build_repository_index(
+        repository,
+        compute_repository_identity(repository),
+        algorithm=indexing.LEGACY_INDEX_ALGORITHM,
+    )
+
+    assert index["algorithm"] == "deterministic-lexical-index-v2"
+    verify_repository_index(index)
 
 
 def test_python_ast_walk_stops_at_the_node_budget(

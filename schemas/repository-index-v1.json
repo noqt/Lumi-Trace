@@ -24,7 +24,8 @@
     "algorithm": {
       "enum": [
         "deterministic-lexical-index-v1",
-        "deterministic-lexical-index-v2"
+        "deterministic-lexical-index-v2",
+        "deterministic-lexical-index-v3"
       ]
     },
     "repository": {

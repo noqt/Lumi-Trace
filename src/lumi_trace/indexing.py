@@ -6,6 +6,7 @@ from __future__ import annotations
 import ast
 import json
 import re
+import sys
 import unicodedata
 from collections import Counter
 from collections.abc import Iterable
@@ -15,7 +16,11 @@ from .canonical import stable_id
 from .errors import IntegrityError, UnsupportedError
 from .repository import repository_manifest
 
-INDEX_ALGORITHM = "deterministic-lexical-index-v2"
+LEGACY_INDEX_ALGORITHM = "deterministic-lexical-index-v2"
+INDEX_ALGORITHM = "deterministic-lexical-index-v3"
+SUPPORTED_INDEX_ALGORITHMS = frozenset({LEGACY_INDEX_ALGORITHM, INDEX_ALGORITHM})
+PYTHON_AST_FEATURE_VERSION = (3, 11)
+LEGACY_INDEX_PYTHON_VERSION = (3, 12)
 DEFAULT_MAX_TEXT_BYTES = 2 * 1024 * 1024
 MAX_UNIQUE_TOKENS = 50_000
 MAX_SYMBOLS_PER_FILE = 5_000
@@ -198,10 +203,17 @@ class _PythonSymbols(ast.NodeVisitor):
 
 
 def _python_symbols(
-    text: str, *, max_symbols: int = MAX_SYMBOLS_PER_FILE
+    text: str,
+    *,
+    max_symbols: int = MAX_SYMBOLS_PER_FILE,
+    feature_version: tuple[int, int] | None = PYTHON_AST_FEATURE_VERSION,
 ) -> tuple[list[dict[str, object]], str | None, bool]:
     try:
-        tree = ast.parse(text)
+        tree = (
+            ast.parse(text)
+            if feature_version is None
+            else ast.parse(text, feature_version=feature_version)
+        )
     except SyntaxError:
         return [], "syntax_error", False
     except RecursionError:
@@ -344,9 +356,16 @@ def build_repository_index(
     repository_identity: dict[str, object],
     *,
     max_text_bytes: int = DEFAULT_MAX_TEXT_BYTES,
+    algorithm: str = INDEX_ALGORITHM,
 ) -> dict[str, object]:
     """Build a deterministic file/token/symbol index from a snapshot."""
 
+    if algorithm not in SUPPORTED_INDEX_ALGORITHMS:
+        raise ValueError("unsupported repository index algorithm")
+    if algorithm == LEGACY_INDEX_ALGORITHM and (
+        sys.implementation.name != "cpython" or sys.version_info[:2] != LEGACY_INDEX_PYTHON_VERSION
+    ):
+        raise UnsupportedError("legacy repository index reconstruction requires CPython 3.12")
     if (
         not isinstance(max_text_bytes, int)
         or isinstance(max_text_bytes, bool)
@@ -420,7 +439,13 @@ def build_repository_index(
             max(0, MAX_TOTAL_SYMBOLS - symbol_count),
         )
         if language == "python":
-            symbols, parse_issue, symbol_limit = _python_symbols(text, max_symbols=symbol_budget)
+            symbols, parse_issue, symbol_limit = _python_symbols(
+                text,
+                max_symbols=symbol_budget,
+                feature_version=(
+                    PYTHON_AST_FEATURE_VERSION if algorithm == INDEX_ALGORITHM else None
+                ),
+            )
             if parse_issue:
                 record["symbol_extraction_issue"] = parse_issue
         else:
@@ -451,7 +476,7 @@ def build_repository_index(
     files.sort(key=lambda item: str(item["path"]).encode("utf-8"))
     payload: dict[str, object] = {
         "schema_version": "repository-index-v1",
-        "algorithm": INDEX_ALGORITHM,
+        "algorithm": algorithm,
         "repository": repository_identity,
         "file_count": len(files),
         "indexed_text_file_count": sum(bool(item["content_indexed"]) for item in files),
@@ -573,7 +598,7 @@ def verify_repository_index(index: dict[str, object]) -> None:
         "files",
         "index_id",
     }
-    if set(index) != required or index.get("algorithm") != INDEX_ALGORITHM:
+    if set(index) != required or index.get("algorithm") not in SUPPORTED_INDEX_ALGORITHMS:
         raise IntegrityError("repository index fields or algorithm are invalid")
     repository = index.get("repository")
     if not isinstance(repository, dict):

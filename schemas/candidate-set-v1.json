@@ -27,7 +27,10 @@
       ]
     },
     "candidate_algorithm": {
-      "const": "label-blind-python-role-candidates-v0.4.1.5"
+      "enum": [
+        "label-blind-python-role-candidates-v0.4.1.5",
+        "label-blind-python-role-candidates-v0.4.1.6"
+      ]
     },
     "ranking_id": {
       "type": "string",

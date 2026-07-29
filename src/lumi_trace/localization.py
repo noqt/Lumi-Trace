@@ -11,6 +11,7 @@ from __future__ import annotations
 import ast
 import math
 import re
+import sys
 import time
 import tracemalloc
 import warnings
@@ -41,14 +42,28 @@ REQUEST_SCHEMA = "localization-inference-request-v0.4.1"
 RAW_OUTPUT_SCHEMA = "localization-raw-ranking-v0.4.1"
 ACCESS_POLICY_SCHEMA = "localization-builder-access-policy-v0.4.1"
 QUARANTINE_POLICY = "target-agnostic-source-quarantine-v0.4.1.1"
-CANDIDATE_ALGORITHM = "label-blind-python-role-candidates-v0.4.1.5"
+V041_EVIDENCE_CANDIDATE_ALGORITHM = "label-blind-python-role-candidates-v0.4.1.5"
+STEP1_DEFECTIVE_CANDIDATE_ALGORITHM = V041_EVIDENCE_CANDIDATE_ALGORITHM
+STEP1_CANDIDATE_ALGORITHM = "label-blind-python-role-candidates-v0.4.1.6"
+CANDIDATE_ALGORITHM = STEP1_CANDIDATE_ALGORITHM
 V041_EVIDENCE_DEFAULT_RANKER = "role-aware-sparse-v0.4.1.1"
 STEP1_DEFAULT_RANKER = BASE_RANKER
 DEFAULT_RANKER = STEP1_DEFAULT_RANKER
 V041_EVIDENCE_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.8"
-STEP1_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.9"
+STEP1_DEFECTIVE_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.9"
+STEP1_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.10"
 RUNTIME_IDENTITY = STEP1_RUNTIME_IDENTITY
-SUPPORTED_RUNTIME_IDENTITIES = frozenset({V041_EVIDENCE_RUNTIME_IDENTITY, RUNTIME_IDENTITY})
+STEP1_RUNTIME_IDENTITIES = frozenset({STEP1_DEFECTIVE_RUNTIME_IDENTITY, STEP1_RUNTIME_IDENTITY})
+SUPPORTED_RUNTIME_IDENTITIES = frozenset(
+    {V041_EVIDENCE_RUNTIME_IDENTITY, *STEP1_RUNTIME_IDENTITIES}
+)
+RUNTIME_CANDIDATE_ALGORITHMS = {
+    V041_EVIDENCE_RUNTIME_IDENTITY: V041_EVIDENCE_CANDIDATE_ALGORITHM,
+    STEP1_DEFECTIVE_RUNTIME_IDENTITY: STEP1_DEFECTIVE_CANDIDATE_ALGORITHM,
+    STEP1_RUNTIME_IDENTITY: STEP1_CANDIDATE_ALGORITHM,
+}
+PYTHON_AST_FEATURE_VERSION = (3, 11)
+V041_EVIDENCE_PYTHON_VERSION = (3, 12)
 STEP1_MAXIMUM_CANDIDATES = 100_000
 NO_SIGNAL_ABSTENTION = "NO_POSITIVE_FINDING_GUIDED_SIGNAL"
 CANDIDATE_TRUNCATION_ABSTENTION = "CANDIDATE_GENERATION_TRUNCATED"
@@ -392,6 +407,13 @@ def _contains_forbidden_field(value: Any) -> bool:
     return False
 
 
+def _candidate_algorithm_for_runtime(runtime_identity: str) -> str:
+    try:
+        return RUNTIME_CANDIDATE_ALGORITHMS[runtime_identity]
+    except KeyError as exc:
+        raise InputError("unsupported localization runtime identity") from exc
+
+
 def _project_finding(
     finding: Mapping[str, Any],
     *,
@@ -405,7 +427,7 @@ def _project_finding(
         "sarif_run_index",
         "sarif_result_index",
     ]
-    if runtime_identity == RUNTIME_IDENTITY:
+    if runtime_identity in STEP1_RUNTIME_IDENTITIES:
         source_fields[2:2] = ["tool_name", "tool_version"]
     projected = {
         "schema_version": finding.get("schema_version"),
@@ -457,6 +479,8 @@ def construct_inference_request(
 ) -> dict[str, Any]:
     """Create the only object accepted by the inference builder."""
 
+    if runtime_identity == STEP1_DEFECTIVE_RUNTIME_IDENTITY:
+        raise InputError("superseded Step 1 runtime is verification-only")
     model_binding = None
     if model_artifact is not None:
         verified_model = verify_model_artifact(model_artifact)
@@ -474,7 +498,7 @@ def construct_inference_request(
         "configuration": {
             "runtime_identity": runtime_identity,
             "quarantine_policy": QUARANTINE_POLICY,
-            "candidate_algorithm": CANDIDATE_ALGORITHM,
+            "candidate_algorithm": _candidate_algorithm_for_runtime(runtime_identity),
             "ranker": ranker,
             "top_k": top_k,
             "maximum_candidates": maximum_candidates,
@@ -535,7 +559,8 @@ def validate_inference_request(value: Mapping[str, Any]) -> dict[str, Any]:
         or set(configuration) != required_configuration
         or configuration.get("runtime_identity") not in SUPPORTED_RUNTIME_IDENTITIES
         or configuration.get("quarantine_policy") != QUARANTINE_POLICY
-        or configuration.get("candidate_algorithm") != CANDIDATE_ALGORITHM
+        or configuration.get("candidate_algorithm")
+        != RUNTIME_CANDIDATE_ALGORITHMS.get(str(configuration.get("runtime_identity")))
         or configuration.get("ranker") not in {*_RANKER_PROFILES, LEARNED_RANKER}
     ):
         raise InputError("localization request configuration is invalid")
@@ -680,11 +705,16 @@ def _symbols(
     source: str,
     *,
     maximum_symbols: int | None = None,
+    feature_version: tuple[int, int] | None = PYTHON_AST_FEATURE_VERSION,
 ) -> tuple[list[dict[str, Any]], bool]:
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("error", SyntaxWarning)
-            tree = ast.parse(source)
+            tree = (
+                ast.parse(source)
+                if feature_version is None
+                else ast.parse(source, feature_version=feature_version)
+            )
     except (SyntaxError, SyntaxWarning, ValueError, RecursionError):
         return [], False
     lines = source.splitlines()
@@ -817,6 +847,7 @@ def _enumerate_candidates(
     maximum_file_bytes: int,
     maximum_candidates: int,
     strict_candidate_bound: bool = False,
+    python_ast_feature_version: tuple[int, int] | None = PYTHON_AST_FEATURE_VERSION,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     query = _query(finding)
     candidates: list[dict[str, Any]] = []
@@ -854,7 +885,11 @@ def _enumerate_candidates(
         symbol_limit = (
             max(0, maximum_candidates + 1 - len(candidates)) if strict_candidate_bound else None
         )
-        symbols, symbol_limit_reached = _symbols(source, maximum_symbols=symbol_limit)
+        symbols, symbol_limit_reached = _symbols(
+            source,
+            maximum_symbols=symbol_limit,
+            feature_version=python_ast_feature_version,
+        )
         for symbol in symbols:
             candidates.append(
                 _candidate(
@@ -1081,6 +1116,12 @@ def build_raw_localization(
 
     validated = validate_inference_request(request)
     runtime_identity = str(validated["configuration"]["runtime_identity"])
+    if runtime_identity == STEP1_DEFECTIVE_RUNTIME_IDENTITY:
+        raise InputError("superseded Step 1 runtime is verification-only")
+    if runtime_identity == V041_EVIDENCE_RUNTIME_IDENTITY and (
+        sys.implementation.name != "cpython" or sys.version_info[:2] != V041_EVIDENCE_PYTHON_VERSION
+    ):
+        raise InputError("historical V0.4.1 runtime reconstruction requires CPython 3.12")
     model_binding = validated["configuration"]["model"]
     verified_model = None
     if validated["configuration"]["ranker"] == LEARNED_RANKER:
@@ -1130,7 +1171,10 @@ def build_raw_localization(
             maximum_total_bytes=int(validated["configuration"]["maximum_total_bytes"]),
             maximum_file_bytes=int(validated["configuration"]["maximum_file_bytes"]),
             maximum_candidates=int(validated["configuration"]["maximum_candidates"]),
-            strict_candidate_bound=runtime_identity == RUNTIME_IDENTITY,
+            strict_candidate_bound=runtime_identity in STEP1_RUNTIME_IDENTITIES,
+            python_ast_feature_version=(
+                PYTHON_AST_FEATURE_VERSION if runtime_identity == STEP1_RUNTIME_IDENTITY else None
+            ),
         )
         ranked = _rank(
             candidates,
@@ -1177,7 +1221,7 @@ def build_raw_localization(
             "source_kind": workspace.identity["source_kind"],
         },
         "quarantine_policy": QUARANTINE_POLICY,
-        "candidate_algorithm": CANDIDATE_ALGORITHM,
+        "candidate_algorithm": RUNTIME_CANDIDATE_ALGORITHMS[runtime_identity],
         "ranker": validated["configuration"]["ranker"],
         "model_artifact_id": None if verified_model is None else verified_model["artifact_id"],
         "generation": generation,
@@ -1213,7 +1257,8 @@ def verify_raw_localization(value: Mapping[str, Any]) -> dict[str, Any]:
         or value.get("schema_version") != RAW_OUTPUT_SCHEMA
         or value.get("runtime_identity") not in SUPPORTED_RUNTIME_IDENTITIES
         or value.get("quarantine_policy") != QUARANTINE_POLICY
-        or value.get("candidate_algorithm") != CANDIDATE_ALGORITHM
+        or value.get("candidate_algorithm")
+        != RUNTIME_CANDIDATE_ALGORITHMS.get(str(value.get("runtime_identity")))
         or value.get("ranker") not in {*_RANKER_PROFILES, LEARNED_RANKER}
         or not isinstance(value.get("candidate_inventory"), list)
         or len(value["candidate_inventory"]) > 100_000
@@ -1242,7 +1287,7 @@ def verify_raw_localization(value: Mapping[str, Any]) -> dict[str, Any]:
         raise IntegrityError("raw localization generation summary is invalid")
     abstention = value.get("abstention")
     allowed_abstention_reasons = {NO_SIGNAL_ABSTENTION}
-    if value["runtime_identity"] == RUNTIME_IDENTITY:
+    if value["runtime_identity"] in STEP1_RUNTIME_IDENTITIES:
         allowed_abstention_reasons.add(CANDIDATE_TRUNCATION_ABSTENTION)
     if (
         not isinstance(abstention, dict)
@@ -1252,7 +1297,7 @@ def verify_raw_localization(value: Mapping[str, Any]) -> dict[str, Any]:
         or (not abstention["abstained"] and abstention.get("reason") is not None)
     ):
         raise IntegrityError("raw localization abstention is invalid")
-    if value["runtime_identity"] == RUNTIME_IDENTITY:
+    if value["runtime_identity"] in STEP1_RUNTIME_IDENTITIES:
         candidates = value.get("candidates")
         no_signal = (
             not isinstance(candidates, list)

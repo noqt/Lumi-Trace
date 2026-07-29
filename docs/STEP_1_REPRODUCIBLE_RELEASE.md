@@ -179,6 +179,14 @@ the source checkout, its virtual environment, test fixtures or evaluator.
 Record start/end time, commands, stdout/stderr, output hashes, errors and
 whether founder intervention was required.
 
+For each equivalent finding, compare `repository-index.json` and
+`candidates.json` across Python 3.11 and 3.12. Their bytes, scores, candidate
+counts, index identity, ranking identity, and candidate-set identity must
+match. Evidence bundles and SARIF may retain declared platform provenance, so
+compare those only after accounting for their explicit provenance fields.
+Any candidate-universe or score drift is a failed matrix, even when both
+individual runs verify.
+
 No-Docker execution is the required core path. Docker-marked tests may be run
 separately only when the immutable image is already present locally; Lumi
 Trace must not pull it. Record skipped Docker checks as skipped with the reason.

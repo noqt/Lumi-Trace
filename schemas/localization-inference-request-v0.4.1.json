@@ -58,14 +58,18 @@
         "runtime_identity": {
           "enum": [
             "lumi-trace-runtime-v0.4.1-pre-release.8",
-            "lumi-trace-runtime-v0.4.1-pre-release.9"
+            "lumi-trace-runtime-v0.4.1-pre-release.9",
+            "lumi-trace-runtime-v0.4.1-pre-release.10"
           ]
         },
         "quarantine_policy": {
           "const": "target-agnostic-source-quarantine-v0.4.1.1"
         },
         "candidate_algorithm": {
-          "const": "label-blind-python-role-candidates-v0.4.1.5"
+          "enum": [
+            "label-blind-python-role-candidates-v0.4.1.5",
+            "label-blind-python-role-candidates-v0.4.1.6"
+          ]
         },
         "ranker": {
           "enum": [
@@ -129,7 +133,35 @@
             }
           ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "runtime_identity": {
+                "const": "lumi-trace-runtime-v0.4.1-pre-release.10"
+              }
+            },
+            "required": [
+              "runtime_identity"
+            ]
+          },
+          "then": {
+            "properties": {
+              "candidate_algorithm": {
+                "const": "label-blind-python-role-candidates-v0.4.1.6"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "candidate_algorithm": {
+                "const": "label-blind-python-role-candidates-v0.4.1.5"
+              }
+            }
+          }
+        }
+      ]
     },
     "request_id": {
       "type": "string",

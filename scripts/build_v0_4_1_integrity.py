@@ -42,7 +42,6 @@ from lumi_trace.canonical import (
 from lumi_trace.findings import _finalize_finding
 from lumi_trace.learned_ranker import LEARNED_RANKER, verify_model_artifact
 from lumi_trace.localization import (
-    CANDIDATE_ALGORITHM,
     QUARANTINE_POLICY,
     RAW_OUTPUT_SCHEMA,
     REQUEST_SCHEMA,
@@ -50,6 +49,9 @@ from lumi_trace.localization import (
     construct_inference_request,
     information_flow_manifest,
     verify_raw_localization,
+)
+from lumi_trace.localization import (
+    V041_EVIDENCE_CANDIDATE_ALGORITHM as CANDIDATE_ALGORITHM,
 )
 from lumi_trace.localization import (
     V041_EVIDENCE_RUNTIME_IDENTITY as RUNTIME_IDENTITY,

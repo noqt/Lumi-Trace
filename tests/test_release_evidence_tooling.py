@@ -155,6 +155,7 @@ def test_sdist_excludes_a_populated_evidence_tree(tmp_path: Path, project_root: 
             "build",
             "dist",
             "evidence",
+            "out",
         ),
     )
     evidence_root = source_root / "evidence" / "v0.1.0"

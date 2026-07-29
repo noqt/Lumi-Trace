@@ -122,7 +122,8 @@
         "algorithm": {
           "enum": [
             "deterministic-lexical-index-v1",
-            "deterministic-lexical-index-v2"
+            "deterministic-lexical-index-v2",
+            "deterministic-lexical-index-v3"
           ]
         },
         "file_count": {
@@ -225,7 +226,10 @@
           "const": "role-aware-sparse-v0.4.1.3"
         },
         "candidate_algorithm": {
-          "const": "label-blind-python-role-candidates-v0.4.1.5"
+          "enum": [
+            "label-blind-python-role-candidates-v0.4.1.5",
+            "label-blind-python-role-candidates-v0.4.1.6"
+          ]
         },
         "ranking_id": {
           "type": "string",
@@ -431,5 +435,67 @@
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "ranking": {
+            "properties": {
+              "candidate_algorithm": {
+                "const": "label-blind-python-role-candidates-v0.4.1.6"
+              }
+            },
+            "required": [
+              "candidate_algorithm"
+            ]
+          }
+        },
+        "required": [
+          "ranking"
+        ]
+      },
+      "then": {
+        "properties": {
+          "index": {
+            "properties": {
+              "algorithm": {
+                "const": "deterministic-lexical-index-v3"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "ranking": {
+            "properties": {
+              "candidate_algorithm": {
+                "const": "label-blind-python-role-candidates-v0.4.1.5"
+              }
+            },
+            "required": [
+              "candidate_algorithm"
+            ]
+          }
+        },
+        "required": [
+          "ranking"
+        ]
+      },
+      "then": {
+        "properties": {
+          "index": {
+            "properties": {
+              "algorithm": {
+                "const": "deterministic-lexical-index-v2"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

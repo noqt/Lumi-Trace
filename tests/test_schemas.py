@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -116,14 +117,24 @@ def test_v041_localization_schemas_validate_product_documents(
         top_k=100,
     )
     raw = build_raw_localization(request, repository_source=fixture_repository)
-    Draft202012Validator(
+    request_validator = Draft202012Validator(
         schemas["localization-inference-request-v0.4.1.json"],
         registry=registry,
-    ).validate(request)
-    Draft202012Validator(
+    )
+    request_validator.validate(request)
+    raw_validator = Draft202012Validator(
         schemas["localization-raw-ranking-v0.4.1.json"],
         registry=registry,
-    ).validate(raw)
+    )
+    raw_validator.validate(raw)
+    mismatched_request = deepcopy(request)
+    mismatched_request["configuration"]["candidate_algorithm"] = (
+        "label-blind-python-role-candidates-v0.4.1.5"
+    )
+    assert list(request_validator.iter_errors(mismatched_request))
+    mismatched_raw = deepcopy(raw)
+    mismatched_raw["candidate_algorithm"] = "label-blind-python-role-candidates-v0.4.1.5"
+    assert list(raw_validator.iter_errors(mismatched_raw))
 
     model = {
         "schema_version": MODEL_SCHEMA,
@@ -241,9 +252,12 @@ def test_input_and_package_schemas_validate_owned_examples(
     Draft202012Validator(schemas["candidate-set-v1.json"], registry=registry).validate(
         load_json(output / "candidates.json")
     )
-    Draft202012Validator(schemas["evidence-bundle-v1.json"], registry=registry).validate(
-        load_json(output / "evidence-bundle.json")
-    )
+    bundle_validator = Draft202012Validator(schemas["evidence-bundle-v1.json"], registry=registry)
+    bundle = load_json(output / "evidence-bundle.json")
+    bundle_validator.validate(bundle)
+    mismatched_bundle = deepcopy(bundle)
+    mismatched_bundle["index"]["algorithm"] = "deterministic-lexical-index-v2"
+    assert list(bundle_validator.iter_errors(mismatched_bundle))
 
 
 def test_fixture_manifest_has_valid_owned_hashes(project_root: Path) -> None:

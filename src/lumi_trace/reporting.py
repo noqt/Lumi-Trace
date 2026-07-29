@@ -11,8 +11,17 @@ from . import __version__
 from .canonical import stable_id
 from .errors import IntegrityError
 from .findings import validate_normalized_finding
-from .indexing import INDEX_ALGORITHM, verify_repository_identity
-from .localization import CANDIDATE_TRUNCATION_ABSTENTION, NO_SIGNAL_ABSTENTION
+from .indexing import (
+    INDEX_ALGORITHM,
+    LEGACY_INDEX_ALGORITHM,
+    SUPPORTED_INDEX_ALGORITHMS,
+    verify_repository_identity,
+)
+from .localization import (
+    CANDIDATE_TRUNCATION_ABSTENTION,
+    NO_SIGNAL_ABSTENTION,
+    V041_EVIDENCE_CANDIDATE_ALGORITHM,
+)
 from .ranking import (
     PRODUCT_CANDIDATE_ALGORITHM,
     PRODUCT_RANKING_ALGORITHM,
@@ -23,6 +32,10 @@ from .ranking import (
 from .sandbox import verify_reproduction_receipt
 
 _REASON_CODE = re.compile(r"^[A-Z][A-Z0-9_]*$")
+_INDEX_BY_PRODUCT_CANDIDATE_ALGORITHM = {
+    V041_EVIDENCE_CANDIDATE_ALGORITHM: LEGACY_INDEX_ALGORITHM,
+    PRODUCT_CANDIDATE_ALGORITHM: INDEX_ALGORITHM,
+}
 
 
 def classify_evidence(
@@ -372,7 +385,7 @@ def verify_evidence_bundle(bundle: dict[str, object]) -> None:
         }
         or not isinstance(index.get("index_id"), str)
         or re.fullmatch(r"index:[0-9a-f]{64}", index["index_id"]) is None
-        or index.get("algorithm") != INDEX_ALGORITHM
+        or index.get("algorithm") not in SUPPORTED_INDEX_ALGORITHMS
         or any(
             not _nonnegative_integer(index.get(key))
             for key in ("file_count", "indexed_text_file_count", "symbol_count")
@@ -411,7 +424,9 @@ def verify_evidence_bundle(bundle: dict[str, object]) -> None:
         )
         if (
             ranking.get("ranker") != PRODUCT_RANKING_ALGORITHM
-            or ranking.get("candidate_algorithm") != PRODUCT_CANDIDATE_ALGORITHM
+            or ranking.get("candidate_algorithm") not in _INDEX_BY_PRODUCT_CANDIDATE_ALGORITHM
+            or _INDEX_BY_PRODUCT_CANDIDATE_ALGORITHM.get(str(ranking.get("candidate_algorithm")))
+            != index.get("algorithm")
             or ranking.get("score_basis") != "DETERMINISTIC_INTEGER_COMPONENTS_WITH_ROLE_PRIORS"
             or ranking.get("roles_emitted") != expected_roles
             or any(role not in PRODUCT_ROLES for role in expected_roles)
@@ -436,7 +451,7 @@ def verify_evidence_bundle(bundle: dict[str, object]) -> None:
             raise IntegrityError("evidence bundle ranking summary is inconsistent")
         ranking_identity = {
             "algorithm": PRODUCT_RANKING_ALGORITHM,
-            "candidate_algorithm": PRODUCT_CANDIDATE_ALGORITHM,
+            "candidate_algorithm": ranking["candidate_algorithm"],
             "finding_id": finding["finding_id"],
             "index_id": index["index_id"],
             "candidate_ids": [candidate["candidate_id"] for candidate in candidates],

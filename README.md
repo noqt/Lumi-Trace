@@ -22,7 +22,10 @@ The primary `trace` path uses the frozen deterministic
 `role-aware-sparse-v0.4.1.3` ranker. The private learned-route work remains
 non-default, unqualified development history; no checkpoint is distributed or
 used by the primary workflow. Step 1 implementation-location ranking is
-Python-only; no broader language-support claim is made.
+Python-only and freezes AST extraction to Python 3.11 grammar for identical
+ranking behavior on supported Python 3.11 and 3.12 runtimes. Files using later
+syntax remain file candidates without partial AST symbols. No broader
+language-support claim is made.
 
 Read the [product contract](docs/STEP_1_PRODUCT_CONTRACT.md),
 [five-minute quickstart](docs/STEP_1_QUICKSTART.md), and

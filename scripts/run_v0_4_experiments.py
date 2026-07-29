@@ -65,7 +65,10 @@ from trace_eval.trace001 import (  # noqa: E402
 from lumi_trace.canonical import stable_id as runtime_stable_id  # noqa: E402
 from lumi_trace.errors import LumiTraceError  # noqa: E402
 from lumi_trace.findings import _finalize_finding  # noqa: E402
-from lumi_trace.indexing import build_repository_index  # noqa: E402
+from lumi_trace.indexing import (  # noqa: E402
+    LEGACY_INDEX_ALGORITHM,
+    build_repository_index,
+)
 from lumi_trace.ranking import rank_candidates  # noqa: E402
 from lumi_trace.repository import RepositoryWorkspace  # noqa: E402
 from scripts.build_v0_4_assurance import (  # noqa: E402
@@ -408,6 +411,7 @@ def _v012_record(
                     index = build_repository_index(
                         workspace.root,
                         workspace.identity,
+                        algorithm=LEGACY_INDEX_ALGORITHM,
                     )
                 finding = _normalized_runtime_finding(receipt["finding_input"])
                 candidate_set = rank_candidates(finding, index, top_k=1_000)

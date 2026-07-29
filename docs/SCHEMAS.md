@@ -22,10 +22,17 @@ contract must not be silently reinterpreted.
   inventory, exported ranking, source-visible role classes, telemetry,
   abstention, ranking identity, and raw-output seal.
 
-Step 1 uses runtime identity `lumi-trace-runtime-v0.4.1-pre-release.9` and
-deterministic ranker `role-aware-sparse-v0.4.1.3`. Historical `.8` raw output
-remains verifiable. Governed V0.4.1 reconstruction scripts explicitly pin `.8`
-and its historical decision rule; the Step 1 CLI never emits that identity.
+Step 1 uses runtime identity `lumi-trace-runtime-v0.4.1-pre-release.10`,
+candidate algorithm `label-blind-python-role-candidates-v0.4.1.6`, repository
+index `deterministic-lexical-index-v3`, and deterministic ranker
+`role-aware-sparse-v0.4.1.3`. Historical `.8` raw output remains verifiable.
+Governed V0.4.1 reconstruction scripts explicitly pin `.8` and its historical
+decision rule, and its execution is fail-closed outside CPython 3.12. The
+superseded unreleased `.9`/candidate-algorithm `.5` pair is accepted only for
+validation of already-created evidence; constructors and runtime execution
+reject it. The Step 1 CLI emits neither legacy identity. Runtime and
+candidate-algorithm pairings, and product candidate/index pairings, cannot be
+mixed.
 
 `candidate-set-v1` and `evidence-bundle-v1` retain their strict legacy profile
 and add a distinguishable Step 1 profile keyed by the deterministic algorithm.

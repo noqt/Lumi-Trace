@@ -15,6 +15,10 @@
   SPDX SBOM, clean-install, and independent usability evidence controls.
 - Preserved V0.4.1 reconstruction under its explicitly pinned historical
   runtime while giving Step 1 a distinct runtime identity and decision rule.
+- Remediated the first release-candidate matrix after Python 3.11 and 3.12
+  produced different symbol universes: the corrected runtime and index now
+  freeze AST extraction to the Python 3.11 grammar, while the failed
+  pre-release identity remains verification-only.
 - Kept publication blocked pending the six written founder decisions in the
   Step 1 release gate. No merge, tag, release, signing, PyPI upload, training,
   qualification, or holdback access is part of this work.

@@ -14,10 +14,12 @@ from lumi_trace import __version__
 from lumi_trace.canonical import dump_json, load_json, sha256_file, stable_id
 from lumi_trace.learned_ranker import LEARNED_RANKER, verify_model_artifact
 from lumi_trace.localization import (
-    CANDIDATE_ALGORITHM,
     QUARANTINE_POLICY,
     information_flow_manifest,
     verify_raw_localization,
+)
+from lumi_trace.localization import (
+    V041_EVIDENCE_CANDIDATE_ALGORITHM as CANDIDATE_ALGORITHM,
 )
 from lumi_trace.localization import (
     V041_EVIDENCE_RUNTIME_IDENTITY as RUNTIME_IDENTITY,

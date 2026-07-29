@@ -41,11 +41,22 @@ identity, score components, and abstention state are emitted in the evidence
 package.
 
 New Step 1 requests use
-`lumi-trace-runtime-v0.4.1-pre-release.9`. The sealed V0.4.1 development
-evidence retains `lumi-trace-runtime-v0.4.1-pre-release.8`; that historical
-identity remains verifiable and is named explicitly by the governed
-reconstruction scripts and Python builder interface. The Step 1 CLI never
-emits it.
+`lumi-trace-runtime-v0.4.1-pre-release.10`, candidate algorithm
+`label-blind-python-role-candidates-v0.4.1.6`, and repository index
+`deterministic-lexical-index-v3`. Python AST extraction is frozen to the
+Python 3.11 grammar on every supported interpreter so Python 3.11 and 3.12
+produce the same deterministic index and ranking from the same inputs. Files
+using later Python syntax remain file candidates but do not emit partial AST
+symbols.
+
+The sealed V0.4.1 development evidence retains
+`lumi-trace-runtime-v0.4.1-pre-release.8`; that historical identity remains
+verifiable and is named explicitly by the governed reconstruction scripts and
+Python builder interface. Historical execution is fail-closed outside its
+pinned CPython 3.12 environment. The Step 1 CLI never emits it. The
+superseded, unreleased `lumi-trace-runtime-v0.4.1-pre-release.9` is retained
+for validation of already-created failed release-candidate evidence only:
+constructors and runtime execution reject it.
 
 The ordering score is a retrieval heuristic. It is not a probability, a
 vulnerability verdict, or proof that a candidate is the correct repair

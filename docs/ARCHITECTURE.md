@@ -72,11 +72,15 @@ anchor in V0.1.
 ### Deterministic Index
 
 `indexing.py` creates `repository-index-v1` using
-`deterministic-lexical-index-v2`.
+`deterministic-lexical-index-v3`. It freezes Python AST extraction to the
+Python 3.11 grammar across supported interpreters. Historical
+`deterministic-lexical-index-v2` output remains verifiable; reconstruction is
+fail-closed outside its pinned CPython 3.12 environment.
 
 - Files, hashes, sizes, language labels, line counts, token counts, exclusions,
   and extracted symbols use stable ordering.
-- Python symbols use the standard-library AST.
+- Python symbols use the standard-library AST with a fixed Python 3.11 grammar.
+  Files using later syntax remain indexed as files without partial AST symbols.
 - C, C++, Go, Java, JavaScript, TypeScript, Rust, Ruby, and PHP use bounded
   lexical extractors.
 - Oversized, binary, and unsupported-encoding files remain in the manifest but

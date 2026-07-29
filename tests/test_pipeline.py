@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 import lumi_trace.pipeline as pipeline_module
-from lumi_trace.canonical import dump_json, load_json
+from lumi_trace.canonical import dump_json, load_json, stable_id
 from lumi_trace.errors import InputError, IntegrityError
 from lumi_trace.pipeline import source_revision, trace_repository
 from lumi_trace.ranking import verify_candidate_set
@@ -29,6 +29,11 @@ def test_pipeline_emits_complete_package_without_reproduction(
     )
     assert result["bundle"]["classification"]["outcome"] == "INSUFFICIENT_EVIDENCE"
     assert result["candidate_set"]["algorithm"] == "role-aware-sparse-v0.4.1.3"
+    assert (
+        result["candidate_set"]["candidate_algorithm"]
+        == "label-blind-python-role-candidates-v0.4.1.6"
+    )
+    assert result["bundle"]["index"]["algorithm"] == "deterministic-lexical-index-v3"
     assert result["candidate_set"]["abstention"] == {
         "abstained": True,
         "reason": "NO_POSITIVE_FINDING_GUIDED_SIGNAL",
@@ -49,6 +54,14 @@ def test_pipeline_emits_complete_package_without_reproduction(
     assert {item.name for item in output.iterdir()} == expected
     verify_evidence_bundle(load_json(output / "evidence-bundle.json"))
 
+    mismatched_profile = deepcopy(result["bundle"])
+    mismatched_profile["index"]["algorithm"] = "deterministic-lexical-index-v2"
+    mismatched_profile["bundle_id"] = stable_id(
+        "evidence-bundle", mismatched_profile, omit_keys=("bundle_id",)
+    )
+    with pytest.raises(IntegrityError, match="ranking summary"):
+        verify_evidence_bundle(mismatched_profile)
+
 
 def test_pipeline_is_byte_deterministic_without_reproduction(
     tmp_path: Path, fixture_repository: Path, manual_finding_path: Path
@@ -67,6 +80,74 @@ def test_pipeline_is_byte_deterministic_without_reproduction(
     assert {path.name: path.read_bytes() for path in first.iterdir()} == {
         path.name: path.read_bytes() for path in second.iterdir()
     }
+
+
+def test_python_minor_versions_share_one_frozen_ast_profile(tmp_path: Path) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    (repository / "target.py").write_text(
+        "def parse_alias(value):\n    return value\n",
+        encoding="utf-8",
+    )
+    (repository / "future.py").write_text(
+        "type FutureAlias = dict[str, str]\n\nclass FutureSyntax:\n    pass\n",
+        encoding="utf-8",
+    )
+    finding_path = tmp_path / "finding.json"
+    dump_json(
+        finding_path,
+        {
+            "schema_version": "manual-finding-v1",
+            "id": "TRACE-AST-PROFILE-001",
+            "title": "Alias parser accepts an unsafe value",
+            "description": "parse_alias must validate the supplied alias value.",
+            "severity": "high",
+            "rule": {
+                "id": "TRACE-AST-PROFILE-001",
+                "name": "Unsafe alias parser",
+                "cwes": ["CWE-20"],
+                "tags": ["alias", "validation"],
+            },
+            "locations": [
+                {
+                    "path": "target.py",
+                    "symbol": "parse_alias",
+                    "start_line": 1,
+                    "start_column": 1,
+                    "end_line": 2,
+                    "end_column": 17,
+                }
+            ],
+            "keywords": ["alias", "parse", "validation"],
+            "fingerprints": {"fixture/v1": "trace-ast-profile-001"},
+        },
+    )
+    output = tmp_path / "evidence"
+
+    result = trace_repository(
+        finding_path=finding_path,
+        finding_format="manual",
+        repository_source=repository,
+        output_directory=output,
+        implementation_revision="fixture-revision",
+    )
+    index = load_json(output / "repository-index.json")
+
+    assert index["algorithm"] == "deterministic-lexical-index-v3"
+    assert index["symbol_count"] == 1
+    future = next(record for record in index["files"] if record["path"] == "future.py")
+    assert future["symbols"] == []
+    assert future["symbol_extraction_issue"] == "syntax_error"
+    assert result["candidate_set"]["candidate_count_considered"] == 3
+    assert index["index_id"] == (
+        "index:9ca1769794ab0d0722f8f54e0990448d64b7b883f8e8a06bcf9ab485f6545f23"
+    )
+    assert result["candidate_set"]["ranking_id"] == (
+        "ranking:880d1a7385e7331df3f1609ac2feadaebc3df66ca744136303ffaf0574778d2c"
+    )
+    assert result["candidate_set"]["candidate_set_id"] == (
+        "candidate-set:ea03d69f365642d9520cf8f6ac75c94fb3c7986948042bb462a3cb6fa378fb8e"
+    )
 
 
 def test_pipeline_refuses_existing_output_directory(
