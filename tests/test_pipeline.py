@@ -93,13 +93,11 @@ def test_pipeline_is_byte_deterministic_without_reproduction(
 def test_python_minor_versions_share_one_frozen_lexical_profile(tmp_path: Path) -> None:
     repository = tmp_path / "repository"
     repository.mkdir()
-    (repository / "target.py").write_text(
-        "def parse_alias(value):\n    return value\n",
-        encoding="utf-8",
+    (repository / "target.py").write_bytes(
+        b"def parse_alias(value):\n    return value\n",
     )
-    (repository / "future.py").write_text(
-        "type FutureAlias = dict[str, str]\n\nclass FutureSyntax:\n    pass\n",
-        encoding="utf-8",
+    (repository / "future.py").write_bytes(
+        b"type FutureAlias = dict[str, str]\n\nclass FutureSyntax:\n    pass\n",
     )
     finding_path = tmp_path / "finding.json"
     dump_json(
@@ -148,13 +146,13 @@ def test_python_minor_versions_share_one_frozen_lexical_profile(tmp_path: Path) 
     assert future["symbol_extraction_issue"] == "syntax_error"
     assert result["candidate_set"]["candidate_count_considered"] == 3
     assert index["index_id"] == (
-        "index:1037c944ad806f52c26b66a6decc086c07bbe57fcab6f956b617bc69fa5732de"
+        "index:3a133f8622267b3763668b07f18e4d244531e17fc867aeac1d97cac095ed8e07"
     )
     assert result["candidate_set"]["ranking_id"] == (
-        "ranking:adbbc8c04ce51ea08909eeed7a99f480729ae380ebd0168308d165b72da3c5c8"
+        "ranking:6b3581706831f07abe03b1241602fd8f145c9a550b1c73246c909e516ae0091b"
     )
     assert result["candidate_set"]["candidate_set_id"] == (
-        "candidate-set:5775d548cfe6b0d4a6d3f11a0c23f4d280e07eff427f8ec143e00dddc231558f"
+        "candidate-set:b5afffc91a422d044c1b3f16a4f6a5887701f86a7fdda745f8c54105249583cd"
     )
 
 

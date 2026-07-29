@@ -15,25 +15,32 @@ profile.
 
 - `skylark_lumi_trace-0.4.1.dev0-py3-none-any.whl`;
 - this quickstart;
-- the `public-ghsa-8359-h9fx-j6v9` example directory.
+- `PRIVACY_AND_DATA_HANDLING.md`;
+- the `public-ghsa-8359-h9fx-j6v9` example directory, including its pinned source
+  archive.
 
-Run `fetch_example.py` once while online. It acquires the archive directly from
-upstream, downloads only the pinned public revision, and rejects a hash
-mismatch. Core tracing is offline after that acquisition.
+If the pinned archive is not already supplied, run `fetch_example.py` once
+while online. It acquires the archive directly from upstream, downloads only
+the pinned public revision, and rejects a hash mismatch. If the exact archive
+is already supplied, run the same command offline: it validates the existing
+bytes and reports `"downloaded": false`. Core tracing is offline after that
+acquisition or validation.
 
 ## Bash
 
 ```sh
 python3.12 -m venv lumi-trace-env
 . lumi-trace-env/bin/activate
-python -m pip install ./skylark_lumi_trace-0.4.1.dev0-py3-none-any.whl
+python -m pip install --no-index --no-deps --disable-pip-version-check \
+  ./skylark_lumi_trace-0.4.1.dev0-py3-none-any.whl
 
-python ./public-ghsa-8359-h9fx-j6v9/fetch_example.py --output .
+python ./public-ghsa-8359-h9fx-j6v9/fetch_example.py \
+  --output ./public-ghsa-8359-h9fx-j6v9
 
 lumi-trace trace \
   --finding ./public-ghsa-8359-h9fx-j6v9/finding.json \
   --finding-format manual \
-  --repository ./datamodel-code-generator-2dbe5b5794472a4cad8e9286c942dffda7359816.zip \
+  --repository ./public-ghsa-8359-h9fx-j6v9/datamodel-code-generator-2dbe5b5794472a4cad8e9286c942dffda7359816.zip \
   --output ./trace-evidence
 
 lumi-trace verify ./trace-evidence
@@ -44,14 +51,16 @@ lumi-trace verify ./trace-evidence
 ```powershell
 py -3.12 -m venv lumi-trace-env
 .\lumi-trace-env\Scripts\Activate.ps1
-python -m pip install .\skylark_lumi_trace-0.4.1.dev0-py3-none-any.whl
+python -m pip install --no-index --no-deps --disable-pip-version-check `
+  .\skylark_lumi_trace-0.4.1.dev0-py3-none-any.whl
 
-python .\public-ghsa-8359-h9fx-j6v9\fetch_example.py --output .
+python .\public-ghsa-8359-h9fx-j6v9\fetch_example.py `
+  --output .\public-ghsa-8359-h9fx-j6v9
 
 lumi-trace trace `
   --finding .\public-ghsa-8359-h9fx-j6v9\finding.json `
   --finding-format manual `
-  --repository .\datamodel-code-generator-2dbe5b5794472a4cad8e9286c942dffda7359816.zip `
+  --repository .\public-ghsa-8359-h9fx-j6v9\datamodel-code-generator-2dbe5b5794472a4cad8e9286c942dffda7359816.zip `
   --output .\trace-evidence
 
 lumi-trace verify .\trace-evidence
