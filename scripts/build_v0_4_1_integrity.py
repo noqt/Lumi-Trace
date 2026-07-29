@@ -46,11 +46,13 @@ from lumi_trace.localization import (
     QUARANTINE_POLICY,
     RAW_OUTPUT_SCHEMA,
     REQUEST_SCHEMA,
-    RUNTIME_IDENTITY,
     build_access_policy,
     construct_inference_request,
     information_flow_manifest,
     verify_raw_localization,
+)
+from lumi_trace.localization import (
+    V041_EVIDENCE_RUNTIME_IDENTITY as RUNTIME_IDENTITY,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -299,7 +301,7 @@ def bootstrap(args: argparse.Namespace) -> dict[str, Any]:
     roles["record_id"] = stable_id("v0.4.1-role-separation", roles)
     _write_once(private_root / "manifests" / "role-separation.json", roles)
 
-    flow = information_flow_manifest()
+    flow = information_flow_manifest(runtime_identity=RUNTIME_IDENTITY)
     _write_once(private_root / "manifests" / "information-flow.json", flow)
     quarantine = {
         "schema_version": "lumi-trace-v0.4.1-target-agnostic-quarantine-policy-v1",
@@ -1454,6 +1456,7 @@ def _prepare_one(
         finding=finding,
         repository_artifact_sha256=archive_sha256,
         source_kind="archive",
+        runtime_identity=RUNTIME_IDENTITY,
         ranker=ranker,
         top_k=1000,
         maximum_candidates=maximum_candidates,

@@ -30,7 +30,9 @@ from lumi_trace.learned_ranker import (
     verify_model_artifact,
 )
 from lumi_trace.localization import (
-    RUNTIME_IDENTITY,
+    V041_EVIDENCE_RUNTIME_IDENTITY as RUNTIME_IDENTITY,
+)
+from lumi_trace.localization import (
     validate_inference_request,
     verify_raw_localization,
 )

@@ -25,6 +25,7 @@ from .localization import (
     DEFAULT_RANKER,
     RAW_OUTPUT_SCHEMA,
     REQUEST_SCHEMA,
+    STEP1_MAXIMUM_CANDIDATES,
     build_raw_localization,
     construct_inference_request,
     repository_artifact_identity,
@@ -50,6 +51,149 @@ def _path(value: str) -> Path:
 
 def _write_summary(**values: object) -> None:
     print(json.dumps(values, ensure_ascii=True, sort_keys=True))
+
+
+def _write_trace_summary(result: dict[str, object]) -> None:
+    """Write a human summary to stderr and a stable machine summary to stdout."""
+
+    bundle = result["bundle"]
+    candidate_set = result["candidate_set"]
+    output = Path(result["output_directory"])
+    if not isinstance(bundle, dict) or not isinstance(candidate_set, dict):
+        raise RuntimeError("trace result is missing its canonical bundle or candidate set")
+    classification = bundle["classification"]
+    reproduction = bundle["reproduction"]
+    candidates = candidate_set["candidates"]
+    ranking_abstention = candidate_set.get("abstention")
+    if (
+        not isinstance(classification, dict)
+        or not isinstance(reproduction, dict)
+        or not isinstance(candidates, list)
+        or not isinstance(ranking_abstention, dict)
+    ):
+        raise RuntimeError("trace result summary fields are malformed")
+
+    outcome = str(classification["outcome"])
+    reason_codes = list(classification["reason_codes"])
+    ranking_abstained = bool(ranking_abstention["abstained"])
+    reproduction_abstained = outcome != "CONFIRMED"
+
+    def summarize_location(candidate: dict[str, object]) -> dict[str, object]:
+        symbol = candidate.get("symbol") or {}
+        if not isinstance(symbol, dict):
+            raise RuntimeError("trace candidate symbol is malformed")
+        return {
+            "rank": candidate["rank"],
+            "path": candidate["path"],
+            "symbol": symbol.get("qualified_name"),
+            "role": candidate.get("role"),
+            "integer_score": candidate["integer_score"],
+        }
+
+    top_ranked_locations = [
+        summarize_location(candidate) for candidate in candidates[:3] if isinstance(candidate, dict)
+    ]
+    top_implementation_locations = [
+        summarize_location(candidate)
+        for candidate in candidates
+        if isinstance(candidate, dict) and candidate.get("role") == "implementation"
+    ][:3]
+    displayed_locations = top_implementation_locations or top_ranked_locations
+    displayed_location_label = (
+        "Top implementation locations (true overall rank)"
+        if top_implementation_locations
+        else "Top ranked locations (no implementation-role candidate emitted)"
+    )
+    if reproduction["requested"]:
+        reproduction_summary = (
+            "attempted"
+            if reproduction["attempted"]
+            else "requested but not attempted; see evidence reason codes"
+        )
+    else:
+        reproduction_summary = "not requested; non-error abstention (NO_REPRODUCTION_PLAN)"
+
+    print("Lumi Trace deterministic evidence", file=sys.stderr)
+    print(f"  Ranker: {candidate_set['algorithm']}", file=sys.stderr)
+    print(
+        f"  Ranked: {len(candidates)} location(s); integer ordering scores are not probabilities",
+        file=sys.stderr,
+    )
+    print(
+        f"  Ranking confidence: {candidate_set['confidence_descriptor']}; "
+        f"abstained={str(ranking_abstained).lower()}",
+        file=sys.stderr,
+    )
+    if ranking_abstention["reason"]:
+        print(f"  Ranking reason: {ranking_abstention['reason']}", file=sys.stderr)
+    if displayed_locations:
+        print(f"  {displayed_location_label}:", file=sys.stderr)
+    for location in displayed_locations:
+        symbol = f"::{location['symbol']}" if location["symbol"] else ""
+        print(
+            f"    {location['rank']}. {location['path']}{symbol} "
+            f"(score {location['integer_score']})",
+            file=sys.stderr,
+        )
+    print(f"  Reproduction: {reproduction_summary}", file=sys.stderr)
+    print(
+        f"  Reproduction evidence: {outcome}; confidence {classification['confidence_grade']} / "
+        f"{classification['confidence_basis_points']} basis points "
+        "(deterministic descriptor, not probability)",
+        file=sys.stderr,
+    )
+    print(f"  Reasons: {', '.join(map(str, reason_codes))}", file=sys.stderr)
+    print(f"  Output: {output}", file=sys.stderr)
+    print(f'  Verify: lumi-trace verify "{output}"', file=sys.stderr)
+
+    _write_summary(
+        bundle_id=bundle["bundle_id"],
+        classification=outcome,
+        reason_codes=reason_codes,
+        confidence_grade=classification["confidence_grade"],
+        confidence_basis_points=classification["confidence_basis_points"],
+        confidence_is_not_probability=True,
+        ranking_abstained=ranking_abstained,
+        ranking_abstention_reason=ranking_abstention["reason"],
+        ranking_confidence_descriptor=candidate_set["confidence_descriptor"],
+        ranking_algorithm=candidate_set["algorithm"],
+        candidate_algorithm=candidate_set["candidate_algorithm"],
+        ranking_id=candidate_set["ranking_id"],
+        ranked_locations=len(candidates),
+        top_ranked_locations=top_ranked_locations,
+        top_implementation_locations=top_implementation_locations,
+        reproduction_requested=reproduction["requested"],
+        reproduction_attempted=reproduction["attempted"],
+        reproduction_abstained=reproduction_abstained,
+        output=str(output),
+    )
+
+
+def _actionable_hint(exc: Exception) -> str | None:
+    message = str(exc).casefold()
+    if "output directory already exists" in message:
+        return "Choose a new --output path; Lumi Trace will not overwrite existing evidence."
+    if "sarif selection produced" in message or "sarif run index" in message:
+        return "Select exactly one result with --run-index and --result-index."
+    if "sarif result index" in message:
+        return "Check the SARIF result count, then supply a valid --result-index."
+    if "--image is required" in message:
+        return "Omit --plan for the no-Docker path, or supply a preloaded digest-form --image."
+    if "archive" in message:
+        return (
+            "Use a regular ZIP/TAR-family archive with portable relative paths and no links "
+            "or special members."
+        )
+    if "permission" in message or isinstance(exc, PermissionError):
+        return "Check read access to the finding/repository and write access to the output parent."
+    if isinstance(exc, FileNotFoundError) or "no such file" in message:
+        return "Check that every input path exists and is readable."
+    if "docker" in message or "image" in message:
+        return (
+            "Docker is optional. For reproduction, start a local Linux-container engine and "
+            "preload the exact digest-form image; Lumi Trace never pulls."
+        )
+    return None
 
 
 def _add_repository_option(parser: argparse.ArgumentParser) -> None:
@@ -118,7 +262,15 @@ def build_parser() -> argparse.ArgumentParser:
         default=DEFAULT_RANKER,
     )
     localize.add_argument("--top-k", type=int, default=1000)
-    localize.add_argument("--maximum-candidates", type=int, default=10_000)
+    localize.add_argument(
+        "--maximum-candidates",
+        type=int,
+        default=STEP1_MAXIMUM_CANDIDATES,
+        help=(
+            "bounded candidate inventory; any truncation forces a machine-readable "
+            "ranking abstention"
+        ),
+    )
     localize.add_argument("--model", type=_path)
 
     reproduce = commands.add_parser("reproduce", help="run a plan in a network-denied OCI sandbox")
@@ -137,7 +289,6 @@ def build_parser() -> argparse.ArgumentParser:
     trace.add_argument("--top-k", type=int, default=20)
     trace.add_argument("--run-index", type=int)
     trace.add_argument("--result-index", type=int)
-    trace.add_argument("--source-revision")
 
     export = commands.add_parser("export-sarif", help="export an evidence bundle as SARIF 2.1.0")
     export.add_argument("bundle", type=_path)
@@ -315,6 +466,28 @@ def _verify_package(path: Path) -> None:
         raise InputError("candidate set index identity mismatch")
     if bundle.get("candidates") != candidates.get("candidates"):
         raise InputError("evidence bundle candidates do not match candidates.json")
+    expected_ranking = None
+    if "candidate_algorithm" in candidates:
+        expected_ranking = {
+            "ranker": candidates.get("algorithm"),
+            "candidate_algorithm": candidates.get("candidate_algorithm"),
+            "ranking_id": candidates.get("ranking_id"),
+            "candidate_count_considered": candidates.get("candidate_count_considered"),
+            "candidates_emitted": len(candidates.get("candidates", [])),
+            "score_basis": "DETERMINISTIC_INTEGER_COMPONENTS_WITH_ROLE_PRIORS",
+            "roles_emitted": sorted(
+                {
+                    candidate["role"]
+                    for candidate in candidates.get("candidates", [])
+                    if isinstance(candidate, dict) and isinstance(candidate.get("role"), str)
+                }
+            ),
+            "abstention": candidates.get("abstention"),
+            "confidence_descriptor": candidates.get("confidence_descriptor"),
+            "confidence_is_not_probability": True,
+        }
+    if bundle.get("ranking") != expected_ranking:
+        raise InputError("evidence bundle ranking does not match candidates.json")
     provenance = bundle.get("provenance") if isinstance(bundle.get("provenance"), dict) else {}
     if (
         provenance.get("repository_manifest_id") != bundle_repository.get("manifest_id")
@@ -483,14 +656,8 @@ def dispatch(args: argparse.Namespace) -> None:
             top_k=args.top_k,
             run_index=args.run_index,
             result_index=args.result_index,
-            implementation_revision=args.source_revision,
         )
-        bundle = result["bundle"]
-        _write_summary(
-            bundle_id=bundle["bundle_id"],
-            classification=bundle["classification"]["outcome"],
-            output=str(args.output),
-        )
+        _write_trace_summary(result)
     elif args.command == "export-sarif":
         bundle = load_bundle(args.bundle)
         sarif = export_sarif(bundle)
@@ -513,5 +680,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         dispatch(args)
     except (LumiTraceError, ValueError, OSError) as exc:
         print(f"lumi-trace: {exc}", file=sys.stderr)
+        hint = _actionable_hint(exc)
+        if hint:
+            print(f"hint: {hint}", file=sys.stderr)
         return getattr(exc, "exit_code", 2)
     return 0

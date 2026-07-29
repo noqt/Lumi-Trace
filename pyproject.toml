@@ -42,9 +42,34 @@ lumi-trace = "lumi_trace.cli:main"
 package-dir = {"" = "src"}
 
 [tool.setuptools.data-files]
-"share/skylark-lumi-trace" = ["model-inventory.yaml", "THIRD_PARTY_NOTICES.md"]
-"share/skylark-lumi-trace/docs" = ["docs/*.md"]
-"share/skylark-lumi-trace/schemas" = ["schemas/*.json"]
+"share/skylark-lumi-trace" = ["THIRD_PARTY_NOTICES.md"]
+"share/skylark-lumi-trace/docs" = [
+  "docs/PRIVACY_AND_DATA_HANDLING.md",
+  "docs/REPRODUCTION.md",
+  "docs/SCHEMAS.md",
+  "docs/STEP_1_PRODUCT_CONTRACT.md",
+  "docs/STEP_1_QUICKSTART.md",
+  "docs/STEP_1_RELEASE_GATE.md",
+  "docs/STEP_1_REPRODUCIBLE_RELEASE.md",
+  "docs/THREAT_MODEL.md",
+]
+"share/skylark-lumi-trace/release-tools" = [
+  "scripts/build_step1_release_evidence.py",
+  "scripts/normalize_step1_sdist.py",
+]
+"share/skylark-lumi-trace/schemas" = [
+  "schemas/candidate-set-v1.json",
+  "schemas/evidence-bundle-v1.json",
+  "schemas/evidence-package-manifest-v1.json",
+  "schemas/localization-inference-request-v0.4.1.json",
+  "schemas/localization-raw-ranking-v0.4.1.json",
+  "schemas/manual-finding-v1.json",
+  "schemas/normalized-finding-collection-v1.json",
+  "schemas/normalized-finding-v1.json",
+  "schemas/repository-index-v1.json",
+  "schemas/reproduction-plan-v1.json",
+  "schemas/reproduction-receipt-v1.json",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

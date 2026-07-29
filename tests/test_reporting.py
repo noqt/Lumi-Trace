@@ -168,6 +168,13 @@ def test_bundle_and_sarif_are_verifiable_and_contain_no_snippets(
     assert '"snippet"' not in encoded
     assert str(fixture_repository) not in encoded
     assert sarif["runs"][0]["results"][0]["properties"]["currentWeights"] == 0
+    assert (
+        sarif["runs"][0]["results"][0]["properties"]["rankingAlgorithm"]
+        == "deterministic-candidate-ranking-v2"
+    )
+    assert (
+        sarif["runs"][0]["tool"]["driver"]["informationUri"] == "https://github.com/noqt/Lumi-Trace"
+    )
 
     false_confirmation = build_evidence_bundle(
         finding=finding,

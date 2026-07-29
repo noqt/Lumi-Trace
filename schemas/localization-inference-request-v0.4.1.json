@@ -56,7 +56,10 @@
       ],
       "properties": {
         "runtime_identity": {
-          "const": "lumi-trace-runtime-v0.4.1-pre-release.8"
+          "enum": [
+            "lumi-trace-runtime-v0.4.1-pre-release.8",
+            "lumi-trace-runtime-v0.4.1-pre-release.9"
+          ]
         },
         "quarantine_policy": {
           "const": "target-agnostic-source-quarantine-v0.4.1.1"

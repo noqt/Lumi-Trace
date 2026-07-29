@@ -6,8 +6,26 @@ repository. It does not replace the licence supplied by a third-party author.
 ## Distributed Third-Party Material
 
 No third-party source code, model weights, training data, customer repository
-contents, CyberGym tasks, or protected Lumi evidence is vendored in the V0.4
+contents, CyberGym tasks, or protected Lumi evidence is vendored in the Step 1
 source distribution.
+
+The Step 1 Git source and separately supplied review bundle include two
+Skylark-authored finding descriptions adapted from GitHub Advisory Database
+record `GHSA-8359-h9fx-j6v9`: one manual JSON finding and one SARIF finding.
+The adapted advisory facts are attributed to the GitHub Advisory Database,
+with reporter credit to Hamza Haroon (`thegr1ffyn`), and distributed under
+CC-BY-4.0. Their file-specific source URLs, modification statement, retrieval
+date, licence URL, and content hashes are recorded in
+`examples/public-ghsa-8359-h9fx-j6v9/RIGHTS_AND_PROVENANCE.md`.
+
+The example directory and its CC-BY-4.0 finding files are supplied separately
+for controlled review and are not members of the Apache-2.0 wheel or source
+distribution. This separation keeps package metadata and the package-level
+SPDX conclusion scoped to Skylark-authored Apache-2.0 material.
+
+The referenced `koxudaxi/datamodel-code-generator` repository revision remains
+under its upstream MIT licence. Its archive is fetch-only: it is not bundled,
+vendored, or redistributed in the Lumi Trace source or wheel.
 
 Public test fixtures must be Skylark-authored synthetic content or must include
 a file-specific source, author, licence, and modification notice demonstrating
@@ -82,12 +100,13 @@ terms, including CC-BY-4.0 attribution requirements:
 - GitHub Advisory Database terms:
   <https://docs.github.com/en/code-security/concepts/vulnerability-reporting-and-management/github-advisory-database>
 
-The advisory archive, advisory prose, repository catalogue, third-party
-repository objects, revisions, diffs, labels, and features are not distributed
-with Lumi Trace. Each admitted repository revision has a private item-level
-licence record and historical licence receipt. Those records authorise only
-the uses they expressly mark; they do not relicense repository contents under
-Apache-2.0.
+Except for the two attributed Step 1 finding descriptions identified above,
+the advisory archive, governed-corpus advisory prose, repository catalogue,
+third-party repository objects, revisions, diffs, labels, and features are not
+distributed with Lumi Trace. Each governed-corpus repository revision has a
+private item-level licence record and historical licence receipt. Those
+records authorise only the uses they expressly mark; they do not relicense
+repository contents under Apache-2.0.
 
 TRACE-001 training code uses no external foundation model, tokenizer, model
 weights, hosted service, or remote code. The governed experiment produced one

@@ -42,8 +42,29 @@ RAW_OUTPUT_SCHEMA = "localization-raw-ranking-v0.4.1"
 ACCESS_POLICY_SCHEMA = "localization-builder-access-policy-v0.4.1"
 QUARANTINE_POLICY = "target-agnostic-source-quarantine-v0.4.1.1"
 CANDIDATE_ALGORITHM = "label-blind-python-role-candidates-v0.4.1.5"
-DEFAULT_RANKER = "role-aware-sparse-v0.4.1.1"
-RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.8"
+V041_EVIDENCE_DEFAULT_RANKER = "role-aware-sparse-v0.4.1.1"
+STEP1_DEFAULT_RANKER = BASE_RANKER
+DEFAULT_RANKER = STEP1_DEFAULT_RANKER
+V041_EVIDENCE_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.8"
+STEP1_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.9"
+RUNTIME_IDENTITY = STEP1_RUNTIME_IDENTITY
+SUPPORTED_RUNTIME_IDENTITIES = frozenset({V041_EVIDENCE_RUNTIME_IDENTITY, RUNTIME_IDENTITY})
+STEP1_MAXIMUM_CANDIDATES = 100_000
+NO_SIGNAL_ABSTENTION = "NO_POSITIVE_FINDING_GUIDED_SIGNAL"
+CANDIDATE_TRUNCATION_ABSTENTION = "CANDIDATE_GENERATION_TRUNCATED"
+
+FINDING_GUIDED_SCORE_COMPONENTS = frozenset(
+    {
+        "BM25",
+        "PATH",
+        "BASENAME",
+        "SYMBOL",
+        "CONTENT",
+        "DESCRIPTION",
+        "REPORTED_PATH",
+        "REPORTED_SYMBOL",
+    }
+)
 
 _TOKEN = re.compile(r"[A-Za-z][A-Za-z0-9]{1,63}")
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,200}$")
@@ -371,19 +392,26 @@ def _contains_forbidden_field(value: Any) -> bool:
     return False
 
 
-def _project_finding(finding: Mapping[str, Any]) -> dict[str, Any]:
+def _project_finding(
+    finding: Mapping[str, Any],
+    *,
+    runtime_identity: str,
+) -> dict[str, Any]:
     """Construct the allowed finding view instead of deleting forbidden keys."""
 
+    source_fields = [
+        "kind",
+        "input_sha256",
+        "sarif_run_index",
+        "sarif_result_index",
+    ]
+    if runtime_identity == RUNTIME_IDENTITY:
+        source_fields[2:2] = ["tool_name", "tool_version"]
     projected = {
         "schema_version": finding.get("schema_version"),
         "source": {
             key: finding.get("source", {}).get(key)
-            for key in (
-                "kind",
-                "input_sha256",
-                "sarif_run_index",
-                "sarif_result_index",
-            )
+            for key in source_fields
             if key in finding.get("source", {})
         },
         "rule": {
@@ -425,6 +453,7 @@ def construct_inference_request(
     maximum_file_bytes: int = 2 * 1024 * 1024,
     measure_peak_memory: bool = True,
     model_artifact: Mapping[str, Any] | None = None,
+    runtime_identity: str = RUNTIME_IDENTITY,
 ) -> dict[str, Any]:
     """Create the only object accepted by the inference builder."""
 
@@ -437,13 +466,13 @@ def construct_inference_request(
         }
     value = {
         "schema_version": REQUEST_SCHEMA,
-        "finding": _project_finding(finding),
+        "finding": _project_finding(finding, runtime_identity=runtime_identity),
         "repository": {
             "artifact_sha256": repository_artifact_sha256,
             "source_kind": source_kind,
         },
         "configuration": {
-            "runtime_identity": RUNTIME_IDENTITY,
+            "runtime_identity": runtime_identity,
             "quarantine_policy": QUARANTINE_POLICY,
             "candidate_algorithm": CANDIDATE_ALGORITHM,
             "ranker": ranker,
@@ -504,7 +533,7 @@ def validate_inference_request(value: Mapping[str, Any]) -> dict[str, Any]:
     if (
         not isinstance(configuration, dict)
         or set(configuration) != required_configuration
-        or configuration.get("runtime_identity") != RUNTIME_IDENTITY
+        or configuration.get("runtime_identity") not in SUPPORTED_RUNTIME_IDENTITIES
         or configuration.get("quarantine_policy") != QUARANTINE_POLICY
         or configuration.get("candidate_algorithm") != CANDIDATE_ALGORITHM
         or configuration.get("ranker") not in {*_RANKER_PROFILES, LEARNED_RANKER}
@@ -647,20 +676,27 @@ def _quarantine_reason(path: str, data: bytes) -> str | None:
     return None
 
 
-def _symbols(source: str) -> list[dict[str, Any]]:
+def _symbols(
+    source: str,
+    *,
+    maximum_symbols: int | None = None,
+) -> tuple[list[dict[str, Any]], bool]:
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("error", SyntaxWarning)
             tree = ast.parse(source)
     except (SyntaxError, SyntaxWarning, ValueError, RecursionError):
-        return []
+        return [], False
     lines = source.splitlines()
     result: list[dict[str, Any]] = []
-
-    def visit(node: ast.AST, parents: tuple[str, ...]) -> None:
+    stack: list[tuple[ast.AST, tuple[str, ...]]] = [(tree, ())]
+    while stack:
+        node, parents = stack.pop()
         name = getattr(node, "name", None)
         qualified = (*parents, name) if isinstance(name, str) else parents
         if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
+            if maximum_symbols is not None and len(result) >= maximum_symbols:
+                return result, True
             start = int(getattr(node, "lineno", 1))
             end = int(getattr(node, "end_lineno", start))
             result.append(
@@ -676,14 +712,12 @@ def _symbols(source: str) -> list[dict[str, Any]]:
                     ),
                     "start_line": start,
                     "end_line": end,
-                    "source": "\n".join(lines[max(0, start - 1) : end]),
+                    "source": "\n".join(lines[max(0, start - 1) : end])[:131_072],
                 }
             )
-        for child in ast.iter_child_nodes(node):
-            visit(child, qualified)
-
-    visit(tree, ())
-    return result
+        children = list(ast.iter_child_nodes(node))
+        stack.extend((child, qualified) for child in reversed(children))
+    return result, False
 
 
 def _query(finding: Mapping[str, Any]) -> dict[str, Any]:
@@ -782,6 +816,7 @@ def _enumerate_candidates(
     maximum_total_bytes: int,
     maximum_file_bytes: int,
     maximum_candidates: int,
+    strict_candidate_bound: bool = False,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     query = _query(finding)
     candidates: list[dict[str, Any]] = []
@@ -789,6 +824,7 @@ def _enumerate_candidates(
     file_count = 0
     total_bytes = 0
     indexed_paths: list[str] = []
+    candidate_universe_truncated = False
     entries = sorted(
         (item for item in root.rglob("*") if item.is_file() and not item.is_symlink()),
         key=lambda item: item.relative_to(root).as_posix().encode("utf-8"),
@@ -812,8 +848,14 @@ def _enumerate_candidates(
             continue
         source = data.decode("utf-8")
         indexed_paths.append(relative)
+        if strict_candidate_bound and candidate_universe_truncated:
+            continue
         candidates.append(_candidate(path=relative, source=source, symbol=None, query=query))
-        for symbol in _symbols(source):
+        symbol_limit = (
+            max(0, maximum_candidates + 1 - len(candidates)) if strict_candidate_bound else None
+        )
+        symbols, symbol_limit_reached = _symbols(source, maximum_symbols=symbol_limit)
+        for symbol in symbols:
             candidates.append(
                 _candidate(
                     path=relative,
@@ -822,6 +864,13 @@ def _enumerate_candidates(
                     query=query,
                 )
             )
+        if strict_candidate_bound and (
+            symbol_limit_reached or len(candidates) > maximum_candidates
+        ):
+            # A Step 1 result with an incomplete candidate universe will
+            # abstain. Continue only the bounded repository inventory scan;
+            # do not retain or score an unbounded intermediate candidate set.
+            candidate_universe_truncated = True
     if len(candidates) > maximum_candidates:
         # The selection key uses only finding and repository facts.  Preserve
         # broad file coverage before adding the strongest symbol candidates.
@@ -844,7 +893,7 @@ def _enumerate_candidates(
         candidates = [*selected_files, *selected_symbols]
         truncated = True
     else:
-        truncated = False
+        truncated = candidate_universe_truncated
     return candidates, {
         "repository_file_count": file_count,
         "repository_bytes": total_bytes,
@@ -1001,6 +1050,26 @@ def _rank(
     return ranked
 
 
+def finding_guided_score(candidate: Mapping[str, Any]) -> int:
+    """Return only score components tied to the supplied finding.
+
+    Role, path-depth, symbol-kind, and generic dangerous-call priors can order
+    otherwise relevant candidates, but cannot independently justify a
+    non-abstaining product result.
+    """
+
+    components = candidate.get("score_components")
+    if not isinstance(components, Mapping):
+        return 0
+    return sum(
+        int(points)
+        for code, points in components.items()
+        if code in FINDING_GUIDED_SCORE_COMPONENTS
+        and isinstance(points, int)
+        and not isinstance(points, bool)
+    )
+
+
 def build_raw_localization(
     request: Mapping[str, Any],
     *,
@@ -1011,6 +1080,7 @@ def build_raw_localization(
     """Run the product implementation with no scoring or evaluation inputs."""
 
     validated = validate_inference_request(request)
+    runtime_identity = str(validated["configuration"]["runtime_identity"])
     model_binding = validated["configuration"]["model"]
     verified_model = None
     if validated["configuration"]["ranker"] == LEARNED_RANKER:
@@ -1060,6 +1130,7 @@ def build_raw_localization(
             maximum_total_bytes=int(validated["configuration"]["maximum_total_bytes"]),
             maximum_file_bytes=int(validated["configuration"]["maximum_file_bytes"]),
             maximum_candidates=int(validated["configuration"]["maximum_candidates"]),
+            strict_candidate_bound=runtime_identity == RUNTIME_IDENTITY,
         )
         ranked = _rank(
             candidates,
@@ -1071,6 +1142,17 @@ def build_raw_localization(
     if measure_peak_memory:
         tracemalloc.stop()
     selected = ranked[: int(validated["configuration"]["top_k"])]
+    if runtime_identity == V041_EVIDENCE_RUNTIME_IDENTITY:
+        # Preserve the sealed V0.4.1 runtime's original decision rule. Step 1
+        # uses the stricter finding-guided and truncation-aware rule below.
+        abstained = not selected or int(selected[0]["integer_score"]) <= 0
+        abstention_reason = NO_SIGNAL_ABSTENTION if abstained else None
+    elif generation["truncated"]:
+        abstained = True
+        abstention_reason = CANDIDATE_TRUNCATION_ABSTENTION
+    else:
+        abstained = not selected or finding_guided_score(selected[0]) <= 0
+        abstention_reason = NO_SIGNAL_ABSTENTION if abstained else None
     inventory = sorted(
         [
             {
@@ -1088,7 +1170,7 @@ def build_raw_localization(
     payload = {
         "schema_version": RAW_OUTPUT_SCHEMA,
         "request_id": validated["request_id"],
-        "runtime_identity": RUNTIME_IDENTITY,
+        "runtime_identity": runtime_identity,
         "repository": {
             "repository_id": workspace.identity["repository_id"],
             "manifest_id": workspace.identity["manifest_id"],
@@ -1103,10 +1185,8 @@ def build_raw_localization(
         "candidate_inventory": inventory,
         "candidates": selected,
         "abstention": {
-            "abstained": not selected or int(selected[0]["integer_score"]) <= 0,
-            "reason": "NO_POSITIVE_FINDING_GUIDED_SIGNAL"
-            if not selected or int(selected[0]["integer_score"]) <= 0
-            else None,
+            "abstained": abstained,
+            "reason": abstention_reason,
         },
         "telemetry": {
             "wall_seconds": time.perf_counter() - started_wall,
@@ -1131,7 +1211,7 @@ def verify_raw_localization(value: Mapping[str, Any]) -> dict[str, Any]:
     if (
         not isinstance(value, dict)
         or value.get("schema_version") != RAW_OUTPUT_SCHEMA
-        or value.get("runtime_identity") != RUNTIME_IDENTITY
+        or value.get("runtime_identity") not in SUPPORTED_RUNTIME_IDENTITIES
         or value.get("quarantine_policy") != QUARANTINE_POLICY
         or value.get("candidate_algorithm") != CANDIDATE_ALGORITHM
         or value.get("ranker") not in {*_RANKER_PROFILES, LEARNED_RANKER}
@@ -1152,6 +1232,58 @@ def verify_raw_localization(value: Mapping[str, Any]) -> dict[str, Any]:
         is None
     ) or (value["ranker"] != LEARNED_RANKER and value.get("model_artifact_id") is not None):
         raise IntegrityError("raw localization model binding is invalid")
+    generation = value.get("generation")
+    if (
+        not isinstance(generation, dict)
+        or not isinstance(generation.get("truncated"), bool)
+        or not isinstance(generation.get("candidate_count"), int)
+        or isinstance(generation.get("candidate_count"), bool)
+    ):
+        raise IntegrityError("raw localization generation summary is invalid")
+    abstention = value.get("abstention")
+    allowed_abstention_reasons = {NO_SIGNAL_ABSTENTION}
+    if value["runtime_identity"] == RUNTIME_IDENTITY:
+        allowed_abstention_reasons.add(CANDIDATE_TRUNCATION_ABSTENTION)
+    if (
+        not isinstance(abstention, dict)
+        or set(abstention) != {"abstained", "reason"}
+        or not isinstance(abstention.get("abstained"), bool)
+        or (abstention["abstained"] and abstention.get("reason") not in allowed_abstention_reasons)
+        or (not abstention["abstained"] and abstention.get("reason") is not None)
+    ):
+        raise IntegrityError("raw localization abstention is invalid")
+    if value["runtime_identity"] == RUNTIME_IDENTITY:
+        candidates = value.get("candidates")
+        no_signal = (
+            not isinstance(candidates, list)
+            or not candidates
+            or finding_guided_score(candidates[0]) <= 0
+        )
+        expected_reason = (
+            CANDIDATE_TRUNCATION_ABSTENTION
+            if generation["truncated"]
+            else NO_SIGNAL_ABSTENTION
+            if no_signal
+            else None
+        )
+        if (
+            abstention["abstained"] is not (expected_reason is not None)
+            or abstention["reason"] != expected_reason
+        ):
+            raise IntegrityError("raw localization abstention does not match finding-guided signal")
+    else:
+        candidates = value.get("candidates")
+        expected_abstained = (
+            not isinstance(candidates, list)
+            or not candidates
+            or int(candidates[0]["integer_score"]) <= 0
+        )
+        expected_reason = NO_SIGNAL_ABSTENTION if expected_abstained else None
+        if (
+            abstention["abstained"] is not expected_abstained
+            or abstention["reason"] != expected_reason
+        ):
+            raise IntegrityError("historical localization abstention does not match its score")
     inventory_by_id: dict[str, Mapping[str, Any]] = {}
     for candidate in value["candidate_inventory"]:
         if (
@@ -1181,7 +1313,7 @@ def verify_raw_localization(value: Mapping[str, Any]) -> dict[str, Any]:
         if isinstance(symbol, str) and not symbol:
             raise IntegrityError("raw localization inventory symbol is empty")
         inventory_by_id[candidate["candidate_id"]] = candidate
-    if value.get("generation", {}).get("candidate_count") != len(inventory_by_id):
+    if generation["candidate_count"] != len(inventory_by_id):
         raise IntegrityError("raw localization inventory count mismatch")
     seen: set[str] = set()
     for rank, candidate in enumerate(value["candidates"], start=1):
@@ -1255,9 +1387,11 @@ def repository_artifact_identity(source: Path) -> tuple[str, str]:
     raise InputError("repository source must be a directory or archive")
 
 
-def information_flow_manifest() -> dict[str, Any]:
+def information_flow_manifest(*, runtime_identity: str = RUNTIME_IDENTITY) -> dict[str, Any]:
     """Describe the complete, machine-checkable inference dependency graph."""
 
+    if runtime_identity not in SUPPORTED_RUNTIME_IDENTITIES:
+        raise InputError("unsupported localization runtime identity")
     allowed = [
         "finding",
         "repository.artifact_sha256",
@@ -1330,7 +1464,7 @@ def information_flow_manifest() -> dict[str, Any]:
     }
     value = {
         "schema_version": "localization-information-flow-manifest-v0.4.1",
-        "runtime_identity": RUNTIME_IDENTITY,
+        "runtime_identity": runtime_identity,
         "allowed_inputs": allowed,
         "forbidden_field_fragments": forbidden,
         "stages": stages,

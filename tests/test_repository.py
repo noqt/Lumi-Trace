@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+import io
 import json
 import os
 import stat
 import subprocess
+import tarfile
 import unicodedata
 import zipfile
 from pathlib import Path
@@ -72,6 +74,60 @@ def test_zip_and_directory_have_same_content_identity(
         assert workspace.identity["manifest_id"] == directory_identity["manifest_id"]
 
 
+@pytest.mark.parametrize(
+    ("suffix", "mode"),
+    [
+        (".tar", "w"),
+        (".tar.gz", "w:gz"),
+        (".tgz", "w:gz"),
+        (".tar.bz2", "w:bz2"),
+        (".tbz2", "w:bz2"),
+        (".tar.xz", "w:xz"),
+    ],
+)
+def test_tar_family_and_directory_have_same_content_identity(
+    tmp_path: Path,
+    fixture_repository: Path,
+    suffix: str,
+    mode: str,
+) -> None:
+    archive = tmp_path / f"fixture{suffix}"
+    with tarfile.open(archive, mode=mode, format=tarfile.USTAR_FORMAT) as package:
+        for path in sorted(fixture_repository.rglob("*")):
+            if path.is_file():
+                package.add(
+                    path,
+                    arcname=f"fixture/{path.relative_to(fixture_repository).as_posix()}",
+                    recursive=False,
+                )
+    directory_identity = compute_repository_identity(fixture_repository)
+    with RepositoryWorkspace(archive) as workspace:
+        assert workspace.identity["manifest_id"] == directory_identity["manifest_id"]
+
+
+def test_tar_traversal_and_links_are_rejected(tmp_path: Path) -> None:
+    traversal = tmp_path / "traversal.tar"
+    with tarfile.open(traversal, mode="w", format=tarfile.USTAR_FORMAT) as package:
+        member = tarfile.TarInfo("../escape.py")
+        payload = b"print('unsafe')\n"
+        member.size = len(payload)
+        package.addfile(member, io.BytesIO(payload))
+    with pytest.raises(InputError, match="unsafe archive member"), RepositoryWorkspace(traversal):
+        pass
+
+    linked = tmp_path / "linked.tar"
+    with tarfile.open(linked, mode="w", format=tarfile.USTAR_FORMAT) as package:
+        member = tarfile.TarInfo("linked.py")
+        member.type = tarfile.SYMTYPE
+        member.linkname = "../outside.py"
+        package.addfile(member)
+    with (
+        pytest.raises(UnsupportedError, match="links and special members"),
+        RepositoryWorkspace(linked),
+    ):
+        pass
+
+
 def test_archive_case_collisions_are_rejected_on_every_platform(tmp_path: Path) -> None:
     archive = tmp_path / "collision.zip"
     with zipfile.ZipFile(archive, "w") as package:
@@ -90,6 +146,20 @@ def test_archive_ntfs_alternate_stream_name_is_rejected(tmp_path: Path) -> None:
         package.writestr("source.py:metadata", "no")
     with (
         pytest.raises(InputError, match="non-portable archive member"),
+        RepositoryWorkspace(archive),
+    ):
+        pass
+
+
+def test_zip_special_member_is_rejected(tmp_path: Path) -> None:
+    archive = tmp_path / "special.zip"
+    member = zipfile.ZipInfo("named-pipe")
+    member.create_system = 3
+    member.external_attr = (stat.S_IFIFO | 0o644) << 16
+    with zipfile.ZipFile(archive, "w") as package:
+        package.writestr(member, b"")
+    with (
+        pytest.raises(UnsupportedError, match="special members"),
         RepositoryWorkspace(archive),
     ):
         pass

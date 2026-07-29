@@ -238,6 +238,12 @@ def test_input_and_package_schemas_validate_owned_examples(
     Draft202012Validator(schemas["evidence-package-manifest-v1.json"], registry=registry).validate(
         manifest
     )
+    Draft202012Validator(schemas["candidate-set-v1.json"], registry=registry).validate(
+        load_json(output / "candidates.json")
+    )
+    Draft202012Validator(schemas["evidence-bundle-v1.json"], registry=registry).validate(
+        load_json(output / "evidence-bundle.json")
+    )
 
 
 def test_fixture_manifest_has_valid_owned_hashes(project_root: Path) -> None:

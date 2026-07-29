@@ -10,7 +10,12 @@ from pathlib import Path
 
 from lumi_trace.canonical import load_json as product_load_json
 from lumi_trace.learned_ranker import rank_with_model, verify_model_artifact
-from lumi_trace.localization import RUNTIME_IDENTITY, verify_raw_localization
+from lumi_trace.localization import (
+    V041_EVIDENCE_RUNTIME_IDENTITY as RUNTIME_IDENTITY,
+)
+from lumi_trace.localization import (
+    verify_raw_localization,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 EVAL_SRC = PROJECT_ROOT / "eval" / "src"

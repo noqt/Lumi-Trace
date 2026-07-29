@@ -11,10 +11,23 @@ from .canonical import stable_id
 from .errors import IntegrityError
 from .findings import validate_normalized_finding
 from .indexing import tokenize, verify_repository_index
+from .localization import (
+    CANDIDATE_ALGORITHM as PRODUCT_CANDIDATE_ALGORITHM,
+)
+from .localization import (
+    CANDIDATE_TRUNCATION_ABSTENTION,
+    FINDING_GUIDED_SCORE_COMPONENTS,
+    NO_SIGNAL_ABSTENTION,
+    RUNTIME_IDENTITY,
+    verify_raw_localization,
+)
+from .localization import DEFAULT_RANKER as PRODUCT_RANKING_ALGORITHM
 
 RANKING_ALGORITHM = "deterministic-candidate-ranking-v2"
+SUPPORTED_RANKING_ALGORITHMS = frozenset({RANKING_ALGORITHM, PRODUCT_RANKING_ALGORITHM})
 SCORE_REASON_MATCH_LIMIT = 20
 MAX_CANDIDATES_PER_PATH = 2
+PRODUCT_ROLES = frozenset({"implementation", "wrapper", "test", "fixture", "generated", "vendor"})
 QUERY_STOP_TERMS = {
     "advisory",
     "allow",
@@ -333,7 +346,116 @@ def rank_candidates(
     return result
 
 
-def verify_ranked_candidates(candidates: object) -> None:
+def project_localization_candidates(
+    finding: dict[str, object],
+    index: dict[str, object],
+    raw_localization: dict[str, object],
+    *,
+    top_k: int,
+) -> dict[str, object]:
+    """Project the frozen product localizer into the public candidate contract."""
+
+    validate_normalized_finding(finding)
+    verify_repository_index(index)
+    verified = verify_raw_localization(raw_localization)
+    repository = verified.get("repository")
+    if (
+        verified.get("runtime_identity") != RUNTIME_IDENTITY
+        or verified.get("ranker") != PRODUCT_RANKING_ALGORITHM
+        or verified.get("candidate_algorithm") != PRODUCT_CANDIDATE_ALGORITHM
+        or verified.get("model_artifact_id") is not None
+        or not isinstance(repository, dict)
+        or repository.get("manifest_id") != index["repository"]["manifest_id"]
+    ):
+        raise IntegrityError("product localization output does not match the frozen trace contract")
+    if top_k < 1 or top_k > 1_000:
+        raise ValueError("top_k must be between 1 and 1000")
+
+    raw_abstention = verified["abstention"]
+    if not isinstance(raw_abstention, dict):
+        raise IntegrityError("product localization abstention is unavailable")
+    abstention = {
+        "abstained": raw_abstention["abstained"],
+        "reason": raw_abstention["reason"],
+    }
+    projected: list[dict[str, object]] = []
+    if not abstention["abstained"]:
+        for raw_candidate in verified["candidates"][:top_k]:
+            if not isinstance(raw_candidate, dict):
+                raise IntegrityError("product localization candidate is invalid")
+            role = str(raw_candidate["role"])
+            components = raw_candidate["score_components"]
+            if role not in PRODUCT_ROLES or not isinstance(components, dict):
+                raise IntegrityError("product localization score basis is invalid")
+            reasons = [
+                _reason(
+                    f"ROLE_{role.upper()}" if code == "ROLE" else str(code),
+                    int(points),
+                )
+                for code, points in sorted(components.items())
+                if isinstance(points, int) and not isinstance(points, bool) and points != 0
+            ]
+            raw_region = raw_candidate["region"]
+            if not isinstance(raw_region, dict):
+                raise IntegrityError("product localization candidate region is invalid")
+            symbol = None
+            if raw_candidate["kind"] == "symbol":
+                qualified_name = str(raw_candidate["symbol"])
+                symbol = {
+                    "name": qualified_name.rsplit(".", 1)[-1],
+                    "qualified_name": qualified_name,
+                    "kind": "python-symbol",
+                    "extractor": "python-ast-v1",
+                }
+            candidate = _candidate(
+                kind=str(raw_candidate["kind"]),
+                path=str(raw_candidate["path"]),
+                region={
+                    "start_line": int(raw_region["start_line"]),
+                    "start_column": 1,
+                    "end_line": int(raw_region["end_line"]),
+                    "end_column": 1,
+                },
+                score=int(raw_candidate["integer_score"]),
+                reasons=reasons,
+                symbol=symbol,
+            )
+            candidate["role"] = role
+            projected.append(candidate)
+        for rank, candidate in enumerate(projected, start=1):
+            candidate["rank"] = rank
+
+    confidence_descriptor = (
+        "ABSTAINED" if abstention["abstained"] else "FINDING_GUIDED_SIGNAL_PRESENT"
+    )
+    ranking_identity = {
+        "algorithm": PRODUCT_RANKING_ALGORITHM,
+        "candidate_algorithm": PRODUCT_CANDIDATE_ALGORITHM,
+        "finding_id": finding["finding_id"],
+        "index_id": index["index_id"],
+        "candidate_ids": [candidate["candidate_id"] for candidate in projected],
+        "abstention": abstention,
+    }
+    result: dict[str, object] = {
+        "schema_version": "candidate-set-v1",
+        "algorithm": PRODUCT_RANKING_ALGORITHM,
+        "candidate_algorithm": PRODUCT_CANDIDATE_ALGORITHM,
+        "ranking_id": stable_id("ranking", ranking_identity),
+        "finding_id": finding["finding_id"],
+        "index_id": index["index_id"],
+        "top_k": top_k,
+        "candidate_count_considered": verified["candidate_count_ranked"],
+        "candidates": projected,
+        "abstention": abstention,
+        "confidence_descriptor": confidence_descriptor,
+        "confidence_is_not_probability": True,
+    }
+    result["candidate_set_id"] = stable_id("candidate-set", result)
+    verify_candidate_set(result)
+    return result
+
+
+def verify_ranked_candidates(candidates: object, *, require_role: bool = False) -> None:
     """Verify a ranked candidate projection and each content identity."""
 
     if not isinstance(candidates, list) or len(candidates) > 1_000:
@@ -351,7 +473,7 @@ def verify_ranked_candidates(candidates: object) -> None:
         if (
             not isinstance(candidate, dict)
             or not required_candidate.issubset(candidate)
-            or set(candidate) - required_candidate - {"symbol"}
+            or set(candidate) - required_candidate - {"symbol", "role"}
             or candidate.get("rank") != rank
             or candidate.get("kind") not in {"file", "symbol"}
             or not isinstance(candidate.get("integer_score"), int)
@@ -359,6 +481,11 @@ def verify_ranked_candidates(candidates: object) -> None:
             or not isinstance(candidate.get("score_reasons"), list)
         ):
             raise IntegrityError("ranked candidate structure is invalid")
+        role = candidate.get("role")
+        if require_role and role not in PRODUCT_ROLES:
+            raise IntegrityError("product ranked candidate role is invalid")
+        if not require_role and role is not None and role not in PRODUCT_ROLES:
+            raise IntegrityError("ranked candidate role is invalid")
         path = candidate.get("path")
         parsed = PurePosixPath(path) if isinstance(path, str) else None
         if (
@@ -440,7 +567,7 @@ def verify_candidate_set(candidate_set: dict[str, object]) -> None:
         or candidate_set.get("schema_version") != "candidate-set-v1"
     ):
         raise IntegrityError("candidate set must use candidate-set-v1")
-    required = {
+    base_fields = {
         "schema_version",
         "algorithm",
         "finding_id",
@@ -451,7 +578,17 @@ def verify_candidate_set(candidate_set: dict[str, object]) -> None:
         "confidence_is_not_probability",
         "candidate_set_id",
     }
-    if set(candidate_set) != required or candidate_set.get("algorithm") != RANKING_ALGORITHM:
+    product_fields = {
+        "candidate_algorithm",
+        "ranking_id",
+        "abstention",
+        "confidence_descriptor",
+    }
+    algorithm = candidate_set.get("algorithm")
+    expected_fields = (
+        base_fields | product_fields if algorithm == PRODUCT_RANKING_ALGORITHM else base_fields
+    )
+    if set(candidate_set) != expected_fields or algorithm not in SUPPORTED_RANKING_ALGORITHMS:
         raise IntegrityError("candidate set fields or algorithm are invalid")
     if (
         not isinstance(candidate_set.get("top_k"), int)
@@ -466,7 +603,46 @@ def verify_candidate_set(candidate_set: dict[str, object]) -> None:
     candidates = candidate_set.get("candidates")
     if not isinstance(candidates, list) or len(candidates) > candidate_set["top_k"]:
         raise IntegrityError("candidate set candidates are invalid")
-    verify_ranked_candidates(candidates)
+    require_role = algorithm == PRODUCT_RANKING_ALGORITHM
+    verify_ranked_candidates(candidates, require_role=require_role)
+    if require_role:
+        abstention = candidate_set.get("abstention")
+        if (
+            candidate_set.get("candidate_algorithm") != PRODUCT_CANDIDATE_ALGORITHM
+            or not isinstance(abstention, dict)
+            or set(abstention) != {"abstained", "reason"}
+            or not isinstance(abstention.get("abstained"), bool)
+            or (
+                abstention["abstained"]
+                and abstention.get("reason")
+                not in {NO_SIGNAL_ABSTENTION, CANDIDATE_TRUNCATION_ABSTENTION}
+            )
+            or (not abstention["abstained"] and abstention.get("reason") is not None)
+            or (abstention["abstained"] and candidates)
+            or (not abstention["abstained"] and not candidates)
+            or candidate_set.get("confidence_descriptor")
+            != ("ABSTAINED" if abstention.get("abstained") else "FINDING_GUIDED_SIGNAL_PRESENT")
+        ):
+            raise IntegrityError("product candidate set abstention or confidence is invalid")
+        if candidates:
+            first_reasons = candidates[0]["score_reasons"]
+            guided_score = sum(
+                reason["points"]
+                for reason in first_reasons
+                if reason["code"] in FINDING_GUIDED_SCORE_COMPONENTS
+            )
+            if guided_score <= 0:
+                raise IntegrityError("product candidate set has no positive finding-guided signal")
+        ranking_identity = {
+            "algorithm": PRODUCT_RANKING_ALGORITHM,
+            "candidate_algorithm": PRODUCT_CANDIDATE_ALGORITHM,
+            "finding_id": candidate_set["finding_id"],
+            "index_id": candidate_set["index_id"],
+            "candidate_ids": [candidate["candidate_id"] for candidate in candidates],
+            "abstention": abstention,
+        }
+        if candidate_set.get("ranking_id") != stable_id("ranking", ranking_identity):
+            raise IntegrityError("product candidate ranking identity mismatch")
     expected = stable_id("candidate-set", candidate_set, omit_keys=("candidate_set_id",))
     if candidate_set.get("candidate_set_id") != expected:
         raise IntegrityError("candidate set identity mismatch")

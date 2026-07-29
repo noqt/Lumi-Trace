@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Skylark Lumi Trace Public Example Finding",
+          "semanticVersion": "1.0.0",
+          "informationUri": "https://github.com/koxudaxi/datamodel-code-generator/security/advisories/GHSA-8359-h9fx-j6v9",
+          "rules": [
+            {
+              "id": "GHSA-8359-h9fx-j6v9",
+              "name": "UncontainedLocalSchemaReference",
+              "shortDescription": {
+                "text": "Local JSON Schema references may escape the configured input root"
+              },
+              "helpUri": "https://github.com/koxudaxi/datamodel-code-generator/security/advisories/GHSA-8359-h9fx-j6v9",
+              "properties": {
+                "tags": [
+                  "security",
+                  "CWE-22",
+                  "CWE-200",
+                  "CWE-610",
+                  "json-schema",
+                  "path-traversal",
+                  "reference-body",
+                  "file-url",
+                  "remote-file-path",
+                  "input-base-path",
+                  "allow-remote-refs",
+                  "load-schema"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "guid": "417e754b-88da-5a93-a1b6-2717c7e70aba",
+          "ruleId": "GHSA-8359-h9fx-j6v9",
+          "level": "error",
+          "message": {
+            "text": "In affected revisions, JSON Schema reference loading can fetch a $ref body from a file URL or relative remote-file path without ensuring the resolved target remains under the input base path. The option that disables remote references does not block these local references, allowing unintended local file reads."
+          },
+          "partialFingerprints": {
+            "github-advisory/v1": "GHSA-8359-h9fx-j6v9"
+          },
+          "properties": {
+            "source": "https://github.com/koxudaxi/datamodel-code-generator/security/advisories/GHSA-8359-h9fx-j6v9",
+            "sourceLicence": "CC-BY-4.0",
+            "adaptation": "Skylark-authored shortened factual paraphrase; no proof-of-concept or source excerpt copied."
+          }
+        }
+      ]
+    }
+  ]
+}

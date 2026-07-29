@@ -1,4 +1,8 @@
-# Lumi Trace V0.1 Threat Model
+# Lumi Trace Runtime Threat Model
+
+Step 1 retains the V0.1 clean-room and optional-reproduction controls while
+using a Python-only, label-blind deterministic localizer for its primary
+ranking path. Ranking reads repository code as data and does not execute it.
 
 ## Scope and Security Goal
 

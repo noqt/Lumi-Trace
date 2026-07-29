@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased - Step 1 deterministic productisation
+
+- Made `lumi-trace trace` the coherent installed-wheel workflow and froze the
+  label-blind `role-aware-sparse-v0.4.1.3` deterministic route as its default.
+- Added explicit ranker identity, finding-guided abstention, concise terminal
+  locations, candidate-truncation abstention, and cross-bound JSON/SARIF
+  ranking metadata without promoting or packaging a learned checkpoint.
+- Added manual/SARIF and directory/archive product-contract tests, actionable
+  input-error guidance, an installed-wheel quickstart, a public-example rights
+  record, and a standalone privacy/data-handling statement.
+- Narrowed release artifacts to the product boundary and added reproducible
+  wheel build plus bounded canonical sdist normalization, inventory, checksum,
+  SPDX SBOM, clean-install, and independent usability evidence controls.
+- Preserved V0.4.1 reconstruction under its explicitly pinned historical
+  runtime while giving Step 1 a distinct runtime identity and decision rule.
+- Kept publication blocked pending the six written founder decisions in the
+  Step 1 release gate. No merge, tag, release, signing, PyPI upload, training,
+  qualification, or holdback access is part of this work.
+
 ## 0.4.1-dev.0 - Integrity remediation and qualification recovery
 
 - Recorded the V0.4 ground-truth target-access defect, preserved the historical

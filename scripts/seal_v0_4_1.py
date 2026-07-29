@@ -16,9 +16,11 @@ from lumi_trace.learned_ranker import LEARNED_RANKER, verify_model_artifact
 from lumi_trace.localization import (
     CANDIDATE_ALGORITHM,
     QUARANTINE_POLICY,
-    RUNTIME_IDENTITY,
     information_flow_manifest,
     verify_raw_localization,
+)
+from lumi_trace.localization import (
+    V041_EVIDENCE_RUNTIME_IDENTITY as RUNTIME_IDENTITY,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -502,7 +504,7 @@ def seal(args: argparse.Namespace) -> dict:
         private_root / "invalidation" / "validation-history-disposition.json",
         validation_disposition,
     )
-    flow = information_flow_manifest()
+    flow = information_flow_manifest(runtime_identity=RUNTIME_IDENTITY)
     _write_once(private_root / "manifests" / "information-flow-final.json", flow)
     interrupted_count = sum(
         load_json(path).get("runtime_identity") == "lumi-trace-runtime-v0.4.1-pre-release.7"

@@ -1,0 +1,31 @@
+{
+  "schema_version": "manual-finding-v1",
+  "id": "GHSA-8359-h9fx-j6v9",
+  "title": "Local JSON Schema references may escape the configured input root",
+  "description": "In affected revisions, JSON Schema reference loading can fetch a $ref body from a file URL or relative remote-file path without ensuring the resolved target remains under the input base path. The option that disables remote references does not block these local references, allowing unintended local file reads.",
+  "severity": "high",
+  "rule": {
+    "id": "GHSA-8359-h9fx-j6v9",
+    "name": "Uncontained local schema reference",
+    "cwes": [
+      "CWE-22",
+      "CWE-200",
+      "CWE-610"
+    ],
+    "tags": [
+      "json-schema",
+      "local-reference",
+      "path-traversal",
+      "information-disclosure"
+    ]
+  },
+  "keywords": [
+    "$ref",
+    "reference body",
+    "file URL",
+    "remote file path",
+    "input base path",
+    "allow remote refs",
+    "load schema"
+  ]
+}

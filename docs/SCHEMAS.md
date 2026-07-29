@@ -11,24 +11,34 @@ Schema names and `schema_version` values are part of the V0.1 compatibility
 contract. A breaking change requires a new schema-version name; an existing v1
 contract must not be silently reinterpreted.
 
-## V0.4.1 Label-Blind Localization
+## Step 1 deterministic profile
 
 - `localization-inference-request-v0.4.1.json` is the only inference-side
-  request accepted by the isolated builder. It contains the normalized finding,
-  immutable repository artifact identity, bounded configuration, and optional
-  canonical model binding. Audit receipts, targets, fixed revisions, labels,
-  and qualification state are not accepted.
+  request accepted by the localizer. It contains the normalized finding,
+  immutable repository artifact identity, and bounded configuration. Audit
+  receipts, targets, fixed revisions, labels, and qualification state are not
+  accepted.
 - `localization-raw-ranking-v0.4.1.json` defines the bounded candidate
   inventory, exported ranking, source-visible role classes, telemetry,
   abstention, ranking identity, and raw-output seal.
-- `localization-linear-model-v0.4.1.json` defines the safe JSON-only sparse
-  integer model. It permits no foundation model, tokenizer, remote code, or
-  hosted-service binding.
+
+Step 1 uses runtime identity `lumi-trace-runtime-v0.4.1-pre-release.9` and
+deterministic ranker `role-aware-sparse-v0.4.1.3`. Historical `.8` raw output
+remains verifiable. Governed V0.4.1 reconstruction scripts explicitly pin `.8`
+and its historical decision rule; the Step 1 CLI never emits that identity.
+
+`candidate-set-v1` and `evidence-bundle-v1` retain their strict legacy profile
+and add a distinguishable Step 1 profile keyed by the deterministic algorithm.
+Legacy documents remain valid. New product documents additionally bind the
+candidate algorithm, ranker, role, ranking identity, confidence descriptor,
+and fail-closed abstention, including `CANDIDATE_GENERATION_TRUNCATED` when a
+bounded inventory is incomplete. Unknown or mixed-profile fields remain
+invalid.
 
 Runtime verification applies canonical identities and cross-field invariants
-that JSON Schema alone cannot express, including ordered unique sparse weights,
-request and model hash binding, inventory/ranking membership, sequential ranks,
-candidate identities, and the complete raw-output seal.
+that JSON Schema alone cannot express, including inventory/ranking membership,
+sequential ranks, candidate identities, ranking/bundle bindings, and the
+complete raw-output seal.
 
 ## Published Schema Files
 
@@ -38,20 +48,19 @@ candidate identities, and the complete raw-output seal.
 | `schemas/normalized-finding-v1.json` | Normalized manual or SARIF finding, including input hash, rule, severity, safe relative locations, keywords, and fingerprints. |
 | `schemas/normalized-finding-collection-v1.json` | Manifest emitted when SARIF import writes multiple normalized findings. |
 | `schemas/repository-index-v1.json` | Immutable repository identity plus deterministic file, token, exclusion, and symbol index. |
-| `schemas/candidate-set-v1.json` | Ranked file and symbol candidates, integer scores, reason codes, and stable identities. |
-| `schemas/evidence-bundle-v1.json` | Complete finding, repository provenance, candidate, reproduction, classification, telemetry, and limitation evidence. |
+| `schemas/candidate-set-v1.json` | Ranked file and symbol candidates, integer scores/reasons, roles, ranker identity, confidence semantics, fail-closed abstention, and stable identities. |
+| `schemas/evidence-bundle-v1.json` | Finding, repository provenance, ranking summary, candidates, reproduction, classification, telemetry, and limitations. |
 | `schemas/evidence-package-manifest-v1.json` | Exact artifact names, byte sizes, hashes, and identity for a trace package. |
 | `schemas/reproduction-plan-v1.json` | Explicit argv-only plan, predicates, output-preview policy, and resource limits. |
 | `schemas/reproduction-receipt-v1.json` | Local image and policy identity, qualification attestations, bounded step results, repository immutability, and receipt identity. |
-| `schemas/resolved-dependency-inventory-v1.json` | Sanitized installed tool closure with canonical package name, version, licence, and direct/transitive relationship only. |
-| `schemas/model-inventory-v1.json` | Skylark micro-model inventory record, including proposed, private experimental, and release states. |
-| `schemas/localization-inference-request-v0.4.1.json` | Strict allowed-field request for the isolated V0.4.1 product localizer. |
+| `schemas/localization-inference-request-v0.4.1.json` | Strict allowed-field request for the deterministic product localizer. |
 | `schemas/localization-raw-ranking-v0.4.1.json` | Bounded candidate inventory, ranked head, telemetry, abstention, and raw seal. |
-| `schemas/localization-linear-model-v0.4.1.json` | Safe bounded sparse integer model artifact with no executable serialization. |
 
-At the time a release is sealed, every file named above must exist and validate
-the corresponding generated fixture. Missing schema files are release blockers,
-not permission to infer a contract from prose.
+Every product schema named above is included in the Step 1 wheel and source
+distribution and validates its generated fixture. Development/evaluator
+schemas retained elsewhere in the repository are intentionally outside the
+Step 1 package boundary. A missing product schema is a release blocker, not
+permission to infer a contract from prose.
 
 `candidate-set-v1` score reasons use one canonical match contract in V0.1.1:
 `matches`, when present, contains 1 to 20 unique, non-empty strings in ascending
@@ -75,7 +84,9 @@ strict field and location validation.
 SARIF input must declare version `2.1.0`. Each selected result becomes one
 normalized finding. A complete `trace` must select one result when a SARIF
 document contains multiple results. Remote artifact locations are unsupported.
-No SARIF field is treated as a reproduction command.
+Artifact `uriBaseId` must be omitted or explicitly use `%SRCROOT%`; unresolved
+or alternative bases fail closed. No SARIF field is treated as a reproduction
+command.
 
 ### `reproduction-plan-v1`
 
@@ -129,55 +140,6 @@ is not itself the identity encoding.
 
 The CLI `validate` command is not a general-purpose or complete JSON Schema
 validator. Passing it does not replace release-time Draft 2020-12 validation.
-
-## Trace-Eval V0.3 Records
-
-Trace-Eval uses separately packaged, versioned canonical envelope schemas under
-`eval/src/trace_eval/schemas/`. V0.3.3 retains every earlier record type and
-adds:
-
-- programme boundary, natural-corpus registry, and repository-lineage audit;
-- Trace Code location labels, metric specifications, case results, and
-  aggregates;
-- Trace IR events, episodes, labels, results, metrics, and feasibility
-  decisions; and
-- the V0.3 closure record.
-
-Payload invariants are enforced by evaluator code in addition to the envelope.
-`trace-code-metric-specification-v2` defines hard-negative outrank over all
-primary-metric groups that have both an accepted target and at least one
-labelled hard negative. A missing retrieved negative remains in that
-denominator as a non-outrank; a safe control with no target is ineligible.
-Location labels require an explicit role, controlled-review receipt, and a
-contiguous append-only correction history. Trace IR accepts only bounded inert
-JSON, verifies owned immutable provenance and rights, rejects remote or
-executable fields, and keeps labels outside runner input.
-
-## Trace-Eval V0.4 Assurance Records
-
-Trace-Eval 0.4.0 publishes the
-`eval/src/trace_eval/schemas/trace-eval-contract-v0.4.0.json` canonical
-envelope schema and enforces payload invariants in code. New identity-bearing
-records include:
-
-- source candidates and append-only data-state transitions;
-- per-material, per-use rights matrices;
-- quarantine scans and answer-leakage audits;
-- controlled label passes and resolutions;
-- group audit cards;
-- partition seals, sample plans, and metric specifications;
-- training-eligibility manifests; and
-- final training-readiness decisions.
-
-A `TRAINING_ELIGIBLE` card must be in the training partition, cite an approved
-rights matrix whose model-input materials permit training, pass every item
-audit, and appear in the final partition seal. Preprocessing is an exact
-audit-card-identity allowlist operation. Evaluation-only, rejected, retired,
-superseded, unsealed, or identity-mismatched records fail closed.
-
-The private feature and experiment records used by the V0.4 build are not
-public interchange schemas and are not included in package data. The public
-V0.4 evidence seal contains aggregate projections only.
 
 ## Privacy Properties
 

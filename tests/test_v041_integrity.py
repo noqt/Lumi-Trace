@@ -10,8 +10,13 @@ from pathlib import Path
 import pytest
 
 from lumi_trace.errors import InputError
-from lumi_trace.findings import import_manual
+from lumi_trace.findings import import_manual, import_sarif
 from lumi_trace.localization import (
+    CANDIDATE_TRUNCATION_ABSTENTION,
+    DEFAULT_RANKER,
+    RUNTIME_IDENTITY,
+    V041_EVIDENCE_DEFAULT_RANKER,
+    V041_EVIDENCE_RUNTIME_IDENTITY,
     build_access_policy,
     build_raw_localization,
     construct_inference_request,
@@ -60,7 +65,7 @@ def _request(
     fixture_repository: Path,
     manual_finding_path: Path,
     *,
-    ranker: str = "role-aware-sparse-v0.4.1.1",
+    ranker: str = DEFAULT_RANKER,
 ) -> dict:
     finding = import_manual(manual_finding_path, fixture_repository)
     identity, source_kind = repository_artifact_identity(fixture_repository)
@@ -71,6 +76,104 @@ def _request(
         ranker=ranker,
         top_k=100,
     )
+
+
+def test_product_default_freezes_the_reviewed_deterministic_runtime(
+    fixture_repository: Path,
+    manual_finding_path: Path,
+) -> None:
+    request = _request(fixture_repository, manual_finding_path)
+    assert request["configuration"]["ranker"] == "role-aware-sparse-v0.4.1.3"
+    assert request["configuration"]["runtime_identity"] == RUNTIME_IDENTITY
+    assert RUNTIME_IDENTITY == "lumi-trace-runtime-v0.4.1-pre-release.9"
+
+
+def test_sarif_projection_preserves_required_source_provenance(
+    fixture_repository: Path,
+    sarif_finding_path: Path,
+) -> None:
+    finding = import_sarif(
+        sarif_finding_path,
+        repository_root=fixture_repository,
+    )[0]
+    identity, source_kind = repository_artifact_identity(fixture_repository)
+    request = construct_inference_request(
+        finding=finding,
+        repository_artifact_sha256=identity,
+        source_kind=source_kind,
+    )
+    assert request["finding"]["source"]["tool_name"] == "Skylark Fixture Analyzer"
+    assert request["finding"]["source"]["tool_version"] == "1.0.0"
+    assert request["finding"]["source"]["sarif_run_index"] == 0
+    assert request["finding"]["source"]["sarif_result_index"] == 0
+
+
+def test_historical_runtime_request_remains_explicitly_reconstructable(
+    fixture_repository: Path,
+    manual_finding_path: Path,
+) -> None:
+    finding = import_manual(manual_finding_path, fixture_repository)
+    identity, source_kind = repository_artifact_identity(fixture_repository)
+    request = construct_inference_request(
+        finding=finding,
+        repository_artifact_sha256=identity,
+        source_kind=source_kind,
+        runtime_identity=V041_EVIDENCE_RUNTIME_IDENTITY,
+        ranker=V041_EVIDENCE_DEFAULT_RANKER,
+        top_k=100,
+    )
+    assert request["request_id"] == (
+        "localization-request:7b25e65517680a3851e253258609391c288663ee2384215737479a5f198af927"
+    )
+    assert validate_inference_request(request) == request
+    raw = build_raw_localization(request, repository_source=fixture_repository)
+    assert raw["runtime_identity"] == V041_EVIDENCE_RUNTIME_IDENTITY
+    assert raw["ranker"] == V041_EVIDENCE_DEFAULT_RANKER
+    assert (
+        information_flow_manifest(runtime_identity=V041_EVIDENCE_RUNTIME_IDENTITY)[
+            "runtime_identity"
+        ]
+        == V041_EVIDENCE_RUNTIME_IDENTITY
+    )
+
+
+def test_step1_runtime_abstains_when_candidate_generation_is_truncated(
+    tmp_path: Path,
+) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    source = "\n".join(
+        f"def vulnerable_reference_loader_{number}():\n    return 'reference body'"
+        for number in range(25)
+    )
+    (repository / "loader.py").write_text(source + "\n", encoding="utf-8")
+    finding_path = tmp_path / "finding.json"
+    finding_path.write_text(
+        json.dumps(
+            {
+                "title": "Vulnerable reference loader",
+                "description": "Reference body loader may escape its root",
+                "keywords": ["reference", "loader"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    finding = import_manual(finding_path, repository)
+    identity, source_kind = repository_artifact_identity(repository)
+    request = construct_inference_request(
+        finding=finding,
+        repository_artifact_sha256=identity,
+        source_kind=source_kind,
+        top_k=20,
+        maximum_candidates=20,
+        measure_peak_memory=False,
+    )
+    raw = build_raw_localization(request, repository_source=repository)
+    assert raw["generation"]["truncated"] is True
+    assert raw["abstention"] == {
+        "abstained": True,
+        "reason": CANDIDATE_TRUNCATION_ABSTENTION,
+    }
 
 
 def test_allowed_projection_has_no_answer_bearing_field(
