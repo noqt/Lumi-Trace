@@ -35,7 +35,8 @@
       "enum": [
         "lumi-trace-runtime-v0.4.1-pre-release.8",
         "lumi-trace-runtime-v0.4.1-pre-release.9",
-        "lumi-trace-runtime-v0.4.1-pre-release.10"
+        "lumi-trace-runtime-v0.4.1-pre-release.10",
+        "lumi-trace-runtime-v0.4.1-pre-release.11"
       ]
     },
     "repository": {
@@ -69,7 +70,8 @@
     "candidate_algorithm": {
       "enum": [
         "label-blind-python-role-candidates-v0.4.1.5",
-        "label-blind-python-role-candidates-v0.4.1.6"
+        "label-blind-python-role-candidates-v0.4.1.6",
+        "label-blind-python-role-candidates-v0.4.1.7"
       ]
     },
     "ranker": {
@@ -250,8 +252,60 @@
             "const": "label-blind-python-role-candidates-v0.4.1.6"
           }
         }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime_identity": {
+            "const": "lumi-trace-runtime-v0.4.1-pre-release.11"
+          }
+        },
+        "required": [
+          "runtime_identity"
+        ]
       },
-      "else": {
+      "then": {
+        "properties": {
+          "candidate_algorithm": {
+            "const": "label-blind-python-role-candidates-v0.4.1.7"
+          },
+          "candidate_inventory": {
+            "items": {
+              "properties": {
+                "path": {
+                  "pattern": "^(?![\\s\\S]*[^\\u0020-\\u007e])[\\u0020-\\u007e]+$"
+                }
+              }
+            }
+          },
+          "candidates": {
+            "items": {
+              "properties": {
+                "path": {
+                  "pattern": "^(?![\\s\\S]*[^\\u0020-\\u007e])[\\u0020-\\u007e]+$"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime_identity": {
+            "enum": [
+              "lumi-trace-runtime-v0.4.1-pre-release.8",
+              "lumi-trace-runtime-v0.4.1-pre-release.9"
+            ]
+          }
+        },
+        "required": [
+          "runtime_identity"
+        ]
+      },
+      "then": {
         "properties": {
           "candidate_algorithm": {
             "const": "label-blind-python-role-candidates-v0.4.1.5"

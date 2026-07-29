@@ -65,7 +65,7 @@ def test_cli_import_and_trace_without_provider_or_api_key(
     assert summary["ranking_abstention_reason"] == "NO_POSITIVE_FINDING_GUIDED_SIGNAL"
     assert summary["reason_codes"] == ["NO_REPRODUCTION_PLAN"]
     assert summary["ranking_algorithm"] == "role-aware-sparse-v0.4.1.3"
-    assert summary["candidate_algorithm"] == "label-blind-python-role-candidates-v0.4.1.6"
+    assert summary["candidate_algorithm"] == "label-blind-python-role-candidates-v0.4.1.7"
     assert summary["reproduction_requested"] is False
     assert summary["reproduction_abstained"] is True
     assert "Lumi Trace deterministic evidence" in captured.err
@@ -158,7 +158,7 @@ def test_trace_summary_foregrounds_implementation_candidates_at_true_rank(
             "output_directory": tmp_path / "evidence",
             "candidate_set": {
                 "algorithm": "role-aware-sparse-v0.4.1.3",
-                "candidate_algorithm": "label-blind-python-role-candidates-v0.4.1.6",
+                "candidate_algorithm": "label-blind-python-role-candidates-v0.4.1.7",
                 "ranking_id": "ranking:fixture",
                 "confidence_descriptor": "FINDING_GUIDED_SIGNAL_PRESENT",
                 "abstention": {"abstained": False, "reason": None},

@@ -22,17 +22,24 @@ contract must not be silently reinterpreted.
   inventory, exported ranking, source-visible role classes, telemetry,
   abstention, ranking identity, and raw-output seal.
 
-Step 1 uses runtime identity `lumi-trace-runtime-v0.4.1-pre-release.10`,
-candidate algorithm `label-blind-python-role-candidates-v0.4.1.6`, repository
-index `deterministic-lexical-index-v3`, and deterministic ranker
+Step 1 uses runtime identity `lumi-trace-runtime-v0.4.1-pre-release.11`,
+candidate algorithm `label-blind-python-role-candidates-v0.4.1.7`, repository
+index `deterministic-lexical-index-v4`, Python symbol extractor
+`python-lexical-v1`, and deterministic ranker
 `role-aware-sparse-v0.4.1.3`. Historical `.8` raw output remains verifiable.
 Governed V0.4.1 reconstruction scripts explicitly pin `.8` and its historical
-decision rule, and its execution is fail-closed outside CPython 3.12. The
-superseded unreleased `.9`/candidate-algorithm `.5` pair is accepted only for
+decision rule, and its execution is fail-closed outside CPython 3.12.
+
+The superseded unreleased `.9`/candidate `.5`/index-v2 profile and the failed
+AST remediation `.10`/candidate `.6`/index-v3 profile are accepted only for
 validation of already-created evidence; constructors and runtime execution
-reject it. The Step 1 CLI emits neither legacy identity. Runtime and
-candidate-algorithm pairings, and product candidate/index pairings, cannot be
-mixed.
+reject both. The Step 1 CLI emits `.11` only. Runtime/candidate,
+candidate/index and Python-extractor pairings cannot be mixed. Current v4
+index paths, `.7` candidate paths, and `.11` raw inventory/ranked paths are
+printable ASCII by contract. The v4 index records the fixed Python
+grammar-projection bounds: 16,384 characters, 512 non-whitespace work units,
+2,048 AST nodes and 128 AST levels. Current execution also requires CPython
+3.11 or 3.12 with a recursion limit of at least 1,000.
 
 `candidate-set-v1` and `evidence-bundle-v1` retain their strict legacy profile
 and add a distinguishable Step 1 profile keyed by the deterministic algorithm.

@@ -7,7 +7,7 @@ import re
 from pathlib import PurePosixPath
 from typing import Any
 
-from .canonical import stable_id
+from .canonical import is_printable_ascii, stable_id
 from .errors import IntegrityError
 from .findings import validate_normalized_finding
 from .indexing import INDEX_ALGORITHM, tokenize, verify_repository_index
@@ -19,6 +19,7 @@ from .localization import (
     FINDING_GUIDED_SCORE_COMPONENTS,
     NO_SIGNAL_ABSTENTION,
     RUNTIME_IDENTITY,
+    STEP1_AST_CANDIDATE_ALGORITHM,
     V041_EVIDENCE_CANDIDATE_ALGORITHM,
     verify_raw_localization,
 )
@@ -30,8 +31,17 @@ SCORE_REASON_MATCH_LIMIT = 20
 MAX_CANDIDATES_PER_PATH = 2
 PRODUCT_ROLES = frozenset({"implementation", "wrapper", "test", "fixture", "generated", "vendor"})
 SUPPORTED_PRODUCT_CANDIDATE_ALGORITHMS = frozenset(
-    {V041_EVIDENCE_CANDIDATE_ALGORITHM, PRODUCT_CANDIDATE_ALGORITHM}
+    {
+        V041_EVIDENCE_CANDIDATE_ALGORITHM,
+        STEP1_AST_CANDIDATE_ALGORITHM,
+        PRODUCT_CANDIDATE_ALGORITHM,
+    }
 )
+_EXTRACTOR_BY_PRODUCT_CANDIDATE_ALGORITHM = {
+    V041_EVIDENCE_CANDIDATE_ALGORITHM: "python-ast-v1",
+    STEP1_AST_CANDIDATE_ALGORITHM: "python-ast-v1",
+    PRODUCT_CANDIDATE_ALGORITHM: "python-lexical-v1",
+}
 QUERY_STOP_TERMS = {
     "advisory",
     "allow",
@@ -410,7 +420,7 @@ def project_localization_candidates(
                     "name": qualified_name.rsplit(".", 1)[-1],
                     "qualified_name": qualified_name,
                     "kind": "python-symbol",
-                    "extractor": "python-ast-v1",
+                    "extractor": "python-lexical-v1",
                 }
             candidate = _candidate(
                 kind=str(raw_candidate["kind"]),
@@ -460,7 +470,13 @@ def project_localization_candidates(
     return result
 
 
-def verify_ranked_candidates(candidates: object, *, require_role: bool = False) -> None:
+def verify_ranked_candidates(
+    candidates: object,
+    *,
+    require_role: bool = False,
+    expected_symbol_extractor: str | None = None,
+    require_ascii_paths: bool = False,
+) -> None:
     """Verify a ranked candidate projection and each content identity."""
 
     if not isinstance(candidates, list) or len(candidates) > 1_000:
@@ -503,6 +519,8 @@ def verify_ranked_candidates(candidates: object, *, require_role: bool = False) 
             or ".." in parsed.parts
             or parsed.as_posix() != path
             or re.match(r"^[A-Za-z]:", path)
+            or require_ascii_paths
+            and not is_printable_ascii(path)
         ):
             raise IntegrityError("ranked candidate path is unsafe")
         region = candidate.get("region")
@@ -557,6 +575,10 @@ def verify_ranked_candidates(candidates: object, *, require_role: bool = False) 
                 or any(not isinstance(value, str) or not value for value in symbol.values())
             ):
                 raise IntegrityError("ranked candidate symbol is invalid")
+            if require_role and symbol["extractor"] != expected_symbol_extractor:
+                raise IntegrityError(
+                    "ranked candidate symbol extractor does not match its algorithm"
+                )
             identity["symbol"] = symbol
         elif "symbol" in candidate:
             raise IntegrityError("file candidate must not contain symbol metadata")
@@ -609,7 +631,19 @@ def verify_candidate_set(candidate_set: dict[str, object]) -> None:
     if not isinstance(candidates, list) or len(candidates) > candidate_set["top_k"]:
         raise IntegrityError("candidate set candidates are invalid")
     require_role = algorithm == PRODUCT_RANKING_ALGORITHM
-    verify_ranked_candidates(candidates, require_role=require_role)
+    expected_symbol_extractor = (
+        _EXTRACTOR_BY_PRODUCT_CANDIDATE_ALGORITHM.get(str(candidate_set.get("candidate_algorithm")))
+        if require_role
+        else None
+    )
+    verify_ranked_candidates(
+        candidates,
+        require_role=require_role,
+        expected_symbol_extractor=expected_symbol_extractor,
+        require_ascii_paths=(
+            require_role and candidate_set.get("candidate_algorithm") == PRODUCT_CANDIDATE_ALGORITHM
+        ),
+    )
     if require_role:
         abstention = candidate_set.get("abstention")
         if (

@@ -7,6 +7,10 @@ are not required.
 The release candidate is not authorised for public distribution. Use only the
 review bundle supplied by the maintainer.
 
+Use CPython 3.11 or 3.12 with a recursion limit of at least 1,000. Other Python
+implementations and minor versions are outside the current deterministic
+profile.
+
 ## Files supplied to the tester
 
 - `skylark_lumi_trace-0.4.1.dev0-py3-none-any.whl`;
@@ -20,7 +24,7 @@ mismatch. Core tracing is offline after that acquisition.
 ## Bash
 
 ```sh
-python3 -m venv lumi-trace-env
+python3.12 -m venv lumi-trace-env
 . lumi-trace-env/bin/activate
 python -m pip install ./skylark_lumi_trace-0.4.1.dev0-py3-none-any.whl
 
@@ -78,7 +82,8 @@ generalisation, qualification, or production readiness.
 - **SARIF produces multiple findings:** add `--run-index` and
   `--result-index` to select exactly one result.
 - **Archive rejected:** use the pinned archive unchanged. Lumi Trace rejects
-  unsafe paths, links, special members, collisions, and oversized content.
+  unsafe paths, links, special members, collisions, oversized content, and
+  non-printable-ASCII repository paths in the current deterministic profile.
 - **Docker unavailable:** omit `--plan` and `--image`. Docker is not part of
   this quickstart.
 

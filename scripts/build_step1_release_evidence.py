@@ -29,6 +29,7 @@ MAX_MEMBERS = 5_000
 MAX_MEMBER_BYTES = 16 * 1024 * 1024
 MAX_TOTAL_BYTES = 256 * 1024 * 1024
 SOURCE_REVISION = re.compile(r"[0-9a-f]{40}")
+REQUIRED_PYTHON_SPECIFIERS = frozenset({">=3.11", "<3.13"})
 
 WEIGHT_SUFFIXES = {
     ".bin",
@@ -453,6 +454,18 @@ def inspect_release_artifacts(wheel: Path, sdist: Path) -> tuple[ArtifactInspect
         raise ReleaseEvidenceError("wheel and sdist package metadata differ")
     if wheel_metadata.license_expression != "Apache-2.0":
         raise ReleaseEvidenceError("Step 1 package metadata must declare Apache-2.0")
+    python_specifiers = (
+        tuple(part.strip() for part in wheel_metadata.requires_python.split(","))
+        if wheel_metadata.requires_python is not None
+        else ()
+    )
+    if (
+        len(python_specifiers) != len(REQUIRED_PYTHON_SPECIFIERS)
+        or frozenset(python_specifiers) != REQUIRED_PYTHON_SPECIFIERS
+    ):
+        raise ReleaseEvidenceError(
+            "Step 1 package metadata must declare Requires-Python: >=3.11,<3.13"
+        )
     if wheel_metadata.runtime_requirements:
         raise ReleaseEvidenceError(
             "Step 1 package declares runtime dependencies: "
@@ -669,6 +682,7 @@ def build_release_evidence(
                 {"id": "canonical-sdist", "status": "PASS"},
                 {"id": "package-metadata-match", "status": "PASS"},
                 {"id": "apache-2.0-declaration", "status": "PASS"},
+                {"id": "supported-python-range", "status": "PASS"},
                 {"id": "zero-runtime-dependencies", "status": "PASS"},
                 {"id": "forbidden-member-boundary", "status": "PASS"},
                 {"id": "payload-path-and-secret-boundary", "status": "PASS"},

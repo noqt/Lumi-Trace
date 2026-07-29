@@ -31,9 +31,9 @@ def test_pipeline_emits_complete_package_without_reproduction(
     assert result["candidate_set"]["algorithm"] == "role-aware-sparse-v0.4.1.3"
     assert (
         result["candidate_set"]["candidate_algorithm"]
-        == "label-blind-python-role-candidates-v0.4.1.6"
+        == "label-blind-python-role-candidates-v0.4.1.7"
     )
-    assert result["bundle"]["index"]["algorithm"] == "deterministic-lexical-index-v3"
+    assert result["bundle"]["index"]["algorithm"] == "deterministic-lexical-index-v4"
     assert result["candidate_set"]["abstention"] == {
         "abstained": True,
         "reason": "NO_POSITIVE_FINDING_GUIDED_SIGNAL",
@@ -41,6 +41,14 @@ def test_pipeline_emits_complete_package_without_reproduction(
     assert result["bundle"]["ranking"]["ranking_id"] == result["candidate_set"]["ranking_id"]
     assert (
         "Step 1 implementation-location ranking considers Python files and symbols only."
+        in result["bundle"]["limitations"]
+    )
+    assert (
+        "Extracted symbols are lexical landmarks and do not assert that files compile."
+        in result["bundle"]["limitations"]
+    )
+    assert (
+        "Current Step 1 deterministic artifacts require printable-ASCII repository paths."
         in result["bundle"]["limitations"]
     )
     expected = {
@@ -82,7 +90,7 @@ def test_pipeline_is_byte_deterministic_without_reproduction(
     }
 
 
-def test_python_minor_versions_share_one_frozen_ast_profile(tmp_path: Path) -> None:
+def test_python_minor_versions_share_one_frozen_lexical_profile(tmp_path: Path) -> None:
     repository = tmp_path / "repository"
     repository.mkdir()
     (repository / "target.py").write_text(
@@ -98,12 +106,12 @@ def test_python_minor_versions_share_one_frozen_ast_profile(tmp_path: Path) -> N
         finding_path,
         {
             "schema_version": "manual-finding-v1",
-            "id": "TRACE-AST-PROFILE-001",
+            "id": "TRACE-LEXICAL-PROFILE-001",
             "title": "Alias parser accepts an unsafe value",
             "description": "parse_alias must validate the supplied alias value.",
             "severity": "high",
             "rule": {
-                "id": "TRACE-AST-PROFILE-001",
+                "id": "TRACE-LEXICAL-PROFILE-001",
                 "name": "Unsafe alias parser",
                 "cwes": ["CWE-20"],
                 "tags": ["alias", "validation"],
@@ -119,7 +127,7 @@ def test_python_minor_versions_share_one_frozen_ast_profile(tmp_path: Path) -> N
                 }
             ],
             "keywords": ["alias", "parse", "validation"],
-            "fingerprints": {"fixture/v1": "trace-ast-profile-001"},
+            "fingerprints": {"fixture/v1": "trace-lexical-profile-001"},
         },
     )
     output = tmp_path / "evidence"
@@ -133,20 +141,20 @@ def test_python_minor_versions_share_one_frozen_ast_profile(tmp_path: Path) -> N
     )
     index = load_json(output / "repository-index.json")
 
-    assert index["algorithm"] == "deterministic-lexical-index-v3"
+    assert index["algorithm"] == "deterministic-lexical-index-v4"
     assert index["symbol_count"] == 1
     future = next(record for record in index["files"] if record["path"] == "future.py")
     assert future["symbols"] == []
     assert future["symbol_extraction_issue"] == "syntax_error"
     assert result["candidate_set"]["candidate_count_considered"] == 3
     assert index["index_id"] == (
-        "index:9ca1769794ab0d0722f8f54e0990448d64b7b883f8e8a06bcf9ab485f6545f23"
+        "index:1037c944ad806f52c26b66a6decc086c07bbe57fcab6f956b617bc69fa5732de"
     )
     assert result["candidate_set"]["ranking_id"] == (
-        "ranking:880d1a7385e7331df3f1609ac2feadaebc3df66ca744136303ffaf0574778d2c"
+        "ranking:adbbc8c04ce51ea08909eeed7a99f480729ae380ebd0168308d165b72da3c5c8"
     )
     assert result["candidate_set"]["candidate_set_id"] == (
-        "candidate-set:ea03d69f365642d9520cf8f6ac75c94fb3c7986948042bb462a3cb6fa378fb8e"
+        "candidate-set:5775d548cfe6b0d4a6d3f11a0c23f4d280e07eff427f8ec143e00dddc231558f"
     )
 
 

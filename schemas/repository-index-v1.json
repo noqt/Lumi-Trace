@@ -25,7 +25,8 @@
       "enum": [
         "deterministic-lexical-index-v1",
         "deterministic-lexical-index-v2",
-        "deterministic-lexical-index-v3"
+        "deterministic-lexical-index-v3",
+        "deterministic-lexical-index-v4"
       ]
     },
     "repository": {
@@ -74,6 +75,220 @@
       "$ref": "#/$defs/indexId"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "algorithm": {
+            "const": "deterministic-lexical-index-v4"
+          }
+        },
+        "required": [
+          "algorithm"
+        ]
+      },
+      "then": {
+        "properties": {
+          "limits": {
+            "required": [
+              "max_python_source_lines",
+              "max_python_bracket_depth",
+              "max_python_fstring_depth",
+              "max_python_projection_chars",
+              "max_python_projection_work",
+              "max_python_projection_ast_nodes",
+              "max_python_projection_ast_depth",
+              "max_index_json_items"
+            ],
+            "not": {
+              "required": [
+                "max_python_ast_nodes"
+              ]
+            }
+          },
+          "files": {
+            "items": {
+              "properties": {
+                "path": {
+                  "pattern": "^(?![\\s\\S]*[^\\u0020-\\u007e])[\\u0020-\\u007e]+$"
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "language": {
+                        "const": "python"
+                      }
+                    },
+                    "required": [
+                      "language"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "symbols": {
+                        "items": {
+                          "properties": {
+                            "extractor": {
+                              "const": "python-lexical-v1"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "else": {
+                    "properties": {
+                      "symbols": {
+                        "items": {
+                          "properties": {
+                            "extractor": {
+                              "const": "lexical-v1"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "required": [
+                      "symbol_extraction_issue"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "symbols": {
+                        "maxItems": 0
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "limits": {
+            "required": [
+              "max_python_ast_nodes"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "max_python_source_lines"
+                  ]
+                },
+                {
+                  "required": [
+                    "max_python_bracket_depth"
+                  ]
+                },
+                {
+                  "required": [
+                    "max_python_fstring_depth"
+                  ]
+                },
+                {
+                  "required": [
+                    "max_python_projection_chars"
+                  ]
+                },
+                {
+                  "required": [
+                    "max_python_projection_work"
+                  ]
+                },
+                {
+                  "required": [
+                    "max_python_projection_ast_nodes"
+                  ]
+                },
+                {
+                  "required": [
+                    "max_python_projection_ast_depth"
+                  ]
+                }
+              ]
+            }
+          },
+          "files": {
+            "items": {
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "language": {
+                        "const": "python"
+                      }
+                    },
+                    "required": [
+                      "language"
+                    ]
+                  },
+                  "then": {
+                    "properties": {
+                      "symbols": {
+                        "items": {
+                          "properties": {
+                            "extractor": {
+                              "const": "python-ast-v1"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "else": {
+                    "properties": {
+                      "symbols": {
+                        "items": {
+                          "properties": {
+                            "extractor": {
+                              "const": "lexical-v1"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "algorithm": {
+            "enum": [
+              "deterministic-lexical-index-v2",
+              "deterministic-lexical-index-v3"
+            ]
+          }
+        },
+        "required": [
+          "algorithm"
+        ]
+      },
+      "then": {
+        "properties": {
+          "limits": {
+            "required": [
+              "max_index_json_items"
+            ]
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "sha256": {
       "type": "string",
@@ -171,7 +386,6 @@
         "max_symbol_tokens",
         "max_symbol_name_chars",
         "max_qualified_symbol_chars",
-        "max_python_ast_nodes",
         "max_index_json_bytes"
       ],
       "properties": {
@@ -206,6 +420,27 @@
         },
         "max_python_ast_nodes": {
           "const": 200000
+        },
+        "max_python_source_lines": {
+          "const": 200000
+        },
+        "max_python_bracket_depth": {
+          "const": 512
+        },
+        "max_python_fstring_depth": {
+          "const": 32
+        },
+        "max_python_projection_chars": {
+          "const": 16384
+        },
+        "max_python_projection_work": {
+          "const": 512
+        },
+        "max_python_projection_ast_nodes": {
+          "const": 2048
+        },
+        "max_python_projection_ast_depth": {
+          "const": 128
         },
         "max_index_json_bytes": {
           "const": 62914560
@@ -290,6 +525,7 @@
         "extractor": {
           "enum": [
             "python-ast-v1",
+            "python-lexical-v1",
             "lexical-v1"
           ]
         }

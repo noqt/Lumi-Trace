@@ -123,7 +123,8 @@
           "enum": [
             "deterministic-lexical-index-v1",
             "deterministic-lexical-index-v2",
-            "deterministic-lexical-index-v3"
+            "deterministic-lexical-index-v3",
+            "deterministic-lexical-index-v4"
           ]
         },
         "file_count": {
@@ -228,7 +229,8 @@
         "candidate_algorithm": {
           "enum": [
             "label-blind-python-role-candidates-v0.4.1.5",
-            "label-blind-python-role-candidates-v0.4.1.6"
+            "label-blind-python-role-candidates-v0.4.1.6",
+            "label-blind-python-role-candidates-v0.4.1.7"
           ]
         },
         "ranking_id": {
@@ -443,6 +445,52 @@
           "ranking": {
             "properties": {
               "candidate_algorithm": {
+                "const": "label-blind-python-role-candidates-v0.4.1.7"
+              }
+            },
+            "required": [
+              "candidate_algorithm"
+            ]
+          }
+        },
+        "required": [
+          "ranking"
+        ]
+      },
+      "then": {
+        "properties": {
+          "index": {
+            "properties": {
+              "algorithm": {
+                "const": "deterministic-lexical-index-v4"
+              }
+            }
+          },
+          "candidates": {
+            "items": {
+              "properties": {
+                "path": {
+                  "pattern": "^(?![\\s\\S]*[^\\u0020-\\u007e])[\\u0020-\\u007e]+$"
+                },
+                "symbol": {
+                  "properties": {
+                    "extractor": {
+                      "const": "python-lexical-v1"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "ranking": {
+            "properties": {
+              "candidate_algorithm": {
                 "const": "label-blind-python-role-candidates-v0.4.1.6"
               }
             },
@@ -461,6 +509,19 @@
             "properties": {
               "algorithm": {
                 "const": "deterministic-lexical-index-v3"
+              }
+            }
+          },
+          "candidates": {
+            "items": {
+              "properties": {
+                "symbol": {
+                  "properties": {
+                    "extractor": {
+                      "const": "python-ast-v1"
+                    }
+                  }
+                }
               }
             }
           }
@@ -491,6 +552,19 @@
             "properties": {
               "algorithm": {
                 "const": "deterministic-lexical-index-v2"
+              }
+            }
+          },
+          "candidates": {
+            "items": {
+              "properties": {
+                "symbol": {
+                  "properties": {
+                    "extractor": {
+                      "const": "python-ast-v1"
+                    }
+                  }
+                }
               }
             }
           }

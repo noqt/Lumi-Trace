@@ -29,7 +29,8 @@
     "candidate_algorithm": {
       "enum": [
         "label-blind-python-role-candidates-v0.4.1.5",
-        "label-blind-python-role-candidates-v0.4.1.6"
+        "label-blind-python-role-candidates-v0.4.1.6",
+        "label-blind-python-role-candidates-v0.4.1.7"
       ]
     },
     "ranking_id": {
@@ -137,6 +138,70 @@
               ]
             }
           ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "candidate_algorithm": {
+            "const": "label-blind-python-role-candidates-v0.4.1.7"
+          }
+        },
+        "required": [
+          "candidate_algorithm"
+        ]
+      },
+      "then": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "properties": {
+                "path": {
+                  "pattern": "^(?![\\s\\S]*[^\\u0020-\\u007e])[\\u0020-\\u007e]+$"
+                },
+                "symbol": {
+                  "properties": {
+                    "extractor": {
+                      "const": "python-lexical-v1"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "candidate_algorithm": {
+            "enum": [
+              "label-blind-python-role-candidates-v0.4.1.5",
+              "label-blind-python-role-candidates-v0.4.1.6"
+            ]
+          }
+        },
+        "required": [
+          "candidate_algorithm"
+        ]
+      },
+      "then": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "properties": {
+                "symbol": {
+                  "properties": {
+                    "extractor": {
+                      "const": "python-ast-v1"
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -253,6 +318,7 @@
         "extractor": {
           "enum": [
             "python-ast-v1",
+            "python-lexical-v1",
             "lexical-v1"
           ]
         }

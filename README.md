@@ -22,10 +22,16 @@ The primary `trace` path uses the frozen deterministic
 `role-aware-sparse-v0.4.1.3` ranker. The private learned-route work remains
 non-default, unqualified development history; no checkpoint is distributed or
 used by the primary workflow. Step 1 implementation-location ranking is
-Python-only and freezes AST extraction to Python 3.11 grammar for identical
-ranking behavior on supported Python 3.11 and 3.12 runtimes. Files using later
-syntax remain file candidates without partial AST symbols. No broader
-language-support claim is made.
+Python-only. Its current `.11` runtime uses a fixed lexical front end plus
+Python 3.11 grammar-validation projections capped at 16,384 characters, 512
+non-whitespace work units, 2,048 AST nodes and 128 AST levels; the host parser
+never supplies symbols or ranges. Exact index and candidate bytes must match on
+the supported CPython 3.11 and 3.12 runtimes with a recursion limit of at least
+1,000.
+Unsupported or ambiguous Python syntax remains a file candidate without
+partial symbols. The current deterministic profile accepts printable-ASCII
+repository paths only. Extracted symbols are lexical landmarks, not proof that
+a file imports or compiles. No broader language-support claim is made.
 
 Read the [product contract](docs/STEP_1_PRODUCT_CONTRACT.md),
 [five-minute quickstart](docs/STEP_1_QUICKSTART.md), and
@@ -47,7 +53,9 @@ instructions found in SARIF.
 
 ## Requirements
 
-- Python 3.11 or newer.
+- CPython 3.11 or 3.12.
+- The current Step 1 deterministic profile requires printable-ASCII
+  repository paths.
 - No third-party Python package is required at runtime.
 - Docker is optional and is used only for reproduction.
 - Reproduction requires a reachable Docker-compatible daemon configured for

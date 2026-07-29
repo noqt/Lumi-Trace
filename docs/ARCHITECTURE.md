@@ -72,23 +72,42 @@ anchor in V0.1.
 ### Deterministic Index
 
 `indexing.py` creates `repository-index-v1` using
-`deterministic-lexical-index-v3`. It freezes Python AST extraction to the
-Python 3.11 grammar across supported interpreters. Historical
-`deterministic-lexical-index-v2` output remains verifiable; reconstruction is
-fail-closed outside its pinned CPython 3.12 environment.
+`deterministic-lexical-index-v4`. Python declaration extraction implements a
+fixed lexical front end with ASCII declaration identifiers and explicit Python
+3.11 f-string exclusions. It passes only declaration, decorator and f-string
+expression projections to the CPython grammar validator. Each projection is
+capped at 16,384 characters, 512 non-whitespace work units, 2,048 AST nodes and
+128 AST levels. AST nodes never supply symbols, names or ranges. Current
+execution requires CPython 3.11 or 3.12 with a recursion limit of at least
+1,000.
+Historical `deterministic-lexical-index-v2` output remains verifiable;
+reconstruction is fail-closed outside its pinned CPython 3.12 environment.
+The failed `deterministic-lexical-index-v3` AST remediation is also
+verification-only.
 
 - Files, hashes, sizes, language labels, line counts, token counts, exclusions,
   and extracted symbols use stable ordering.
-- Python symbols use the standard-library AST with a fixed Python 3.11 grammar.
-  Files using later syntax remain indexed as files without partial AST symbols.
+- Python symbols use `python-lexical-v1`. Files with unsupported or ambiguous
+  declaration, string, f-string, bracket, continuation or indentation
+  structure, over-limit projections, and context-sensitive `await`/`yield`
+  projections remain indexed as files without partial symbols. The extractor
+  is not a whole-file Python compiler: a lexical declaration may still be
+  recorded when an unrelated statement is semantically invalid.
 - C, C++, Go, Java, JavaScript, TypeScript, Rust, Ruby, and PHP use bounded
-  lexical extractors.
+  lexical extractors with fixed ASCII regular-expression semantics.
+- Successful current-profile runs require printable-ASCII repository paths.
+  This keeps path normalization and classification independent of the Unicode
+  database bundled with the host Python runtime.
 - Oversized, binary, and unsupported-encoding files remain in the manifest but
   are not content-indexed.
-- Per-file text, token, symbol, and Python-AST traversal limits bound work.
-  Global file-record, token-entry, symbol, JSON-byte, and symbol-token budgets
-  keep the emitted index below its JSON loader limits; every configured limit
-  and any global budget exhaustion are recorded in the index.
+- Per-file text, token, symbol, Python-source-line, bracket-depth and f-string
+  nesting limits bound lexical work. Parser projections are separately capped
+  at 16,384 characters, 512 non-whitespace work units, 2,048 AST nodes and 128
+  AST levels. Global
+  file-record, token-entry, symbol,
+  JSON-byte, JSON-item and symbol-token budgets keep the emitted index below
+  its loader limits; every configured limit and any global budget exhaustion
+  are recorded in the index.
 - Global token and symbol budgets are allocated in a deterministic role-aware
   order: implementation source, then test/example source, other text, and
   finally documentation/localisation observations. Records return to canonical
@@ -185,8 +204,8 @@ customer separately approves disclosure.
 
 - Non-Python symbol extraction is lexical and incomplete.
 - V0.1 does not discover vulnerabilities or generate repairs.
-- No learned ranker exists; deterministic recall must be established before
-  `TRACE-001` can be reconsidered.
+- No learned ranker is part of the Step 1 product. Private development history
+  remains non-default and unqualified.
 - The CLI's built-in `validate` command checks runtime invariants and canonical
   identities; full Draft 2020-12 schema validation remains a release/CI check.
 - Container isolation depends on the local kernel and Docker-compatible daemon;

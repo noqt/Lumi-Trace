@@ -23,6 +23,7 @@ from typing import Any
 from .canonical import (
     canonical_json_bytes,
     canonical_sha256,
+    is_printable_ascii,
     sha256_bytes,
     sha256_file,
     stable_id,
@@ -36,6 +37,11 @@ from .learned_ranker import (
     rank_with_model,
     verify_model_artifact,
 )
+from .python_symbols import (
+    scan_python_declarations,
+    split_python_lines,
+    supported_python_runtime,
+)
 from .repository import RepositoryLimits, RepositoryWorkspace
 
 REQUEST_SCHEMA = "localization-inference-request-v0.4.1"
@@ -44,27 +50,34 @@ ACCESS_POLICY_SCHEMA = "localization-builder-access-policy-v0.4.1"
 QUARANTINE_POLICY = "target-agnostic-source-quarantine-v0.4.1.1"
 V041_EVIDENCE_CANDIDATE_ALGORITHM = "label-blind-python-role-candidates-v0.4.1.5"
 STEP1_DEFECTIVE_CANDIDATE_ALGORITHM = V041_EVIDENCE_CANDIDATE_ALGORITHM
-STEP1_CANDIDATE_ALGORITHM = "label-blind-python-role-candidates-v0.4.1.6"
+STEP1_AST_CANDIDATE_ALGORITHM = "label-blind-python-role-candidates-v0.4.1.6"
+STEP1_CANDIDATE_ALGORITHM = "label-blind-python-role-candidates-v0.4.1.7"
 CANDIDATE_ALGORITHM = STEP1_CANDIDATE_ALGORITHM
 V041_EVIDENCE_DEFAULT_RANKER = "role-aware-sparse-v0.4.1.1"
 STEP1_DEFAULT_RANKER = BASE_RANKER
 DEFAULT_RANKER = STEP1_DEFAULT_RANKER
 V041_EVIDENCE_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.8"
 STEP1_DEFECTIVE_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.9"
-STEP1_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.10"
+STEP1_AST_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.10"
+STEP1_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.11"
 RUNTIME_IDENTITY = STEP1_RUNTIME_IDENTITY
-STEP1_RUNTIME_IDENTITIES = frozenset({STEP1_DEFECTIVE_RUNTIME_IDENTITY, STEP1_RUNTIME_IDENTITY})
+SUPERSEDED_STEP1_RUNTIME_IDENTITIES = frozenset(
+    {STEP1_DEFECTIVE_RUNTIME_IDENTITY, STEP1_AST_RUNTIME_IDENTITY}
+)
+STEP1_RUNTIME_IDENTITIES = frozenset({*SUPERSEDED_STEP1_RUNTIME_IDENTITIES, STEP1_RUNTIME_IDENTITY})
 SUPPORTED_RUNTIME_IDENTITIES = frozenset(
     {V041_EVIDENCE_RUNTIME_IDENTITY, *STEP1_RUNTIME_IDENTITIES}
 )
 RUNTIME_CANDIDATE_ALGORITHMS = {
     V041_EVIDENCE_RUNTIME_IDENTITY: V041_EVIDENCE_CANDIDATE_ALGORITHM,
     STEP1_DEFECTIVE_RUNTIME_IDENTITY: STEP1_DEFECTIVE_CANDIDATE_ALGORITHM,
+    STEP1_AST_RUNTIME_IDENTITY: STEP1_AST_CANDIDATE_ALGORITHM,
     STEP1_RUNTIME_IDENTITY: STEP1_CANDIDATE_ALGORITHM,
 }
 PYTHON_AST_FEATURE_VERSION = (3, 11)
 V041_EVIDENCE_PYTHON_VERSION = (3, 12)
 STEP1_MAXIMUM_CANDIDATES = 100_000
+STEP1_MAXIMUM_PYTHON_SOURCE_LINES = 200_000
 NO_SIGNAL_ABSTENTION = "NO_POSITIVE_FINDING_GUIDED_SIGNAL"
 CANDIDATE_TRUNCATION_ABSTENTION = "CANDIDATE_GENERATION_TRUNCATED"
 
@@ -83,6 +96,7 @@ FINDING_GUIDED_SCORE_COMPONENTS = frozenset(
 
 _TOKEN = re.compile(r"[A-Za-z][A-Za-z0-9]{1,63}")
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,200}$")
+_CANDIDATE_ID = re.compile(r"^localization-candidate:[0-9a-f]{64}$")
 _FORBIDDEN_FIELD_FRAGMENTS = {
     "accepted_target",
     "candidate_target",
@@ -479,8 +493,12 @@ def construct_inference_request(
 ) -> dict[str, Any]:
     """Create the only object accepted by the inference builder."""
 
-    if runtime_identity == STEP1_DEFECTIVE_RUNTIME_IDENTITY:
+    if runtime_identity in SUPERSEDED_STEP1_RUNTIME_IDENTITIES:
         raise InputError("superseded Step 1 runtime is verification-only")
+    if runtime_identity == STEP1_RUNTIME_IDENTITY and not supported_python_runtime():
+        raise InputError(
+            "current Step 1 runtime requires CPython 3.11 or 3.12 with the governed recursion limit"
+        )
     model_binding = None
     if model_artifact is not None:
         verified_model = verify_model_artifact(model_artifact)
@@ -701,7 +719,7 @@ def _quarantine_reason(path: str, data: bytes) -> str | None:
     return None
 
 
-def _symbols(
+def _symbols_ast(
     source: str,
     *,
     maximum_symbols: int | None = None,
@@ -717,6 +735,8 @@ def _symbols(
             )
     except (SyntaxError, SyntaxWarning, ValueError, RecursionError):
         return [], False
+    # Historical reconstruction retains its original host-parser line
+    # projection. The current product scanner below uses fixed newline rules.
     lines = source.splitlines()
     result: list[dict[str, Any]] = []
     stack: list[tuple[ast.AST, tuple[str, ...]]] = [(tree, ())]
@@ -748,6 +768,39 @@ def _symbols(
         children = list(ast.iter_child_nodes(node))
         stack.extend((child, qualified) for child in reversed(children))
     return result, False
+
+
+def _symbols(
+    source: str,
+    *,
+    maximum_symbols: int | None = None,
+) -> tuple[list[dict[str, Any]], bool]:
+    declarations, issue, limited = scan_python_declarations(
+        source,
+        maximum_symbols=STEP1_MAXIMUM_CANDIDATES if maximum_symbols is None else maximum_symbols,
+        maximum_lines=STEP1_MAXIMUM_PYTHON_SOURCE_LINES,
+        maximum_name_chars=256,
+        maximum_qualified_name_chars=1_024,
+    )
+    if issue is not None:
+        return [], False
+    lines = split_python_lines(source)
+    return (
+        [
+            {
+                "name": declaration["name"],
+                "qualified_name": declaration["qualified_name"],
+                "kind": declaration["declaration_kind"],
+                "start_line": declaration["start_line"],
+                "end_line": declaration["end_line"],
+                "source": "\n".join(
+                    lines[max(0, int(declaration["start_line"]) - 1) : int(declaration["end_line"])]
+                )[:131_072],
+            }
+            for declaration in declarations
+        ],
+        limited,
+    )
 
 
 def _query(finding: Mapping[str, Any]) -> dict[str, Any]:
@@ -795,6 +848,7 @@ def _candidate(
     source: str,
     symbol: Mapping[str, Any] | None,
     query: Mapping[str, Any],
+    fixed_newlines: bool = True,
 ) -> dict[str, Any]:
     role = _path_role(path)
     symbol_name = str(symbol["qualified_name"]) if symbol else ""
@@ -807,7 +861,11 @@ def _candidate(
     content_tokens = matched[:512]
     kind = "symbol" if symbol else "file"
     start = int(symbol["start_line"]) if symbol else 1
-    end = int(symbol["end_line"]) if symbol else max(1, len(source.splitlines()))
+    end = (
+        int(symbol["end_line"])
+        if symbol
+        else max(1, len(split_python_lines(source) if fixed_newlines else source.splitlines()))
+    )
     identity = {
         "kind": kind,
         "path": path,
@@ -847,7 +905,8 @@ def _enumerate_candidates(
     maximum_file_bytes: int,
     maximum_candidates: int,
     strict_candidate_bound: bool = False,
-    python_ast_feature_version: tuple[int, int] | None = PYTHON_AST_FEATURE_VERSION,
+    use_historical_ast: bool = False,
+    require_ascii_paths: bool = True,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     query = _query(finding)
     candidates: list[dict[str, Any]] = []
@@ -862,6 +921,11 @@ def _enumerate_candidates(
     )
     for path in entries:
         relative = path.relative_to(root).as_posix()
+        if require_ascii_paths and not is_printable_ascii(relative):
+            raise InputError(
+                "current Step 1 runtime requires printable ASCII repository paths "
+                "for cross-runtime determinism"
+            )
         file_count += 1
         if file_count > maximum_files:
             raise InputError("repository exceeds the localization file bound")
@@ -881,15 +945,29 @@ def _enumerate_candidates(
         indexed_paths.append(relative)
         if strict_candidate_bound and candidate_universe_truncated:
             continue
-        candidates.append(_candidate(path=relative, source=source, symbol=None, query=query))
+        candidates.append(
+            _candidate(
+                path=relative,
+                source=source,
+                symbol=None,
+                query=query,
+                fixed_newlines=not use_historical_ast,
+            )
+        )
         symbol_limit = (
             max(0, maximum_candidates + 1 - len(candidates)) if strict_candidate_bound else None
         )
-        symbols, symbol_limit_reached = _symbols(
-            source,
-            maximum_symbols=symbol_limit,
-            feature_version=python_ast_feature_version,
-        )
+        if use_historical_ast:
+            symbols, symbol_limit_reached = _symbols_ast(
+                source,
+                maximum_symbols=symbol_limit,
+                feature_version=None,
+            )
+        else:
+            symbols, symbol_limit_reached = _symbols(
+                source,
+                maximum_symbols=symbol_limit,
+            )
         for symbol in symbols:
             candidates.append(
                 _candidate(
@@ -897,6 +975,7 @@ def _enumerate_candidates(
                     source=str(symbol["source"]),
                     symbol=symbol,
                     query=query,
+                    fixed_newlines=not use_historical_ast,
                 )
             )
         if strict_candidate_bound and (
@@ -1116,12 +1195,16 @@ def build_raw_localization(
 
     validated = validate_inference_request(request)
     runtime_identity = str(validated["configuration"]["runtime_identity"])
-    if runtime_identity == STEP1_DEFECTIVE_RUNTIME_IDENTITY:
+    if runtime_identity in SUPERSEDED_STEP1_RUNTIME_IDENTITIES:
         raise InputError("superseded Step 1 runtime is verification-only")
     if runtime_identity == V041_EVIDENCE_RUNTIME_IDENTITY and (
         sys.implementation.name != "cpython" or sys.version_info[:2] != V041_EVIDENCE_PYTHON_VERSION
     ):
         raise InputError("historical V0.4.1 runtime reconstruction requires CPython 3.12")
+    if runtime_identity == STEP1_RUNTIME_IDENTITY and not supported_python_runtime():
+        raise InputError(
+            "current Step 1 runtime requires CPython 3.11 or 3.12 with the governed recursion limit"
+        )
     model_binding = validated["configuration"]["model"]
     verified_model = None
     if validated["configuration"]["ranker"] == LEARNED_RANKER:
@@ -1172,9 +1255,8 @@ def build_raw_localization(
             maximum_file_bytes=int(validated["configuration"]["maximum_file_bytes"]),
             maximum_candidates=int(validated["configuration"]["maximum_candidates"]),
             strict_candidate_bound=runtime_identity in STEP1_RUNTIME_IDENTITIES,
-            python_ast_feature_version=(
-                PYTHON_AST_FEATURE_VERSION if runtime_identity == STEP1_RUNTIME_IDENTITY else None
-            ),
+            use_historical_ast=runtime_identity == V041_EVIDENCE_RUNTIME_IDENTITY,
+            require_ascii_paths=runtime_identity != V041_EVIDENCE_RUNTIME_IDENTITY,
         )
         ranked = _rank(
             candidates,
@@ -1249,6 +1331,68 @@ def build_raw_localization(
     payload["raw_output_seal"] = stable_id("localization-raw-output", payload)
     verify_raw_localization(payload)
     return payload
+
+
+def _verified_raw_candidate_id(
+    candidate: Mapping[str, Any],
+    *,
+    require_printable_ascii: bool,
+) -> str:
+    candidate_id = candidate.get("candidate_id")
+    kind = candidate.get("kind")
+    role = candidate.get("role")
+    if (
+        not isinstance(candidate_id, str)
+        or _CANDIDATE_ID.fullmatch(candidate_id) is None
+        or kind not in {"file", "symbol"}
+        or role not in {"implementation", "wrapper", "test", "fixture", "generated", "vendor"}
+    ):
+        raise IntegrityError("raw localization candidate identity fields are invalid")
+    path = candidate.get("path")
+    pure = PurePosixPath(path) if isinstance(path, str) else None
+    if (
+        pure is None
+        or pure.is_absolute()
+        or ".." in pure.parts
+        or "\\" in path
+        or "\x00" in path
+        or not path
+        or pure.as_posix() != path
+        or re.match(r"^[A-Za-z]:", path)
+        or require_printable_ascii
+        and not is_printable_ascii(path)
+    ):
+        raise IntegrityError("raw localization candidate path is unsafe")
+    symbol = candidate.get("symbol")
+    if (kind == "symbol" and (not isinstance(symbol, str) or not symbol)) or (
+        kind == "file" and symbol is not None
+    ):
+        raise IntegrityError("raw localization candidate symbol contract is invalid")
+    region = candidate.get("region")
+    if (
+        not isinstance(region, dict)
+        or set(region) != {"start_line", "end_line"}
+        or any(
+            not isinstance(region.get(key), int) or isinstance(region[key], bool) or region[key] < 1
+            for key in ("start_line", "end_line")
+        )
+        or region["end_line"] < region["start_line"]
+    ):
+        raise IntegrityError("raw localization candidate region is invalid")
+    expected_id = stable_id(
+        "localization-candidate",
+        {
+            "kind": kind,
+            "path": path,
+            "symbol": symbol,
+            "start_line": region["start_line"],
+            "end_line": region["end_line"],
+            "role": role,
+        },
+    )
+    if candidate_id != expected_id:
+        raise IntegrityError("raw localization candidate identity mismatch")
+    return candidate_id
 
 
 def verify_raw_localization(value: Mapping[str, Any]) -> dict[str, Any]:
@@ -1331,33 +1475,22 @@ def verify_raw_localization(value: Mapping[str, Any]) -> dict[str, Any]:
             raise IntegrityError("historical localization abstention does not match its score")
     inventory_by_id: dict[str, Mapping[str, Any]] = {}
     for candidate in value["candidate_inventory"]:
-        if (
-            not isinstance(candidate, dict)
-            or set(candidate)
-            != {
-                "candidate_id",
-                "kind",
-                "path",
-                "symbol",
-                "region",
-                "role",
-            }
-            or candidate["candidate_id"] in inventory_by_id
-            or candidate["kind"] not in {"file", "symbol"}
-            or candidate["role"]
-            not in {"implementation", "wrapper", "test", "fixture", "generated", "vendor"}
-        ):
+        if not isinstance(candidate, dict) or set(candidate) != {
+            "candidate_id",
+            "kind",
+            "path",
+            "symbol",
+            "region",
+            "role",
+        }:
             raise IntegrityError("raw localization inventory candidate is invalid")
-        path = candidate["path"]
-        pure = PurePosixPath(path) if isinstance(path, str) else None
-        if pure is None or pure.is_absolute() or ".." in pure.parts or "\\" in path or not path:
-            raise IntegrityError("raw localization inventory path is unsafe")
-        symbol = candidate["symbol"]
-        if (candidate["kind"] == "symbol") is not isinstance(symbol, str):
-            raise IntegrityError("raw localization inventory symbol contract is invalid")
-        if isinstance(symbol, str) and not symbol:
-            raise IntegrityError("raw localization inventory symbol is empty")
-        inventory_by_id[candidate["candidate_id"]] = candidate
+        candidate_id = _verified_raw_candidate_id(
+            candidate,
+            require_printable_ascii=value["runtime_identity"] == STEP1_RUNTIME_IDENTITY,
+        )
+        if candidate_id in inventory_by_id:
+            raise IntegrityError("raw localization inventory candidate is duplicated")
+        inventory_by_id[candidate_id] = candidate
     if generation["candidate_count"] != len(inventory_by_id):
         raise IntegrityError("raw localization inventory count mismatch")
     seen: set[str] = set()
@@ -1377,24 +1510,18 @@ def verify_raw_localization(value: Mapping[str, Any]) -> dict[str, Any]:
                 "rank",
             }
             or candidate["rank"] != rank
-            or candidate["candidate_id"] in seen
-            or candidate["kind"] not in {"file", "symbol"}
-            or candidate["role"]
-            not in {"implementation", "wrapper", "test", "fixture", "generated", "vendor"}
             or not isinstance(candidate["integer_score"], int)
+            or isinstance(candidate["integer_score"], bool)
         ):
             raise IntegrityError("raw localization candidate is invalid")
-        seen.add(candidate["candidate_id"])
-        path = candidate["path"]
-        pure = PurePosixPath(path) if isinstance(path, str) else None
-        if pure is None or pure.is_absolute() or ".." in pure.parts or "\\" in path or not path:
-            raise IntegrityError("raw localization candidate path is unsafe")
-        symbol = candidate["symbol"]
-        if (candidate["kind"] == "symbol") is not isinstance(symbol, str):
-            raise IntegrityError("raw localization candidate symbol contract is invalid")
-        if isinstance(symbol, str) and not symbol:
-            raise IntegrityError("raw localization candidate symbol is empty")
-        inventory_candidate = inventory_by_id.get(candidate["candidate_id"])
+        candidate_id = _verified_raw_candidate_id(
+            candidate,
+            require_printable_ascii=value["runtime_identity"] == STEP1_RUNTIME_IDENTITY,
+        )
+        if candidate_id in seen:
+            raise IntegrityError("raw localization ranked candidate is duplicated")
+        seen.add(candidate_id)
+        inventory_candidate = inventory_by_id.get(candidate_id)
         if inventory_candidate is None or any(
             candidate[key] != inventory_candidate[key]
             for key in ("kind", "path", "symbol", "region", "role")

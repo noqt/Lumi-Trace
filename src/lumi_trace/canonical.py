@@ -15,6 +15,12 @@ from pathlib import Path
 from typing import Any
 
 
+def is_printable_ascii(value: str) -> bool:
+    """Return whether every character is in the portable printable-ASCII range."""
+
+    return bool(value) and all("\x20" <= character <= "\x7e" for character in value)
+
+
 def canonical_json_bytes(value: Any) -> bytes:
     """Return the stable byte representation used by every Lumi Trace ID."""
 

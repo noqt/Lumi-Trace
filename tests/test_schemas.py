@@ -11,7 +11,7 @@ import yaml
 from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 
-from lumi_trace.canonical import load_json, sha256_file, stable_id
+from lumi_trace.canonical import dump_json, load_json, sha256_file, stable_id
 from lumi_trace.findings import import_manual
 from lumi_trace.indexing import build_repository_index
 from lumi_trace.pipeline import trace_repository
@@ -87,11 +87,128 @@ def test_contract_schemas_validate_emitted_documents(
     }
     for name, document in emitted.items():
         Draft202012Validator(schemas[name], registry=registry).validate(document)
+    mismatched_non_python = deepcopy(index)
+    non_python_symbol = next(
+        symbol
+        for file_record in mismatched_non_python["files"]
+        if file_record["language"] != "python"
+        for symbol in file_record["symbols"]
+    )
+    non_python_symbol["extractor"] = "python-lexical-v1"
+    assert list(
+        Draft202012Validator(
+            schemas["repository-index-v1.json"],
+            registry=registry,
+        ).iter_errors(mismatched_non_python)
+    )
+
+
+def test_repository_index_schema_preserves_the_sealed_v01_profile(project_root: Path) -> None:
+    schemas, registry = _schemas(project_root)
+    historical = load_json(
+        project_root / "evidence" / "v0.1.0" / "evidence-package" / "repository-index.json"
+    )
+
+    errors = list(
+        Draft202012Validator(
+            schemas["repository-index-v1.json"],
+            registry=registry,
+        ).iter_errors(historical)
+    )
+
+    assert not errors
+
+
+def test_product_schemas_bind_the_fixed_python_extractor_to_the_current_profile(
+    project_root: Path,
+    tmp_path: Path,
+) -> None:
+    schemas, registry = _schemas(project_root)
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    (repository / "target.py").write_text(
+        "def validate_input(value):\n    return value\n",
+        encoding="utf-8",
+    )
+    finding_path = tmp_path / "finding.json"
+    finding = load_json(project_root / "tests" / "data" / "manual-finding.json")
+    finding["title"] = "Input validation bypass"
+    finding["description"] = "validate_input accepts an unsafe input value."
+    finding["rule"]["name"] = "Input validation bypass"
+    finding["locations"] = [
+        {
+            "path": "target.py",
+            "symbol": "validate_input",
+            "start_line": 1,
+            "start_column": 1,
+            "end_line": 2,
+            "end_column": 16,
+        }
+    ]
+    finding["keywords"] = ["input", "validate", "validation"]
+    dump_json(finding_path, finding)
+    output = tmp_path / "evidence"
+    trace_repository(
+        finding_path=finding_path,
+        finding_format="manual",
+        repository_source=repository,
+        output_directory=output,
+        implementation_revision="fixture-revision",
+    )
+
+    index = load_json(output / "repository-index.json")
+    candidates = load_json(output / "candidates.json")
+    bundle = load_json(output / "evidence-bundle.json")
+    index_validator = Draft202012Validator(
+        schemas["repository-index-v1.json"],
+        registry=registry,
+    )
+    candidate_validator = Draft202012Validator(
+        schemas["candidate-set-v1.json"],
+        registry=registry,
+    )
+    bundle_validator = Draft202012Validator(
+        schemas["evidence-bundle-v1.json"],
+        registry=registry,
+    )
+    index_validator.validate(index)
+    candidate_validator.validate(candidates)
+    bundle_validator.validate(bundle)
+
+    mismatched_index = deepcopy(index)
+    mismatched_index["files"][0]["symbols"][0]["extractor"] = "python-ast-v1"
+    assert list(index_validator.iter_errors(mismatched_index))
+    partial_index = deepcopy(index)
+    partial_index["files"][0]["symbol_extraction_issue"] = "syntax_error"
+    assert list(index_validator.iter_errors(partial_index))
+    mismatched_candidates = deepcopy(candidates)
+    symbol_candidate = next(
+        candidate
+        for candidate in mismatched_candidates["candidates"]
+        if candidate["kind"] == "symbol"
+    )
+    symbol_candidate["symbol"]["extractor"] = "python-ast-v1"
+    assert list(candidate_validator.iter_errors(mismatched_candidates))
+    mismatched_bundle = deepcopy(bundle)
+    bundle_symbol = next(
+        candidate for candidate in mismatched_bundle["candidates"] if candidate["kind"] == "symbol"
+    )
+    bundle_symbol["symbol"]["extractor"] = "python-ast-v1"
+    assert list(bundle_validator.iter_errors(mismatched_bundle))
+    for invalid_path in ("caf\u00e9.py", "target\x7f.py", "target.py\n"):
+        invalid_index = deepcopy(index)
+        invalid_index["files"][0]["path"] = invalid_path
+        assert list(index_validator.iter_errors(invalid_index))
+        invalid_candidates = deepcopy(candidates)
+        invalid_candidates["candidates"][0]["path"] = invalid_path
+        assert list(candidate_validator.iter_errors(invalid_candidates))
+        invalid_bundle = deepcopy(bundle)
+        invalid_bundle["candidates"][0]["path"] = invalid_path
+        assert list(bundle_validator.iter_errors(invalid_bundle))
 
 
 def test_v041_localization_schemas_validate_product_documents(
     project_root: Path,
-    fixture_repository: Path,
     manual_finding_path: Path,
 ) -> None:
     from lumi_trace.learned_ranker import (
@@ -108,15 +225,16 @@ def test_v041_localization_schemas_validate_product_documents(
     )
 
     schemas, registry = _schemas(project_root)
-    finding = import_manual(manual_finding_path, fixture_repository)
-    repository_sha256, source_kind = repository_artifact_identity(fixture_repository)
+    localization_repository = project_root / "tests" / "fixtures" / "localization-repository"
+    finding = import_manual(manual_finding_path, localization_repository)
+    repository_sha256, source_kind = repository_artifact_identity(localization_repository)
     request = construct_inference_request(
         finding=finding,
         repository_artifact_sha256=repository_sha256,
         source_kind=source_kind,
         top_k=100,
     )
-    raw = build_raw_localization(request, repository_source=fixture_repository)
+    raw = build_raw_localization(request, repository_source=localization_repository)
     request_validator = Draft202012Validator(
         schemas["localization-inference-request-v0.4.1.json"],
         registry=registry,
@@ -135,6 +253,13 @@ def test_v041_localization_schemas_validate_product_documents(
     mismatched_raw = deepcopy(raw)
     mismatched_raw["candidate_algorithm"] = "label-blind-python-role-candidates-v0.4.1.5"
     assert list(raw_validator.iter_errors(mismatched_raw))
+    for invalid_path in ("caf\u00e9.py", "target\x7f.py", "target.py\n"):
+        invalid_raw = deepcopy(raw)
+        invalid_raw["candidate_inventory"][0]["path"] = invalid_path
+        assert list(raw_validator.iter_errors(invalid_raw))
+        invalid_raw = deepcopy(raw)
+        invalid_raw["candidates"][0]["path"] = invalid_path
+        assert list(raw_validator.iter_errors(invalid_raw))
 
     model = {
         "schema_version": MODEL_SCHEMA,

@@ -29,7 +29,7 @@ METADATA = (
     b"Name: skylark-lumi-trace\n"
     b"Version: 0.4.1.dev0\n"
     b"License-Expression: Apache-2.0\n"
-    b"Requires-Python: >=3.11\n"
+    b"Requires-Python: <3.13,>=3.11\n"
     b"\n"
 )
 
@@ -226,6 +226,19 @@ def test_rejects_runtime_dependencies(tmp_path: Path) -> None:
     _sdist(sdist, {"PKG-INFO": dependent_metadata})
 
     with pytest.raises(ReleaseEvidenceError, match="runtime dependencies"):
+        inspect_release_artifacts(wheel, sdist)
+
+
+def test_rejects_unsupported_python_range(tmp_path: Path) -> None:
+    wheel, sdist = _pair(tmp_path)
+    unsupported_metadata = METADATA.replace(
+        b"Requires-Python: <3.13,>=3.11",
+        b"Requires-Python: >=3.11",
+    )
+    _wheel(wheel, {f"{PACKAGE_ROOT}.dist-info/METADATA": unsupported_metadata})
+    _sdist(sdist, {"PKG-INFO": unsupported_metadata})
+
+    with pytest.raises(ReleaseEvidenceError, match="Requires-Python"):
         inspect_release_artifacts(wheel, sdist)
 
 

@@ -8,13 +8,16 @@ in `docs/STEP_1_RELEASE_GATE.md` remains controlling.
 
 - Use two clean checkouts of the exact candidate commit. Keep their checkout
   paths and build outputs separate.
-- Use Python 3.12 with the pinned build and release tools from
-  `pyproject.toml`; Python 3.11 and 3.12 are both required for clean-install
-  validation.
+- Use CPython 3.12 with the pinned build and release tools from
+  `pyproject.toml`; CPython 3.11 and 3.12, each with a recursion limit of at
+  least 1,000, are both required for clean-install validation.
 - Keep all generated material under the ignored `out/` directory.
 - Acquire the approved public example separately before disabling network
   access. Core execution after acquisition must not require a package index,
   model, API key, Docker or network.
+- Use only repositories whose relative paths are printable ASCII;
+  non-printable-ASCII repository paths are outside the current deterministic
+  profile and must fail closed.
 - Do not use a development checkpoint, private corpus, evaluator checkout or
   protected evidence.
 
@@ -157,9 +160,9 @@ decisions remain in the authority gate.
 
 ## Clean-install matrix
 
-For each of Python 3.11 and 3.12, create a new environment outside the
-development checkout and install only the candidate wheel with dependency
-resolution disabled:
+For each of CPython 3.11 and 3.12 with a recursion limit of at least 1,000,
+create a new environment outside the development checkout and install only the
+candidate wheel with dependency resolution disabled:
 
 ```text
 PYTHON -m venv CLEAN_ENV
@@ -180,12 +183,21 @@ Record start/end time, commands, stdout/stderr, output hashes, errors and
 whether founder intervention was required.
 
 For each equivalent finding, compare `repository-index.json` and
-`candidates.json` across Python 3.11 and 3.12. Their bytes, scores, candidate
+`candidates.json` across CPython 3.11 and 3.12. Their bytes, scores, candidate
 counts, index identity, ranking identity, and candidate-set identity must
 match. Evidence bundles and SARIF may retain declared platform provenance, so
 compare those only after accounting for their explicit provenance fields.
 Any candidate-universe or score drift is a failed matrix, even when both
 individual runs verify.
+
+The matrix corpus must include Python 3.11 f-strings, rejected PEP 695/701
+syntax, CR/LF/CRLF variants, non-ASCII source inside strings/comments,
+non-Python source containing Unicode-category edge characters, and an
+explicit non-printable-ASCII repository-path rejection. It must also exercise
+the 16,384-character, 512-work-unit, 2,048-AST-node and 128-AST-level
+projection controls and the 1,000 minimum recursion-limit gate. The current
+`.11` scanner, `.7` candidate algorithm, v4 index and `python-lexical-v1`
+extractor must be present in every successful current-profile artifact.
 
 No-Docker execution is the required core path. Docker-marked tests may be run
 separately only when the immutable image is already present locally; Lumi

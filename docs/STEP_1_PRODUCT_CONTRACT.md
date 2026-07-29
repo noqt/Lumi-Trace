@@ -19,7 +19,8 @@ instructions found in a finding, upload inputs, or call hosted inference.
 - one `normalized-finding-v1` JSON object;
 - exactly one selected SARIF 2.1.0 result;
 - one regular local directory, safe ZIP archive, or bounded USTAR-compatible
-  TAR-family archive; and
+  TAR-family archive whose repository-relative paths are printable ASCII
+  (U+0020–U+007E); and
 - optionally, one strict `reproduction-plan-v1` and one immutable digest-form
   image already present in a local Linux-container engine.
 
@@ -41,13 +42,25 @@ identity, score components, and abstention state are emitted in the evidence
 package.
 
 New Step 1 requests use
-`lumi-trace-runtime-v0.4.1-pre-release.10`, candidate algorithm
-`label-blind-python-role-candidates-v0.4.1.6`, and repository index
-`deterministic-lexical-index-v3`. Python AST extraction is frozen to the
-Python 3.11 grammar on every supported interpreter so Python 3.11 and 3.12
-produce the same deterministic index and ranking from the same inputs. Files
-using later Python syntax remain file candidates but do not emit partial AST
-symbols.
+`lumi-trace-runtime-v0.4.1-pre-release.11`, candidate algorithm
+`label-blind-python-role-candidates-v0.4.1.7`, repository index
+`deterministic-lexical-index-v4`, and Python symbol extractor
+`python-lexical-v1`. Python declaration extraction uses a fixed lexical front
+end and passes only declaration, decorator and f-string expression projections
+to a Python 3.11 grammar validator. Each projection is capped at 16,384
+characters, 512 non-whitespace work units, 2,048 AST nodes and 128 AST levels.
+The AST never supplies symbols or ranges. Non-Python symbol patterns use fixed
+ASCII semantics, and current-profile repository paths are printable ASCII.
+Current execution is pinned to CPython 3.11/3.12 with a recursion limit of at
+least 1,000, and exact index/candidate bytes are a cross-runtime release gate.
+
+Unsupported or ambiguous declaration, string, f-string, bracket,
+continuation or indentation structure, a projection over the fixed bound, and
+context-sensitive `await`/`yield` projections leave the file indexed without
+partial Python symbols. This is a declaration extractor, not a whole-file
+Python validity oracle: a lexical declaration may still be recorded when an
+unrelated statement is semantically invalid. A symbol is therefore a review
+landmark, not evidence that its file imports or compiles.
 
 The sealed V0.4.1 development evidence retains
 `lumi-trace-runtime-v0.4.1-pre-release.8`; that historical identity remains
@@ -56,7 +69,10 @@ Python builder interface. Historical execution is fail-closed outside its
 pinned CPython 3.12 environment. The Step 1 CLI never emits it. The
 superseded, unreleased `lumi-trace-runtime-v0.4.1-pre-release.9` is retained
 for validation of already-created failed release-candidate evidence only:
-constructors and runtime execution reject it.
+constructors and runtime execution reject it. The subsequent
+`lumi-trace-runtime-v0.4.1-pre-release.10` AST remediation is also retained
+for verification only because `ast.parse(feature_version=...)` did not freeze
+PEP 701 behavior across the supported runtimes.
 
 The ordering score is a retrieval heuristic. It is not a probability, a
 vulnerability verdict, or proof that a candidate is the correct repair

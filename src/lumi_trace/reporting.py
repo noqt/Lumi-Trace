@@ -14,12 +14,14 @@ from .findings import validate_normalized_finding
 from .indexing import (
     INDEX_ALGORITHM,
     LEGACY_INDEX_ALGORITHM,
+    STEP1_AST_INDEX_ALGORITHM,
     SUPPORTED_INDEX_ALGORITHMS,
     verify_repository_identity,
 )
 from .localization import (
     CANDIDATE_TRUNCATION_ABSTENTION,
     NO_SIGNAL_ABSTENTION,
+    STEP1_AST_CANDIDATE_ALGORITHM,
     V041_EVIDENCE_CANDIDATE_ALGORITHM,
 )
 from .ranking import (
@@ -34,7 +36,13 @@ from .sandbox import verify_reproduction_receipt
 _REASON_CODE = re.compile(r"^[A-Z][A-Z0-9_]*$")
 _INDEX_BY_PRODUCT_CANDIDATE_ALGORITHM = {
     V041_EVIDENCE_CANDIDATE_ALGORITHM: LEGACY_INDEX_ALGORITHM,
+    STEP1_AST_CANDIDATE_ALGORITHM: STEP1_AST_INDEX_ALGORITHM,
     PRODUCT_CANDIDATE_ALGORITHM: INDEX_ALGORITHM,
+}
+_EXTRACTOR_BY_PRODUCT_CANDIDATE_ALGORITHM = {
+    V041_EVIDENCE_CANDIDATE_ALGORITHM: "python-ast-v1",
+    STEP1_AST_CANDIDATE_ALGORITHM: "python-ast-v1",
+    PRODUCT_CANDIDATE_ALGORITHM: "python-lexical-v1",
 }
 
 
@@ -247,6 +255,9 @@ def build_evidence_bundle(
             "confidence_descriptor": candidate_set["confidence_descriptor"],
             "confidence_is_not_probability": True,
         }
+    current_product_profile = (
+        candidate_set.get("candidate_algorithm") == PRODUCT_CANDIDATE_ALGORITHM
+    )
 
     payload: dict[str, object] = {
         "schema_version": "evidence-bundle-v1",
@@ -306,6 +317,12 @@ def build_evidence_bundle(
                 if ranking is not None
                 else "Non-Python symbol extraction is lexical and may be incomplete."
             ),
+            (
+                "Current Step 1 deterministic artifacts require printable-ASCII repository paths."
+                if current_product_profile
+                else "Repository-path support depends on the selected historical profile."
+            ),
+            "Extracted symbols are lexical landmarks and do not assert that files compile.",
             "CONFIRMED applies only to the declared reproduction witness in the supplied snapshot.",
             "No learned model, checkpoint, hosted inference, or repair generation is used.",
         ],
@@ -402,7 +419,19 @@ def verify_evidence_bundle(bundle: dict[str, object]) -> None:
     ):
         raise IntegrityError("evidence bundle index exclusions are invalid")
     ranking = bundle.get("ranking")
-    verify_ranked_candidates(bundle.get("candidates"), require_role=ranking is not None)
+    verify_ranked_candidates(
+        bundle.get("candidates"),
+        require_role=ranking is not None,
+        expected_symbol_extractor=(
+            _EXTRACTOR_BY_PRODUCT_CANDIDATE_ALGORITHM.get(str(ranking.get("candidate_algorithm")))
+            if isinstance(ranking, dict)
+            else None
+        ),
+        require_ascii_paths=(
+            isinstance(ranking, dict)
+            and ranking.get("candidate_algorithm") == PRODUCT_CANDIDATE_ALGORITHM
+        ),
+    )
     if ranking is not None:
         candidates = bundle["candidates"]
         if not isinstance(ranking, dict) or set(ranking) != {

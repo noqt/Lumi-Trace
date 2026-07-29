@@ -10,6 +10,7 @@ from lumi_trace.canonical import canonical_sha256, stable_id
 from lumi_trace.errors import InputError, IntegrityError
 from lumi_trace.findings import import_manual
 from lumi_trace.indexing import build_repository_index
+from lumi_trace.localization import V041_EVIDENCE_CANDIDATE_ALGORITHM
 from lumi_trace.ranking import rank_candidates
 from lumi_trace.reporting import (
     build_evidence_bundle,
@@ -207,3 +208,31 @@ def test_bundle_and_sarif_are_verifiable_and_contain_no_snippets(
     )
     with pytest.raises(IntegrityError, match="candidate structure"):
         verify_evidence_bundle(malformed_candidates)
+
+
+def test_historical_candidate_profile_does_not_claim_current_path_boundary(
+    fixture_repository: Path,
+    manual_finding_path: Path,
+) -> None:
+    finding = import_manual(manual_finding_path, fixture_repository)
+    with RepositoryWorkspace(fixture_repository) as workspace:
+        index = build_repository_index(workspace.root, workspace.identity)
+        candidates = rank_candidates(finding, index)
+        candidates["candidate_algorithm"] = V041_EVIDENCE_CANDIDATE_ALGORITHM
+        bundle = build_evidence_bundle(
+            finding=finding,
+            repository=workspace.identity,
+            index=index,
+            candidate_set=candidates,
+            reproduction_requested=False,
+            receipt=None,
+            source_revision="fixture-revision",
+        )
+
+    assert (
+        "Repository-path support depends on the selected historical profile."
+        in bundle["limitations"]
+    )
+    assert all(
+        "printable-ASCII repository paths" not in limitation for limitation in bundle["limitations"]
+    )

@@ -19,13 +19,24 @@ from trace_eval.integrity_v041 import (
 def _raw() -> dict:
     from lumi_trace.canonical import stable_id
 
-    candidate = {
-        "candidate_id": "localization-candidate:" + "a" * 64,
+    identity = {
         "kind": "symbol",
         "path": "src/parser.py",
         "symbol": "parse",
-        "region": {"start_line": 10, "end_line": 20},
+        "start_line": 10,
+        "end_line": 20,
         "role": "implementation",
+    }
+    candidate = {
+        "candidate_id": stable_id("localization-candidate", identity),
+        "kind": identity["kind"],
+        "path": identity["path"],
+        "symbol": identity["symbol"],
+        "region": {
+            "start_line": identity["start_line"],
+            "end_line": identity["end_line"],
+        },
+        "role": identity["role"],
         "integer_score": 100,
         "score_components": {"BM25": 100},
         "rank": 1,
@@ -46,7 +57,15 @@ def _raw() -> dict:
         "candidate_algorithm": "label-blind-python-role-candidates-v0.4.1.5",
         "ranker": "role-aware-sparse-v0.4.1.1",
         "model_artifact_id": None,
-        "generation": {"candidate_count": 1},
+        "generation": {
+            "repository_file_count": 1,
+            "repository_bytes": 100,
+            "indexed_python_file_count": 1,
+            "candidate_count": 1,
+            "truncated": False,
+            "quarantine_counts": {},
+            "indexed_path_set_id": "localization-indexed-paths:" + "e" * 64,
+        },
         "candidate_count_ranked": 1,
         "candidate_inventory": [inventory_candidate],
         "candidates": [candidate],
@@ -86,8 +105,7 @@ def _labels() -> dict:
 
 def test_scoring_requires_a_valid_raw_output_seal() -> None:
     tampered = copy.deepcopy(_raw())
-    tampered["candidates"][0]["path"] = "src/other.py"
-    tampered["candidate_inventory"][0]["path"] = "src/other.py"
+    tampered["telemetry"]["wall_seconds"] = 0.2
     with pytest.raises(Exception, match="seal"):
         score_sealed_localization(
             tampered,
@@ -116,13 +134,24 @@ def test_indexability_uses_the_generated_inventory_not_only_the_exported_head() 
     from lumi_trace.canonical import stable_id
 
     raw = _raw()
-    hidden = {
-        "candidate_id": "localization-candidate:" + "e" * 64,
+    hidden_identity = {
         "kind": "symbol",
         "path": "src/hidden.py",
         "symbol": "hidden_target",
-        "region": {"start_line": 1, "end_line": 2},
+        "start_line": 1,
+        "end_line": 2,
         "role": "implementation",
+    }
+    hidden = {
+        "candidate_id": stable_id("localization-candidate", hidden_identity),
+        "kind": hidden_identity["kind"],
+        "path": hidden_identity["path"],
+        "symbol": hidden_identity["symbol"],
+        "region": {
+            "start_line": hidden_identity["start_line"],
+            "end_line": hidden_identity["end_line"],
+        },
+        "role": hidden_identity["role"],
     }
     raw["candidate_inventory"].append(hidden)
     raw["candidate_inventory"].sort(key=lambda item: item["candidate_id"])

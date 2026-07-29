@@ -13,11 +13,14 @@ import lumi_trace.localization as localization
 from lumi_trace.canonical import stable_id
 from lumi_trace.errors import InputError, IntegrityError, UnsupportedError
 from lumi_trace.findings import import_manual, import_sarif
+from lumi_trace.indexing import INDEX_ALGORITHM
 from lumi_trace.localization import (
     CANDIDATE_ALGORITHM,
     CANDIDATE_TRUNCATION_ABSTENTION,
     DEFAULT_RANKER,
     RUNTIME_IDENTITY,
+    STEP1_AST_CANDIDATE_ALGORITHM,
+    STEP1_AST_RUNTIME_IDENTITY,
     STEP1_DEFECTIVE_CANDIDATE_ALGORITHM,
     STEP1_DEFECTIVE_RUNTIME_IDENTITY,
     V041_EVIDENCE_DEFAULT_RANKER,
@@ -91,7 +94,33 @@ def test_product_default_freezes_the_reviewed_deterministic_runtime(
     assert request["configuration"]["ranker"] == "role-aware-sparse-v0.4.1.3"
     assert request["configuration"]["runtime_identity"] == RUNTIME_IDENTITY
     assert request["configuration"]["candidate_algorithm"] == CANDIDATE_ALGORITHM
-    assert RUNTIME_IDENTITY == "lumi-trace-runtime-v0.4.1-pre-release.10"
+    assert RUNTIME_IDENTITY == "lumi-trace-runtime-v0.4.1-pre-release.11"
+    assert CANDIDATE_ALGORITHM == "label-blind-python-role-candidates-v0.4.1.7"
+    assert INDEX_ALGORITHM == "deterministic-lexical-index-v4"
+
+
+def test_builder_rechecks_the_governed_python_runtime(
+    fixture_repository: Path,
+    manual_finding_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    request = _request(fixture_repository, manual_finding_path)
+    monkeypatch.setattr(localization, "supported_python_runtime", lambda: False)
+
+    with pytest.raises(InputError, match="governed recursion limit"):
+        build_raw_localization(request, repository_source=fixture_repository)
+
+
+def test_governed_product_contract_names_the_current_profile(project_root: Path) -> None:
+    contract = (project_root / "docs" / "STEP_1_PRODUCT_CONTRACT.md").read_text(encoding="utf-8")
+
+    for identity in (
+        RUNTIME_IDENTITY,
+        CANDIDATE_ALGORITHM,
+        INDEX_ALGORITHM,
+        "python-lexical-v1",
+    ):
+        assert f"`{identity}`" in contract
 
 
 def test_sarif_projection_preserves_required_source_provenance(
@@ -147,9 +176,18 @@ def test_historical_runtime_request_remains_explicitly_reconstructable(
     )
 
 
-def test_defective_step1_runtime_is_verification_only(
+@pytest.mark.parametrize(
+    ("runtime_identity", "candidate_algorithm"),
+    [
+        (STEP1_DEFECTIVE_RUNTIME_IDENTITY, STEP1_DEFECTIVE_CANDIDATE_ALGORITHM),
+        (STEP1_AST_RUNTIME_IDENTITY, STEP1_AST_CANDIDATE_ALGORITHM),
+    ],
+)
+def test_superseded_step1_runtime_is_verification_only(
     fixture_repository: Path,
     manual_finding_path: Path,
+    runtime_identity: str,
+    candidate_algorithm: str,
 ) -> None:
     finding = import_manual(manual_finding_path, fixture_repository)
     identity, source_kind = repository_artifact_identity(fixture_repository)
@@ -158,12 +196,12 @@ def test_defective_step1_runtime_is_verification_only(
             finding=finding,
             repository_artifact_sha256=identity,
             source_kind=source_kind,
-            runtime_identity=STEP1_DEFECTIVE_RUNTIME_IDENTITY,
+            runtime_identity=runtime_identity,
         )
 
     request = _request(fixture_repository, manual_finding_path)
-    request["configuration"]["runtime_identity"] = STEP1_DEFECTIVE_RUNTIME_IDENTITY
-    request["configuration"]["candidate_algorithm"] = STEP1_DEFECTIVE_CANDIDATE_ALGORITHM
+    request["configuration"]["runtime_identity"] = runtime_identity
+    request["configuration"]["candidate_algorithm"] = candidate_algorithm
     request["request_id"] = stable_id("localization-request", request, omit_keys=("request_id",))
     assert validate_inference_request(request) == request
     with pytest.raises(InputError, match="verification-only"):
@@ -175,16 +213,25 @@ def test_defective_step1_runtime_is_verification_only(
         validate_inference_request(mismatched)
 
 
-def test_sealed_defective_step1_raw_output_remains_verifiable_but_not_cross_paired(
+@pytest.mark.parametrize(
+    ("runtime_identity", "candidate_algorithm"),
+    [
+        (STEP1_DEFECTIVE_RUNTIME_IDENTITY, STEP1_DEFECTIVE_CANDIDATE_ALGORITHM),
+        (STEP1_AST_RUNTIME_IDENTITY, STEP1_AST_CANDIDATE_ALGORITHM),
+    ],
+)
+def test_sealed_superseded_step1_raw_output_remains_verifiable_but_not_cross_paired(
     fixture_repository: Path,
     manual_finding_path: Path,
+    runtime_identity: str,
+    candidate_algorithm: str,
 ) -> None:
     raw = build_raw_localization(
         _request(fixture_repository, manual_finding_path),
         repository_source=fixture_repository,
     )
-    raw["runtime_identity"] = STEP1_DEFECTIVE_RUNTIME_IDENTITY
-    raw["candidate_algorithm"] = STEP1_DEFECTIVE_CANDIDATE_ALGORITHM
+    raw["runtime_identity"] = runtime_identity
+    raw["candidate_algorithm"] = candidate_algorithm
     raw["raw_output_seal"] = stable_id(
         "localization-raw-output",
         raw,
@@ -203,12 +250,61 @@ def test_sealed_defective_step1_raw_output_remains_verifiable_but_not_cross_pair
         verify_raw_localization(mismatched)
 
 
-def test_step1_localization_symbol_grammar_is_frozen_to_python_311() -> None:
+@pytest.mark.parametrize("invalid_path", ["caf\u00e9.py", "target\x7f.py", "target.py\n"])
+def test_current_raw_output_rejects_non_printable_ascii_paths(
+    project_root: Path,
+    manual_finding_path: Path,
+    invalid_path: str,
+) -> None:
+    repository = project_root / "tests" / "fixtures" / "localization-repository"
+    raw = build_raw_localization(
+        _request(repository, manual_finding_path),
+        repository_source=repository,
+    )
+    candidate_id = raw["candidate_inventory"][0]["candidate_id"]
+    raw["candidate_inventory"][0]["path"] = invalid_path
+    for candidate in raw["candidates"]:
+        if candidate["candidate_id"] == candidate_id:
+            candidate["path"] = invalid_path
+    raw["raw_output_seal"] = stable_id(
+        "localization-raw-output",
+        raw,
+        omit_keys=("raw_output_seal",),
+    )
+
+    with pytest.raises(IntegrityError, match="path is unsafe"):
+        verify_raw_localization(raw)
+
+
+def test_raw_output_recomputes_candidate_identity(
+    project_root: Path,
+    manual_finding_path: Path,
+) -> None:
+    repository = project_root / "tests" / "fixtures" / "localization-repository"
+    raw = build_raw_localization(
+        _request(repository, manual_finding_path),
+        repository_source=repository,
+    )
+    candidate_id = raw["candidate_inventory"][0]["candidate_id"]
+    raw["candidate_inventory"][0]["path"] = "renamed.py"
+    for candidate in raw["candidates"]:
+        if candidate["candidate_id"] == candidate_id:
+            candidate["path"] = "renamed.py"
+    raw["raw_output_seal"] = stable_id(
+        "localization-raw-output",
+        raw,
+        omit_keys=("raw_output_seal",),
+    )
+
+    with pytest.raises(IntegrityError, match="candidate identity mismatch"):
+        verify_raw_localization(raw)
+
+
+def test_step1_localization_symbol_grammar_rejects_python_312_type_aliases() -> None:
     source = "type Alias = int\n\nclass Python312Only:\n    pass\n"
 
     symbols, limited = localization._symbols(source)
 
-    assert localization.PYTHON_AST_FEATURE_VERSION == (3, 11)
     assert symbols == []
     assert limited is False
 

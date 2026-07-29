@@ -15,10 +15,20 @@
   SPDX SBOM, clean-install, and independent usability evidence controls.
 - Preserved V0.4.1 reconstruction under its explicitly pinned historical
   runtime while giving Step 1 a distinct runtime identity and decision rule.
-- Remediated the first release-candidate matrix after Python 3.11 and 3.12
-  produced different symbol universes: the corrected runtime and index now
-  freeze AST extraction to the Python 3.11 grammar, while the failed
-  pre-release identity remains verification-only.
+- Retained the first `.9` release-candidate matrix as failed after Python 3.11
+  and 3.12 produced different AST symbol universes. Retained the subsequent
+  `.10`/candidate `.6`/index-v3 remediation as failed after the host parser's
+  PEP 701 behavior proved that `ast.parse(feature_version=...)` is not a
+  grammar freeze. Both failed identities are verification-only.
+- Added the replacement `.11`/candidate `.7`/index-v4 profile: a fixed lexical
+  front end freezes string and f-string handling, bounded CPython 3.11 grammar
+  projections validate declarations without supplying symbols or ranges. The
+  profile records fixed character, lexical-work, AST-node and AST-depth bounds;
+  successful execution requires CPython 3.11 or 3.12 with a recursion limit of
+  at least 1,000. Non-Python symbol regexes use fixed ASCII semantics, and
+  successful current runs require printable-ASCII repository paths. CPython
+  3.11 and 3.12 artifacts are compared byte-for-byte before a release candidate
+  can pass.
 - Kept publication blocked pending the six written founder decisions in the
   Step 1 release gate. No merge, tag, release, signing, PyPI upload, training,
   qualification, or holdback access is part of this work.
