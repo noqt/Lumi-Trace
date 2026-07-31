@@ -1,0 +1,40 @@
+{
+  "schema_version": "manual-finding-v1",
+  "id": "LUMI-TRACE-DEMO-001",
+  "title": "Archive member path may escape the extraction root",
+  "description": "The extraction target joins an untrusted archive member name to the root without rejecting absolute paths or parent traversal.",
+  "severity": "high",
+  "rule": {
+    "id": "CWE-22",
+    "name": "Path traversal",
+    "cwes": [
+      "CWE-22"
+    ],
+    "tags": [
+      "archive",
+      "path-traversal",
+      "validation"
+    ]
+  },
+  "locations": [
+    {
+      "path": "src/archive.py",
+      "symbol": "extraction_target",
+      "start_line": 8,
+      "start_column": 1,
+      "end_line": 10,
+      "end_column": 30
+    }
+  ],
+  "keywords": [
+    "archive",
+    "member",
+    "path",
+    "traversal",
+    "extraction",
+    "root"
+  ],
+  "fingerprints": {
+    "skylark/demo": "lumi-trace-demo-001"
+  }
+}

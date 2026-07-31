@@ -7,10 +7,10 @@ without maintaining a separate public PGP key.
 
 ## Before a release
 
-1. Confirm the exact commit has passed the release checks and has an explicit
-   founder approval recorded in the Step 1 release gate.
-2. Create an annotated, signed tag such as `v0.4.1` for that exact commit using
-   the founder's GitHub-linked signing identity. GitHub supports verified GPG,
+1. Confirm the exact commit has passed the release checks and has explicit
+   release approval recorded in the pull request or release record.
+2. Create an annotated, signed tag for that exact commit using the maintainer's
+   GitHub-linked signing identity. GitHub supports verified GPG,
    SSH, and S/MIME signatures; SSH signing is suitable when a separate PGP
    workflow is not wanted.
 3. Push only the verified tag. Confirm that GitHub displays the tag as
@@ -25,7 +25,7 @@ and release evidence, and obtains GitHub Actions artifact attestations through
 the Sigstore-backed GitHub Attestations service.
 
 The workflow defaults to preparation only. Set its `publish` input to `true`
-only after the tag is verified and the final release approval has been given.
+only after the tag is verified and final release approval has been given.
 That action creates a GitHub Release and uploads the wheel, source archive,
 checksums, and evidence files. It never uploads to PyPI.
 

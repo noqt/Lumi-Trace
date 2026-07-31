@@ -1,8 +1,9 @@
-# Step 1 Reproducible Release Procedure
+# Reproducible release procedure
 
 This procedure prepares and inspects a deterministic Lumi Trace release
-candidate. It does not publish, tag, sign or merge anything. The authority gate
-in `docs/STEP_1_RELEASE_GATE.md` remains controlling.
+candidate. It does not publish, tag, sign, or merge anything. Publication
+requires a separately reviewed signed tag and approval through the protected
+`release` environment.
 
 ## Preconditions
 
@@ -51,14 +52,14 @@ $env:PIP_DISABLE_PIP_VERSION_CHECK = "1"
 python -m build --no-isolation --wheel --outdir out/step1-build-a $sourceA
 python -m build --no-isolation --sdist --outdir out/step1-raw-a $sourceA
 python (Join-Path $sourceA "scripts\normalize_step1_sdist.py") `
-  --input out/step1-raw-a/skylark_lumi_trace-0.4.1.tar.gz `
-  --output out/step1-build-a/skylark_lumi_trace-0.4.1.tar.gz
+  --input out/step1-raw-a/skylark_lumi_trace-0.4.2.tar.gz `
+  --output out/step1-build-a/skylark_lumi_trace-0.4.2.tar.gz
 
 python -m build --no-isolation --wheel --outdir out/step1-build-b $sourceB
 python -m build --no-isolation --sdist --outdir out/step1-raw-b $sourceB
 python (Join-Path $sourceB "scripts\normalize_step1_sdist.py") `
-  --input out/step1-raw-b/skylark_lumi_trace-0.4.1.tar.gz `
-  --output out/step1-build-b/skylark_lumi_trace-0.4.1.tar.gz
+  --input out/step1-raw-b/skylark_lumi_trace-0.4.2.tar.gz `
+  --output out/step1-build-b/skylark_lumi_trace-0.4.2.tar.gz
 python -m twine check out/step1-build-a/*
 python -m twine check out/step1-build-b/*
 ```
@@ -89,14 +90,14 @@ export PIP_DISABLE_PIP_VERSION_CHECK=1
 python -m build --no-isolation --wheel --outdir out/step1-build-a "$SOURCE_A"
 python -m build --no-isolation --sdist --outdir out/step1-raw-a "$SOURCE_A"
 python "$SOURCE_A/scripts/normalize_step1_sdist.py" \
-  --input out/step1-raw-a/skylark_lumi_trace-0.4.1.tar.gz \
-  --output out/step1-build-a/skylark_lumi_trace-0.4.1.tar.gz
+  --input out/step1-raw-a/skylark_lumi_trace-0.4.2.tar.gz \
+  --output out/step1-build-a/skylark_lumi_trace-0.4.2.tar.gz
 
 python -m build --no-isolation --wheel --outdir out/step1-build-b "$SOURCE_B"
 python -m build --no-isolation --sdist --outdir out/step1-raw-b "$SOURCE_B"
 python "$SOURCE_B/scripts/normalize_step1_sdist.py" \
-  --input out/step1-raw-b/skylark_lumi_trace-0.4.1.tar.gz \
-  --output out/step1-build-b/skylark_lumi_trace-0.4.1.tar.gz
+  --input out/step1-raw-b/skylark_lumi_trace-0.4.2.tar.gz \
+  --output out/step1-build-b/skylark_lumi_trace-0.4.2.tar.gz
 python -m twine check out/step1-build-a/*
 python -m twine check out/step1-build-b/*
 ```
@@ -154,8 +155,7 @@ The default output is the ignored directory
   hash-bound evidence manifest.
 
 The check is mechanical. It cannot determine legal ownership, recognise every
-possible customer identifier or replace the authority review. Those decisions
-remain in the authority gate.
+possible sensitive identifier, or replace maintainer review.
 
 ## Clean-install matrix
 

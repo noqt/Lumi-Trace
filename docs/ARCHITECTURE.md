@@ -1,10 +1,10 @@
-# Lumi Trace V0.1.2 Architecture
+# Lumi Trace architecture
 
 ## Design Goal
 
-Lumi Trace turns one supplied vulnerability finding and one local repository
+Lumi Trace turns one supplied known security finding and one local repository
 snapshot into deterministic, auditable location and reproduction evidence. The
-runtime is useful without learned inference and keeps customer source local.
+released runtime uses deterministic ranking and keeps repository source local.
 
 ```text
 manual / SARIF / normalized finding
@@ -67,7 +67,7 @@ repository scripts through an explicit interpreter supplied by the image.
 Git administration data is excluded and no Git command is executed against the
 supplied repository. Repository-local Git configuration is therefore never a
 host-execution surface. Content identity, not VCS metadata, is the provenance
-anchor in V0.1.
+anchor.
 
 ### Deterministic Index
 
@@ -80,10 +80,8 @@ capped at 16,384 characters, 512 non-whitespace work units, 2,048 AST nodes and
 128 AST levels. AST nodes never supply symbols, names or ranges. Current
 execution requires CPython 3.11 or 3.12 with a recursion limit of at least
 1,000.
-Historical `deterministic-lexical-index-v2` output remains verifiable;
-reconstruction is fail-closed outside its pinned CPython 3.12 environment.
-The failed `deterministic-lexical-index-v3` AST remediation is also
-verification-only.
+Historical index profiles remain verification-only and are documented in the
+[schema compatibility reference](reference/SCHEMA_COMPATIBILITY.md).
 
 - Files, hashes, sizes, language labels, line counts, token counts, exclusions,
   and extracted symbols use stable ordering.
@@ -125,16 +123,15 @@ weights, followed by path, identifier, symbol, and message-token matches. Test
 paths receive a deterministic penalty unless directly reported.
 
 Candidates are sorted by score and explicit stable tie-breakers before `top_k`
-selection. V0.1.2 admits at most two candidates from any one path, preventing
+selection. The current profile admits at most two candidates from any one path, preventing
 symbols from one lexical decoy from consuming the bounded file-retrieval set
 while retaining both file and symbol evidence. Scores and confidence basis
 points are evidence descriptors, not probabilities.
 
 Score-reason match evidence has a single producer, verifier, and schema bound
 of 20. Match arrays are unique, non-empty, and canonically sorted; empty match
-arrays are omitted. V0.1.1 formalised the evidence already emitted by the
-original ranking algorithm. V0.1.2 retains the same integer scoring features
-but uses `deterministic-candidate-ranking-v2` for path-diverse selection.
+arrays are omitted. The current `deterministic-candidate-ranking-v2` profile
+uses path-diverse selection.
 
 ### Qualified Docker Reproduction
 
@@ -162,7 +159,7 @@ produces structured unsupported evidence; there is no host fallback.
 
 - `CONFIRMED` requires a qualified sandbox, attested `none` network mode,
   unchanged repository identity, completed steps, and every explicit witness;
-- `UNSUPPORTED` records a reproduction outside the V0.1 support boundary; and
+- `UNSUPPORTED` records a reproduction outside the supported boundary; and
 - `INSUFFICIENT_EVIDENCE` records no plan, missing evidence, witness failure,
   timeout, output limit, immutability failure, or infrastructure failure.
 
@@ -200,12 +197,11 @@ vocabulary, hashes, reproduction metadata, and optional
 bounded process output. They must remain local and access-controlled unless the
 customer separately approves disclosure.
 
-## V0.1 Limits and TODOs
+## Current limitations
 
 - Non-Python symbol extraction is lexical and incomplete.
-- V0.1 does not discover vulnerabilities or generate repairs.
-- No learned ranker is part of the Step 1 product. Private development history
-  remains non-default and unqualified.
+- Lumi Trace does not discover vulnerabilities or generate repairs.
+- No learned ranker or model weights are part of the released product.
 - The CLI's built-in `validate` command checks runtime invariants and canonical
   identities; full Draft 2020-12 schema validation remains a release/CI check.
 - Container isolation depends on the local kernel and Docker-compatible daemon;

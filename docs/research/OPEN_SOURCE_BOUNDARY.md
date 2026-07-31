@@ -75,7 +75,7 @@ receipts, and user-authorised observations.
 Third-party dependencies remain governed by their own licences. The release
 must keep dependency licences and notices explicit, must not remove required
 attribution, and must record any vendored material in
-[`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md).
+[`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md).
 
 Before any public release, a reviewer must confirm that:
 

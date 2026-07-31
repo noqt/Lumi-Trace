@@ -303,14 +303,25 @@ def test_project_distributions_have_a_minimal_product_boundary(
     all_names = {*wheel_payloads, *logical_source_names}
     lowered_names = {name.casefold() for name in all_names}
     assert any(name.endswith("lumi_trace/cli.py") for name in all_names)
-    assert any(name.endswith("docs/PRIVACY_AND_DATA_HANDLING.md") for name in all_names)
-    assert any(name.endswith("docs/STEP_1_PRODUCT_CONTRACT.md") for name in all_names)
-    assert any(name.endswith("docs/STEP_1_QUICKSTART.md") for name in all_names)
-    assert any(name.endswith("docs/STEP_1_RELEASE_GATE.md") for name in all_names)
-    assert any(name.endswith("docs/STEP_1_REPRODUCIBLE_RELEASE.md") for name in all_names)
-    assert not any("examples/" in name for name in all_names)
+    for document in (
+        "ARCHITECTURE.md",
+        "GETTING_STARTED.md",
+        "INPUTS_AND_OUTPUTS.md",
+        "PRIVACY.md",
+        "PRODUCT_SCOPE.md",
+        "README.md",
+        "REPRODUCTION.md",
+        "THREAT_MODEL.md",
+    ):
+        assert any(name.endswith(f"docs/{document}") for name in all_names)
+    assert any(name.endswith("docs/reference/SCHEMA_COMPATIBILITY.md") for name in all_names)
+    assert {name for name in logical_source_names if name.startswith("examples/quickstart/")} == {
+        "examples/quickstart/README.md",
+        "examples/quickstart/finding.json",
+        "examples/quickstart/repository/src/archive.py",
+    }
+    assert not any("examples/" in name for name in wheel_payloads)
     assert any(name.endswith("schemas/evidence-bundle-v1.json") for name in all_names)
-    assert any(name.endswith("build_step1_release_evidence.py") for name in all_names)
 
     forbidden_parts = {
         ".pytest_cache",
@@ -326,10 +337,10 @@ def test_project_distributions_have_a_minimal_product_boundary(
         forbidden_parts & {part.casefold() for part in PurePosixPath(name).parts}
         for name in all_names
     )
-    assert {name for name in logical_source_names if name.startswith("scripts/")} == {
-        "scripts/build_step1_release_evidence.py",
-        "scripts/normalize_step1_sdist.py",
-    }
+    assert not any(name.startswith("scripts/") for name in logical_source_names)
+    assert not any("docs/research/" in name.casefold() for name in all_names)
+    assert not any(".github/maintainers/" in name.casefold() for name in all_names)
+    assert not any("step_1_release_gate" in name.casefold() for name in all_names)
     assert not any(
         PurePosixPath(name).suffix.casefold()
         in {
@@ -344,6 +355,21 @@ def test_project_distributions_have_a_minimal_product_boundary(
         for name in all_names
     )
     assert not any("trace_eval" in name or "training_readiness" in name for name in lowered_names)
+
+    forbidden_payload_terms = (
+        b"step_1_release_gate",
+        b"docs/build-briefs",
+        b"ckpt-003",
+        b"no_go_pending_user_review",
+        b"do_not_begin_trace_001",
+        b"employment-contract",
+        b"employer-time contribution",
+        b"employment/ip",
+    )
+    packaged_payloads = [*wheel_payloads.values(), *source_payloads.values()]
+    assert not any(
+        term in payload.lower() for payload in packaged_payloads for term in forbidden_payload_terms
+    )
 
     host_path = re.compile(
         rb"(?<![A-Za-z0-9])[A-Za-z]:[\\/]|"

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "skylark-lumi-trace"
-version = "0.4.1"
-description = "Deterministic local vulnerability evidence instrument"
+version = "0.4.2"
+description = "Local vulnerability localisation and evidence for known security findings"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 license = "Apache-2.0"
@@ -22,6 +22,14 @@ classifiers = [
   "Topic :: Security",
 ]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/noqt/Lumi-Trace"
+Documentation = "https://github.com/noqt/Lumi-Trace/tree/main/docs"
+Repository = "https://github.com/noqt/Lumi-Trace"
+Issues = "https://github.com/noqt/Lumi-Trace/issues"
+Changelog = "https://github.com/noqt/Lumi-Trace/blob/main/CHANGELOG.md"
+Releases = "https://github.com/noqt/Lumi-Trace/releases"
 
 [project.optional-dependencies]
 dev = [
@@ -43,21 +51,26 @@ lumi-trace = "lumi_trace.cli:main"
 package-dir = {"" = "src"}
 
 [tool.setuptools.data-files]
-"share/skylark-lumi-trace" = ["DISCLAIMER.md", "THIRD_PARTY_NOTICES.md"]
+"share/skylark-lumi-trace" = [
+  "CHANGELOG.md",
+  "CONTRIBUTING.md",
+  "DISCLAIMER.md",
+  "README.md",
+  "SECURITY.md",
+  "THIRD_PARTY_NOTICES.md",
+]
 "share/skylark-lumi-trace/docs" = [
-  "docs/PRIVACY_AND_DATA_HANDLING.md",
-  "docs/RELEASE_SECURITY.md",
+  "docs/ARCHITECTURE.md",
+  "docs/GETTING_STARTED.md",
+  "docs/INPUTS_AND_OUTPUTS.md",
+  "docs/PRIVACY.md",
+  "docs/PRODUCT_SCOPE.md",
+  "docs/README.md",
   "docs/REPRODUCTION.md",
-  "docs/SCHEMAS.md",
-  "docs/STEP_1_PRODUCT_CONTRACT.md",
-  "docs/STEP_1_QUICKSTART.md",
-  "docs/STEP_1_RELEASE_GATE.md",
-  "docs/STEP_1_REPRODUCIBLE_RELEASE.md",
   "docs/THREAT_MODEL.md",
 ]
-"share/skylark-lumi-trace/release-tools" = [
-  "scripts/build_step1_release_evidence.py",
-  "scripts/normalize_step1_sdist.py",
+"share/skylark-lumi-trace/docs/reference" = [
+  "docs/reference/SCHEMA_COMPATIBILITY.md",
 ]
 "share/skylark-lumi-trace/schemas" = [
   "schemas/candidate-set-v1.json",

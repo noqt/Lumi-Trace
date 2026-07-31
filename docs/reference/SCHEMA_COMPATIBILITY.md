@@ -107,7 +107,7 @@ command.
 Plans are separate from findings. They require at least one step and all
 resource limits. Each step requires an argv array, safe relative `cwd`, and at
 least one exact expected exit-code/stdout/stderr predicate. See
-[Reproduction](REPRODUCTION.md).
+[Reproduction](../REPRODUCTION.md).
 
 ## Derived Runtime Contracts
 

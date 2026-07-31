@@ -1,220 +1,198 @@
 # Lumi Trace
 
-**Local vulnerability localisation and evidence for known security findings.**
+**Turn a known security finding into ranked source locations and a verifiable evidence package—without uploading your repository.**
 
-Lumi Trace is a local deterministic vulnerability-evidence instrument. Give it
-an existing finding and a local repository or archive; it ranks relevant
-implementation locations and writes reviewer-ready JSON and SARIF evidence.
-An explicitly supplied reproduction plan can optionally run in a preloaded,
-network-denied Docker container.
+Lumi Trace is a local command-line tool for application-security engineers, software maintainers, and security reviewers. Give it an existing finding and a local Python repository or supported archive. It will:
 
-The runtime has zero third-party Python dependencies, no hosted-inference path,
-no API-key requirement, and no packaged model weights. It does not discover
-vulnerabilities, generate repairs or exploits, or execute instructions found in
-SARIF or repository content.
+1. normalise the finding;
+2. create an immutable local snapshot of the repository;
+3. rank the files and symbols most relevant to the finding; and
+4. export human-reviewable JSON and SARIF evidence.
 
-## Release boundary
+Lumi Trace is deterministic: the same supported inputs produce the same ranked artifacts. Its primary workflow has no hosted-inference path, requires no API key, and sends no product telemetry.
 
-This is the `0.4.1` deterministic release candidate. Release preparation is
-complete only when the checks in [the Step 1 release gate](docs/STEP_1_RELEASE_GATE.md)
-and [release security guide](docs/RELEASE_SECURITY.md) have been followed. A
-release is made only from an approved, GitHub-verified signed tag through the
-manual GitHub Releases workflow. Lumi Trace is not published to PyPI.
+> **Stable release:** [`v0.4.2`](https://github.com/noqt/Lumi-Trace/releases/tag/v0.4.2) is the current published release. Use the documentation attached to a release when you need an exact match.
 
-The primary `trace` path uses the frozen deterministic
-`role-aware-sparse-v0.4.1.3` ranker. The private learned-route work remains
-non-default, unqualified development history; no checkpoint is distributed or
-used by the primary workflow. Step 1 implementation-location ranking is
-Python-only. Its current `.11` runtime uses a fixed lexical front end plus
-Python 3.11 grammar-validation projections capped at 16,384 characters, 512
-non-whitespace work units, 2,048 AST nodes and 128 AST levels; the host parser
-never supplies symbols or ranges. Exact index and candidate bytes must match on
-the supported CPython 3.11 and 3.12 runtimes with a recursion limit of at least
-1,000.
-Unsupported or ambiguous Python syntax remains a file candidate without
-partial symbols. The current deterministic profile accepts printable-ASCII
-repository paths only. Extracted symbols are lexical landmarks, not proof that
-a file imports or compiles. No broader language-support claim is made.
+## When Lumi Trace is useful
 
-Read the [product contract](docs/STEP_1_PRODUCT_CONTRACT.md),
-[quickstart](docs/STEP_1_QUICKSTART.md), [disclaimer](DISCLAIMER.md), and
-[privacy/data-handling statement](docs/PRIVACY_AND_DATA_HANDLING.md) first.
-V0.4/V0.4.1 integrity and programme history remain in the source repository
-but are deliberately excluded from Step 1 release artifacts.
+Use Lumi Trace when you already have a finding from a scanner, advisory, code review, penetration test, or incident investigation and need to answer:
 
-## Runtime Flow
+- Which files and functions should a reviewer inspect first?
+- What evidence was used to produce that ranking?
+- Can the result be exported back to SARIF?
+- Can an explicit reproduction plan be run locally under a restricted container policy?
 
-```text
-finding import -> normalisation -> clean-room repository snapshot and identity
--> deterministic index -> deterministic candidate ranking
--> optional network-denied reproduction -> fail-closed classification
--> JSON and SARIF export
-```
+Lumi Trace is **not** a vulnerability scanner. It does not discover new vulnerabilities, generate patches or exploits, decide that a repository is safe, or execute instructions embedded in findings or source code.
 
-Lumi Trace does not generate repairs and does not automatically execute
-instructions found in SARIF.
+## Key properties
+
+- **Local by default.** Findings, source, indexes, and evidence stay on your machine.
+- **Deterministic.** Ranking and artifact identities are reproducible for supported inputs.
+- **Auditable.** Outputs include the normalized finding, repository identity, candidates, SARIF, and a hash-bound manifest.
+- **Fail-closed.** Unsupported or ambiguous inputs are rejected or reported as abstentions rather than guessed through.
+- **Optional restricted reproduction.** A user-authored plan can run in a preloaded, network-denied Linux container. Docker is not required for localisation.
 
 ## Requirements
 
 - CPython 3.11 or 3.12.
-- The current Step 1 deterministic profile requires printable-ASCII
-  repository paths.
-- No third-party Python package is required at runtime.
-- Docker is optional and is used only for reproduction.
-- Reproduction requires a reachable Docker-compatible daemon configured for
-  **Linux containers** and an immutable digest-form reference for an image
-  already present locally: either `sha256:<64 lowercase hex characters>` or
-  `NAME@sha256:<64 lowercase hex characters>`. Lumi Trace never pulls an image.
-- The local reproduction image must provide `/bin/sh` so the sandbox can run
-  its qualification probe. Qualification must pass before any plan step runs.
+- A local repository directory, ZIP archive, or supported TAR-family archive.
+- Printable-ASCII repository-relative paths in the current product profile.
+- Docker-compatible Linux containers only when optional reproduction is requested.
 
-## Quickstart
+The current supported localisation profile is Python-focused. Other files may be indexed as context, but broader language-localisation coverage is not claimed.
 
-Install the supplied wheel in a clean environment, then run it only against a
-finding and repository or archive you are authorised to analyse. Lumi Trace
-does not include a public demo, sample advisory, or third-party repository.
+## Install
 
-Save a valid `manual-finding-v1` document as `finding.json` (see
-[Schemas](docs/SCHEMAS.md)), and replace `./local-repository` below with your
-local repository directory or supported archive.
+### From a GitHub Release
+
+Download the wheel from the [GitHub Release](https://github.com/noqt/Lumi-Trace/releases/tag/v0.4.2), then install it in a clean virtual environment.
+
+Bash:
 
 ```sh
-python3 -m venv lumi-trace-env
-. lumi-trace-env/bin/activate
-python -m pip install --no-index --no-deps --disable-pip-version-check \
-  ./skylark_lumi_trace-0.4.1-py3-none-any.whl
-
-lumi-trace trace \
-  --finding ./finding.json \
-  --finding-format manual \
-  --repository ./local-repository \
-  --output ./trace-evidence
-
-lumi-trace verify ./trace-evidence
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install --no-deps ./skylark_lumi_trace-0.4.2-py3-none-any.whl
+lumi-trace version
 ```
 
 PowerShell:
 
-The virtual-environment executables are called directly, so script activation
-and execution-policy changes are not required.
-
 ```powershell
-py -3.12 -m venv lumi-trace-env
-.\lumi-trace-env\Scripts\python.exe -m pip install `
-  --no-index --no-deps --disable-pip-version-check `
-  .\skylark_lumi_trace-0.4.1-py3-none-any.whl
-.\lumi-trace-env\Scripts\lumi-trace.exe trace `
-  --finding .\finding.json `
-  --finding-format manual `
-  --repository .\local-repository `
-  --output .\trace-evidence
-.\lumi-trace-env\Scripts\lumi-trace.exe verify .\trace-evidence
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --no-deps `
+  .\skylark_lumi_trace-0.4.2-py3-none-any.whl
+.\.venv\Scripts\lumi-trace.exe version
 ```
 
-See the [complete quickstart](docs/STEP_1_QUICKSTART.md) for Bash, PowerShell,
-input requirements, expected output, and common corrections.
+Use the filename from the release you downloaded. Do not copy the `0.4.2` command against a different release.
 
-The quickstart intentionally omits reproduction. It succeeds with
-`INSUFFICIENT_EVIDENCE / NO_REPRODUCTION_PLAN`: an explicit abstention from
-confirmation, not an operational failure.
+### From source
 
-## Supported Inputs
+```sh
+git clone https://github.com/noqt/Lumi-Trace.git
+cd Lumi-Trace
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install .
+lumi-trace version
+```
 
-- Strict `manual-finding-v1` JSON.
-- SARIF 2.1.0. A complete trace selects exactly one result with
-  `--run-index` and `--result-index` when the input contains more than one.
-- An existing `normalized-finding-v1` JSON document.
-- A local repository directory, immutable ZIP, or bounded USTAR-compatible
-  TAR-family archive.
-- An optional, user-authored `reproduction-plan-v1` plus a digest-form reference
-  to a local Linux-container image.
+## Five-minute synthetic walkthrough
 
-Remote repository URLs and remote SARIF artifact locations are not supported.
-Repository symlinks, special files, unsafe archive paths, encrypted ZIP members,
-and archive links fail closed.
+The source repository and source archive include a small Skylark-authored fixture under `examples/quickstart/`. It demonstrates installation, ranking, output, and verification. It is not a benchmark or a claim about real-world detection coverage.
 
-## CLI
+From the repository root:
 
-| Command | Purpose |
+```sh
+lumi-trace trace \
+  --finding examples/quickstart/finding.json \
+  --finding-format manual \
+  --repository examples/quickstart/repository \
+  --output out/quickstart
+
+lumi-trace verify out/quickstart
+```
+
+PowerShell:
+
+```powershell
+.\.venv\Scripts\lumi-trace.exe trace `
+  --finding .\examples\quickstart\finding.json `
+  --finding-format manual `
+  --repository .\examples\quickstart\repository `
+  --output .\out\quickstart
+
+.\.venv\Scripts\lumi-trace.exe verify .\out\quickstart
+```
+
+The summary should place `src/archive.py::extraction_target` among the leading implementation locations.
+
+The walkthrough does not supply a reproduction plan, so the human summary is expected to include:
+
+```text
+Localisation: complete
+Ranked locations: 2
+Confirmation: not attempted (NO_REPRODUCTION_PLAN)
+Evidence classification: INSUFFICIENT_EVIDENCE
+```
+
+That does **not** mean localisation failed. It means candidate ranking completed, but Lumi Trace was not asked to execute a witness and therefore did not confirm the finding. See [Understanding results](docs/PRODUCT_SCOPE.md#localisation-and-confirmation-are-separate).
+
+Choose a new `--output` directory for each run. Lumi Trace does not overwrite an existing evidence package.
+
+## Run against your own finding
+
+A minimal manual finding is:
+
+```json
+{
+  "schema_version": "manual-finding-v1",
+  "title": "Archive member path may escape the extraction root",
+  "description": "Member names should be validated before they are joined to the extraction root.",
+  "severity": "high",
+  "keywords": ["archive", "member", "path", "traversal"]
+}
+```
+
+Save it as `finding.json`, then run:
+
+```sh
+lumi-trace trace \
+  --finding finding.json \
+  --finding-format manual \
+  --repository /path/to/local/repository \
+  --output out/my-trace
+```
+
+Lumi Trace also accepts a selected SARIF 2.1.0 result and an already-normalized finding. See [Inputs and outputs](docs/INPUTS_AND_OUTPUTS.md).
+
+## What gets written
+
+A normal localisation run produces:
+
+| File | Purpose |
 | --- | --- |
-| `version` | Report version, inventory identity, and the zero-weight model status. |
-| `status --image IMAGE_DIGEST` | Inspect Docker availability and whether an immutable digest-form image is already local. |
-| `import-manual` | Convert one manual finding to `normalized-finding-v1`. |
-| `import-sarif` | Convert selected or all SARIF 2.1.0 results to normalized findings. |
-| `index` | Snapshot and deterministically index a directory or archive. |
-| `rank` | Rank files and symbols from a normalized finding and repository index. |
-| `localize` | Non-default development interface retained for V0.4.1 history; the learned option requires an explicitly supplied local artifact. |
-| `reproduce` | Run an explicit plan in the qualified network-denied sandbox. |
-| `trace` | Run the complete import-to-export pipeline. |
-| `export-sarif` | Project a verified evidence bundle to SARIF 2.1.0. |
-| `validate` | Apply built-in invariants and identity checks to a supported contract. |
-| `verify` | Verify an evidence bundle or a packaged output manifest and hashes. |
+| `normalized-finding.json` | Canonical representation of the selected finding. |
+| `repository-index.json` | Local snapshot identity and deterministic file/symbol index. |
+| `candidates.json` | Ranked candidate files and symbols with score reasons. |
+| `evidence-bundle.json` | Combined ranking, provenance, limitations, and classification. |
+| `evidence.sarif` | SARIF 2.1.0 projection for compatible tools. |
+| `manifest.json` | File sizes, SHA-256 hashes, and package identity. |
 
-All commands print a compact JSON summary on success and return a non-zero exit
-status for invalid, unsupported, or integrity-failing inputs. `trace` also
-prints a readable ranked-location/evidence summary.
+When optional reproduction is requested, the package also contains the validated plan and reproduction receipt.
 
-## Outputs
+Verify an output directory at any time:
 
-A successful `trace` writes:
+```sh
+lumi-trace verify out/my-trace
+```
 
-- `normalized-finding.json`;
-- `repository-index.json`;
-- `candidates.json`;
-- `evidence-bundle.json`;
-- `evidence.sarif`;
-- `reproduction-plan.json` and `reproduction-receipt.json` when reproduction
-  was requested; and
-- `manifest.json`, which records artifact hashes and package identity.
+Verification checks structure, identities, hashes, and cross-artifact consistency. It does not independently prove that the security finding is true.
 
-Identifiers and receipts use canonical JSON and SHA-256-derived identities.
-SARIF output contains candidate paths, symbols, and source regions but never
-source snippets.
+## Documentation
 
-## Deterministic Classification
+- [Getting started](docs/GETTING_STARTED.md)
+- [Product scope and limitations](docs/PRODUCT_SCOPE.md)
+- [Inputs and outputs](docs/INPUTS_AND_OUTPUTS.md)
+- [Optional local reproduction](docs/REPRODUCTION.md)
+- [Privacy and data handling](docs/PRIVACY.md)
+- [Runtime threat model](docs/THREAT_MODEL.md)
+- [Security policy](SECURITY.md)
+- [Contributing](CONTRIBUTING.md)
 
-Lumi Trace emits exactly one of:
+Machine-readable JSON Schemas are published under [`schemas/`](schemas/).
 
-- `CONFIRMED`: every declared witness matched in a qualified sandbox, network
-  denial and snapshot immutability were attested, and no infrastructure reason
-  forced abstention;
-- `UNSUPPORTED`: the requested reproduction could not be performed within the
-  V0.1 contract; or
-- `INSUFFICIENT_EVIDENCE`: no reproduction was requested, a witness did not
-  match, or a sandbox, timeout, output, immutability, or infrastructure
-  condition prevented confirmation.
+## Security and privacy
 
-Confidence grades and basis points are deterministic evidence descriptors, not
-probabilities.
+Repository content is treated as untrusted data during localisation and is not imported or executed. Optional reproduction occurs only when the operator supplies a separate plan and immutable local container-image reference.
 
-## Privacy Warning
+Evidence packages can still contain sensitive finding text, repository paths, symbols, hashes, and optional bounded process output. Keep them access-controlled and do not attach private evidence to public issues.
 
-Keep output directories local and access-controlled. Even though SARIF omits
-source snippets, output can contain customer finding text, repository paths,
-symbol names, token vocabulary, source locations, hashes, reproduction
-metadata, and opt-in bounded stdout/stderr previews. Do not commit or publish
-customer evidence or third-party repository-derived output.
+Report suspected vulnerabilities through GitHub's private vulnerability-reporting flow described in [SECURITY.md](SECURITY.md).
 
-The only generated evidence permitted in this source repository is a
-versioned release seal produced exclusively from the licensed,
-Skylark-authored synthetic fixture. Every sealed artifact must be covered by
-the release-seal manifest and pass the public-boundary checks. This narrow
-exception never applies to customer or third-party-derived output.
+## Licence and support
 
-See the standalone [privacy statement](docs/PRIVACY_AND_DATA_HANDLING.md),
-[product contract](docs/STEP_1_PRODUCT_CONTRACT.md),
-[disclaimer](DISCLAIMER.md),
-[Threat Model](docs/THREAT_MODEL.md), [Schemas](docs/SCHEMAS.md), and
-[Reproduction](docs/REPRODUCTION.md).
+Skylark-owned source code and documentation are licensed under Apache-2.0. User-supplied repositories, findings, generated evidence, model weights, and third-party material are not licensed by that source-code licence.
 
-## Licence
-
-Skylark-owned source code and documentation are licensed under Apache-2.0.
-Future model weights, training data, customer evidence, protected evidence, and
-third-party repository contents are not licensed by that source-code licence.
-
-## Support
-
-Community support is best effort through GitHub Issues; there is no service
-level agreement. Report security vulnerabilities only through GitHub's private
-vulnerability-reporting flow described in [SECURITY.md](SECURITY.md).
+Community support is best effort through GitHub Issues. There is no service-level agreement.

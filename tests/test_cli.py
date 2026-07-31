@@ -68,8 +68,10 @@ def test_cli_import_and_trace_without_provider_or_api_key(
     assert summary["candidate_algorithm"] == "label-blind-python-role-candidates-v0.4.1.7"
     assert summary["reproduction_requested"] is False
     assert summary["reproduction_abstained"] is True
-    assert "Lumi Trace deterministic evidence" in captured.err
-    assert "non-error abstention" in captured.err
+    assert "Lumi Trace result" in captured.err
+    assert "Localisation: complete; abstained (NO_POSITIVE_FINDING_GUIDED_SIGNAL)" in captured.err
+    assert "Confirmation: not attempted (NO_REPRODUCTION_PLAN)" in captured.err
+    assert "Evidence classification: INSUFFICIENT_EVIDENCE" in captured.err
     assert f'lumi-trace verify "{output}"' in captured.err
     assert (output / "evidence.sarif").is_file()
     assert main(["verify", str(output)]) == 0

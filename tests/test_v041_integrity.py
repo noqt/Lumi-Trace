@@ -111,8 +111,10 @@ def test_builder_rechecks_the_governed_python_runtime(
         build_raw_localization(request, repository_source=fixture_repository)
 
 
-def test_governed_product_contract_names_the_current_profile(project_root: Path) -> None:
-    contract = (project_root / "docs" / "STEP_1_PRODUCT_CONTRACT.md").read_text(encoding="utf-8")
+def test_schema_compatibility_reference_names_the_current_profile(project_root: Path) -> None:
+    contract = (project_root / "docs" / "reference" / "SCHEMA_COMPATIBILITY.md").read_text(
+        encoding="utf-8"
+    )
 
     for identity in (
         RUNTIME_IDENTITY,

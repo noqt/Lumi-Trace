@@ -8,14 +8,14 @@ The latest GitHub Release is the supported version. Security fixes target the
 ## Reporting a Vulnerability
 
 Do not report a suspected vulnerability, sandbox escape, sensitive output, or
-customer-data exposure in a public issue.
+private-data exposure in a public issue.
 
 Use GitHub's **Security -> Report a vulnerability** private reporting flow. If
 that flow is temporarily unavailable, open a private draft advisory if your
 role permits it or contact a maintainer through an established private
 channel. Do not fall back to a public issue. Include only the minimum
 information necessary to reproduce the problem and remove credentials,
-customer source, protected evidence, and unrelated personal data.
+private source, sensitive evidence, and unrelated personal data.
 
 Maintainers will acknowledge receipt, assess affected versions and boundaries,
 and coordinate remediation and disclosure. No fixed response-time SLA applies.
@@ -48,10 +48,7 @@ approved plan inside a local container. Operators must:
 - select and verify a trusted image already present locally;
 - keep the Docker engine socket and host credentials outside the container;
 - leave output previews disabled unless they are necessary;
-- keep customer and ad hoc evidence directories local, private, and out of
-  version control; the only repository exception is a manifest-bound,
-  versioned release seal generated from the licensed Skylark-authored synthetic
-  fixture; and
+- keep private evidence directories local and out of version control; and
 - inspect the [threat model](docs/THREAT_MODEL.md) before reproduction.
 
 Network denial and container controls reduce risk; they do not eliminate Linux
@@ -60,7 +57,6 @@ authorised-code-execution risk. Lumi Trace has no host execution fallback.
 
 ## Disclosure Boundary
 
-Never attach historical Lumi evidence, customer evidence, protected holdback
-material, CyberGym tasks, third-party repository contents, credentials, or
-private manifests to a report. Hashes, minimal synthetic reproductions, and
-Skylark-authored fixtures are preferred.
+Never attach private source, real findings, generated evidence, third-party
+repository contents, credentials, or private manifests to a report. Minimal
+synthetic reproductions and Skylark-authored fixtures are preferred.
