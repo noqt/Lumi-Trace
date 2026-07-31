@@ -1,0 +1,118 @@
+{
+  "identity_exclusions": [
+    "observations"
+  ],
+  "payload": {
+    "closure_state": "ENVIRONMENT_QUALIFIED / DATA_GATES_PENDING",
+    "gates": [
+      {
+        "detail": "Dedicated Python 3.11 Trace-Eval roots and dependency lock qualified.",
+        "evidence": [
+          "environment-qualification:247b0cdd8fd8b33cfd4e30a71bf6ad3f48b53b321a8b19b87cb7221f9b8840b3"
+        ],
+        "gate": "trace_eval_environment_isolated",
+        "status": "MET"
+      },
+      {
+        "detail": "Released V0.1 wheel is verified by hash and CLI identity.",
+        "evidence": [
+          "environment-qualification:247b0cdd8fd8b33cfd4e30a71bf6ad3f48b53b321a8b19b87cb7221f9b8840b3",
+          "run-record:704d25e4c0cec90d841e3485d5b96d1f96e3283347e0c603a3499542de838a33"
+        ],
+        "gate": "exact_v0_1_runtime_verified",
+        "status": "MET"
+      },
+      {
+        "detail": "All retained public-fixture packages verify by exact manifest.",
+        "evidence": [
+          "trace-eval-package:b8c6a12a9fe1cf076e316cf2773a8c6cf3ad91c93c5ab92b26a103699053502f",
+          "trace-eval-package:c8487b2ac2221c398d8b71d9e12868592189dcc05219e679e41b90259cf32a95",
+          "trace-eval-package:26328e0abd80ea16159097245b1b463177393dd2905905df721241093821ec71"
+        ],
+        "gate": "retained_evidence_verifies",
+        "status": "MET"
+      },
+      {
+        "detail": "Public-fixture replay identity comparison.",
+        "evidence": [
+          "replay-verification:6dcd5f7c8e1f3b44088c48482359580aeace000c7277b7d1f3428cbd1fe1db1f"
+        ],
+        "gate": "same_host_determinism",
+        "status": "MET"
+      },
+      {
+        "detail": "Observed false confirmations: 0.",
+        "evidence": [
+          "aggregate-metrics:bd8b6416b8713faf8a28aff46220f44fa0d3f9f0fdcb39729ae89a906a24d189"
+        ],
+        "gate": "zero_false_confirmations_in_audited_controls",
+        "status": "MET"
+      },
+      {
+        "detail": "Only 3 public synthetic groups are present; they do not count as governed natural training candidates.",
+        "evidence": [
+          "trace-eval-registry:cecd1fd4ec427767ffb82cdfaaf4a527dbfe15e399783edadac4e674fbfe0474"
+        ],
+        "gate": "500_useful_labelled_groups",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "Only 1 public synthetic repositories are present.",
+        "evidence": [
+          "trace-eval-registry:cecd1fd4ec427767ffb82cdfaaf4a527dbfe15e399783edadac4e674fbfe0474"
+        ],
+        "gate": "25_unrelated_training_repositories",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "Development, qualification, and frozen-holdback corpora were not supplied or opened.",
+        "evidence": [
+          "trace-eval-registry:cecd1fd4ec427767ffb82cdfaaf4a527dbfe15e399783edadac4e674fbfe0474"
+        ],
+        "gate": "repository_disjoint_governed_partitions",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "Synthetic controls cannot establish natural hard-negative sufficiency.",
+        "evidence": [
+          "trace-eval-registry:cecd1fd4ec427767ffb82cdfaaf4a527dbfe15e399783edadac4e674fbfe0474"
+        ],
+        "gate": "meaningful_natural_hard_negatives",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "Public synthetic controlled-review receipts do not establish governed corpus scale.",
+        "evidence": [
+          "trace-eval-registry:cecd1fd4ec427767ffb82cdfaaf4a527dbfe15e399783edadac4e674fbfe0474"
+        ],
+        "gate": "audited_location_and_reproduction_labels",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "No ranking threshold may be approved from one public fixture repository.",
+        "evidence": [
+          "aggregate-metrics:bd8b6416b8713faf8a28aff46220f44fa0d3f9f0fdcb39729ae89a906a24d189"
+        ],
+        "gate": "approved_ranking_threshold",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "No foundation model or weight licence was selected; selection is outside V0.2 authority.",
+        "evidence": [],
+        "gate": "foundation_model_and_weight_licence",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "No separate training authority record exists.",
+        "evidence": [],
+        "gate": "separate_trace_001_authority",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      }
+    ],
+    "recommendation": "DO_NOT_BEGIN_TRACE_001",
+    "training_started": false,
+    "weights_downloaded": false
+  },
+  "record_id": "training-readiness-decision:046efb9f82a89bc519c97179665503b20124b177a2f918583337d5d5d5c78987",
+  "schema_version": "training-readiness-decision-v1"
+}

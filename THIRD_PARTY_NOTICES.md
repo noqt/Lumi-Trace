@@ -1,37 +1,26 @@
 # Third-Party Notices
 
-This file records third-party material distributed in the Lumi Trace source
-repository. It does not replace the licence supplied by a third-party author.
+This file records the third-party boundary for the Lumi Trace release source
+and packages. It does not replace any licence supplied by a third-party author.
 
-## Distributed Third-Party Material
+## Distributed material
 
-No third-party source code, model weights, training data, customer repository
-contents, CyberGym tasks, or protected Lumi evidence is vendored in the V0.1.0
-source distribution.
+The release does not distribute third-party source code, model weights,
+training data, advisory records, customer repository content, examples,
+generated evidence, CyberGym tasks, or protected Lumi evidence. The source,
+documentation, schemas, and synthetic test material in the release are
+Skylark-authored and licensed under Apache-2.0 unless a file states otherwise.
 
-Public test fixtures must be Skylark-authored synthetic content or must include
-a file-specific source, author, licence, and modification notice demonstrating
-that redistribution is permitted. A fixture without that provenance must not
-be included in a public release.
+Users supply their own findings and local repositories or archives. Those
+inputs and generated output do not become project content and remain subject to
+their owners' terms and the user's authority to analyse them.
 
-## External Dependencies
+## External development and release tools
 
-Packages installed from a package index for development, testing, building, or
-runtime use are not relicensed by Lumi Trace and are not covered by the
-repository's Apache-2.0 licence. Each dependency remains subject to its own
-licence and notice obligations.
-
-`scripts/dependency_inventory.py` generates the V0.1 resolved dependency and
-licence inventory entirely from installed package metadata. It records only
-canonical package names, versions, licence declarations, and direct/transitive
-relationships; it records no installation paths, download URLs, timestamps, or
-host details. `scripts/check_dependencies.py` fails closed on missing packages,
-unsatisfied requirements, unknown or prohibited licence metadata, direct URLs,
-or an inconsistent installed environment. The generated inventory is reviewed
-and manifest-bound as part of each versioned release seal.
-
-Lumi Trace has no Python runtime dependencies. The declared build and
-development tools are external and are not included in the source repository:
+Lumi Trace has no Python runtime dependencies. The following tools may be
+installed from their upstream package indexes for development, testing, build,
+or release checks; they are not bundled in the runtime package and are not
+relicensed by Lumi Trace.
 
 | Dependency | Declared version | Purpose | Upstream licence |
 | --- | --- | --- | --- |
@@ -46,23 +35,17 @@ development tools are external and are not included in the source repository:
 | Ruff | `0.12.3` | lint and formatting checks | MIT |
 | Twine | `6.1.0` | distribution metadata check | Apache-2.0 |
 
-Their transitive dependencies remain under their respective upstream
-licences. The inventory script traverses the active installed requirement
-closure, while `python -m pip-audit` provides the separate vulnerability check.
-All Python packages in this table and inventory are external build, test, or
-release tools; none is bundled into the V0.1 source distribution or imported by
-the Lumi Trace runtime.
+Their transitive dependencies remain under their respective upstream licences.
+The release dependency inventory and licence check are generated from installed
+package metadata and reviewed as part of each release build. Docker and a
+locally preloaded immutable Linux-container image are optional external
+prerequisites for reproduction; Lumi Trace does not redistribute them or pull
+images.
 
-Docker, the Linux container runtime, and the pinned Alpine smoke-test image are
-external prerequisites; Lumi Trace does not redistribute them. The smoke image
-is preloaded before testing and reproduction is executed by immutable local
-image identity with pulling disabled.
+## Historical private material
 
-## Prohibited Inputs
-
-The following are not third-party dependencies and must not be added to this
-notice as a way to legitimise distribution: customer evidence, historical Lumi
-evidence, protected holdback material, CyberGym task material, credentials,
-private manifests, or third-party repository contents collected during a Lumi
-Trace run. Those materials are outside the open-source boundary and must not be
-committed or published.
+Historical evaluation and development records may refer to upstream advisory
+feeds and repositories. They remain outside this release and are not a grant to
+redistribute those materials. Future third-party material must not be included
+unless its licence, attribution, modification notice, and redistribution rights
+are documented here before publication.

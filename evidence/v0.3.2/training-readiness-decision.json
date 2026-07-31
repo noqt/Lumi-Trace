@@ -1,0 +1,17 @@
+{
+  "all_entry_gates_satisfied": false,
+  "model_provider_used": false,
+  "primary_blockers": [
+    "INSUFFICIENT_TRAINING_ELIGIBLE_GROUPS",
+    "INSUFFICIENT_TRAINING_ELIGIBLE_REPOSITORY_FAMILIES",
+    "TRAINING_RIGHTS_NOT_ESTABLISHED",
+    "PROTECTED_HOLDBACK_UNOPENED"
+  ],
+  "recommendation": "DO_NOT_BEGIN_TRACE_001",
+  "schema_version": "lumi-trace-v0.3.2-training-readiness-decision-v1",
+  "training_data_groups": 0,
+  "training_repository_families": 0,
+  "training_started": false,
+  "weights_downloaded": false,
+  "weights_produced": false
+}

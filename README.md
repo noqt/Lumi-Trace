@@ -1,35 +1,46 @@
 # Lumi Trace
 
-> **V0.1 public source release.** The source code is released under Apache-2.0
-> after a controlled internal evidence review. This release does not authorise
-> `TRACE-001` training, model-weight publication, or use of protected evidence.
+**Local vulnerability localisation and evidence for known security findings.**
 
-Lumi Trace is a customer-local vulnerability evidence instrument. It imports a
-finding, creates a clean-room snapshot of a local repository or archive, builds
-a deterministic file and symbol index, ranks relevant locations, optionally
-attempts an explicitly supplied reproduction plan in a network-denied Docker
-sandbox, and exports an auditable evidence package.
+Lumi Trace is a local deterministic vulnerability-evidence instrument. Give it
+an existing finding and a local repository or archive; it ranks relevant
+implementation locations and writes reviewer-ready JSON and SARIF evidence.
+An explicitly supplied reproduction plan can optionally run in a preloaded,
+network-denied Docker container.
 
-V0.1 has zero third-party Python runtime dependencies, zero model weights, no
-hosted inference, and no API-key requirement. It is a deterministic software
-baseline, not a trained ML model.
+The runtime has zero third-party Python dependencies, no hosted-inference path,
+no API-key requirement, and no packaged model weights. It does not discover
+vulnerabilities, generate repairs or exploits, or execute instructions found in
+SARIF or repository content.
 
-## Current Status and Hard Stops
+## Release boundary
 
-- Version: `0.1.0`, initial public source release.
-- Inventory identity: `skylark.lumi.trace`.
-- Model status: `PROPOSED_NOT_TRAINED`; checkpoint: none; active parameters: 0.
-- Source status: approved for publication after controlled internal review.
-- `TRACE-001` recommendation: `DO_NOT_BEGIN_TRACE_001`.
-- Historical Lumi evidence, customer evidence, protected holdbacks, CyberGym
-  tasks, and rejected V2.7 adapters are outside this build.
+This is the `0.4.1` deterministic release candidate. Release preparation is
+complete only when the checks in [the Step 1 release gate](docs/STEP_1_RELEASE_GATE.md)
+and [release security guide](docs/RELEASE_SECURITY.md) have been followed. A
+release is made only from an approved, GitHub-verified signed tag through the
+manual GitHub Releases workflow. Lumi Trace is not published to PyPI.
 
-See the [model card](docs/MODEL_CARD.md), [training-readiness
-record](docs/TRAINING_READINESS.md), and [open-source
-boundary](docs/OPEN_SOURCE_BOUNDARY.md).
+The primary `trace` path uses the frozen deterministic
+`role-aware-sparse-v0.4.1.3` ranker. The private learned-route work remains
+non-default, unqualified development history; no checkpoint is distributed or
+used by the primary workflow. Step 1 implementation-location ranking is
+Python-only. Its current `.11` runtime uses a fixed lexical front end plus
+Python 3.11 grammar-validation projections capped at 16,384 characters, 512
+non-whitespace work units, 2,048 AST nodes and 128 AST levels; the host parser
+never supplies symbols or ranges. Exact index and candidate bytes must match on
+the supported CPython 3.11 and 3.12 runtimes with a recursion limit of at least
+1,000.
+Unsupported or ambiguous Python syntax remains a file candidate without
+partial symbols. The current deterministic profile accepts printable-ASCII
+repository paths only. Extracted symbols are lexical landmarks, not proof that
+a file imports or compiles. No broader language-support claim is made.
 
-The owned-fixture V0.1 release seal and its controlled verification workflow
-are documented in [V0.1 Release Evidence](docs/RELEASE_EVIDENCE.md).
+Read the [product contract](docs/STEP_1_PRODUCT_CONTRACT.md),
+[quickstart](docs/STEP_1_QUICKSTART.md), [disclaimer](DISCLAIMER.md), and
+[privacy/data-handling statement](docs/PRIVACY_AND_DATA_HANDLING.md) first.
+V0.4/V0.4.1 integrity and programme history remain in the source repository
+but are deliberately excluded from Step 1 release artifacts.
 
 ## Runtime Flow
 
@@ -45,7 +56,9 @@ instructions found in SARIF.
 
 ## Requirements
 
-- Python 3.11 or newer.
+- CPython 3.11 or 3.12.
+- The current Step 1 deterministic profile requires printable-ASCII
+  repository paths.
 - No third-party Python package is required at runtime.
 - Docker is optional and is used only for reproduction.
 - Reproduction requires a reachable Docker-compatible daemon configured for
@@ -57,36 +70,53 @@ instructions found in SARIF.
 
 ## Quickstart
 
-Run directly from a checkout without installing the package:
+Install the supplied wheel in a clean environment, then run it only against a
+finding and repository or archive you are authorised to analyse. Lumi Trace
+does not include a public demo, sample advisory, or third-party repository.
+
+Save a valid `manual-finding-v1` document as `finding.json` (see
+[Schemas](docs/SCHEMAS.md)), and replace `./local-repository` below with your
+local repository directory or supported archive.
 
 ```sh
-PYTHONPATH=src python -m lumi_trace version
+python3 -m venv lumi-trace-env
+. lumi-trace-env/bin/activate
+python -m pip install --no-index --no-deps --disable-pip-version-check \
+  ./skylark_lumi_trace-0.4.1-py3-none-any.whl
 
-PYTHONPATH=src python -m lumi_trace trace \
-  --finding tests/data/manual-finding.json \
+lumi-trace trace \
+  --finding ./finding.json \
   --finding-format manual \
-  --repository tests/fixtures/demo-repository \
-  --output out/quickstart
+  --repository ./local-repository \
+  --output ./trace-evidence
+
+lumi-trace verify ./trace-evidence
 ```
 
-PowerShell uses the equivalent environment assignment:
+PowerShell:
+
+The virtual-environment executables are called directly, so script activation
+and execution-policy changes are not required.
 
 ```powershell
-$env:PYTHONPATH = "src"
-python -m lumi_trace version
-python -m lumi_trace trace --finding tests/data/manual-finding.json --finding-format manual --repository tests/fixtures/demo-repository --output out/quickstart
+py -3.12 -m venv lumi-trace-env
+.\lumi-trace-env\Scripts\python.exe -m pip install `
+  --no-index --no-deps --disable-pip-version-check `
+  .\skylark_lumi_trace-0.4.1-py3-none-any.whl
+.\lumi-trace-env\Scripts\lumi-trace.exe trace `
+  --finding .\finding.json `
+  --finding-format manual `
+  --repository .\local-repository `
+  --output .\trace-evidence
+.\lumi-trace-env\Scripts\lumi-trace.exe verify .\trace-evidence
 ```
 
-The quickstart intentionally omits a reproduction plan, so its deterministic
-classification is `INSUFFICIENT_EVIDENCE` with reason
-`NO_REPRODUCTION_PLAN`. That is an abstention, not an error.
+See the [complete quickstart](docs/STEP_1_QUICKSTART.md) for Bash, PowerShell,
+input requirements, expected output, and common corrections.
 
-For local command help:
-
-```sh
-PYTHONPATH=src python -m lumi_trace --help
-PYTHONPATH=src python -m lumi_trace trace --help
-```
+The quickstart intentionally omits reproduction. It succeeds with
+`INSUFFICIENT_EVIDENCE / NO_REPRODUCTION_PLAN`: an explicit abstention from
+confirmation, not an operational failure.
 
 ## Supported Inputs
 
@@ -94,13 +124,14 @@ PYTHONPATH=src python -m lumi_trace trace --help
 - SARIF 2.1.0. A complete trace selects exactly one result with
   `--run-index` and `--result-index` when the input contains more than one.
 - An existing `normalized-finding-v1` JSON document.
-- A local repository directory or immutable ZIP/TAR-family archive.
+- A local repository directory, immutable ZIP, or bounded USTAR-compatible
+  TAR-family archive.
 - An optional, user-authored `reproduction-plan-v1` plus a digest-form reference
   to a local Linux-container image.
 
 Remote repository URLs and remote SARIF artifact locations are not supported.
 Repository symlinks, special files, unsafe archive paths, encrypted ZIP members,
-and archive links fail closed in V0.1.
+and archive links fail closed.
 
 ## CLI
 
@@ -112,6 +143,7 @@ and archive links fail closed in V0.1.
 | `import-sarif` | Convert selected or all SARIF 2.1.0 results to normalized findings. |
 | `index` | Snapshot and deterministically index a directory or archive. |
 | `rank` | Rank files and symbols from a normalized finding and repository index. |
+| `localize` | Non-default development interface retained for V0.4.1 history; the learned option requires an explicitly supplied local artifact. |
 | `reproduce` | Run an explicit plan in the qualified network-denied sandbox. |
 | `trace` | Run the complete import-to-export pipeline. |
 | `export-sarif` | Project a verified evidence bundle to SARIF 2.1.0. |
@@ -119,7 +151,8 @@ and archive links fail closed in V0.1.
 | `verify` | Verify an evidence bundle or a packaged output manifest and hashes. |
 
 All commands print a compact JSON summary on success and return a non-zero exit
-status for invalid, unsupported, or integrity-failing inputs.
+status for invalid, unsupported, or integrity-failing inputs. `trace` also
+prints a readable ranked-location/evidence summary.
 
 ## Outputs
 
@@ -168,12 +201,20 @@ Skylark-authored synthetic fixture. Every sealed artifact must be covered by
 the release-seal manifest and pass the public-boundary checks. This narrow
 exception never applies to customer or third-party-derived output.
 
-See [Architecture](docs/ARCHITECTURE.md), [Threat Model](docs/THREAT_MODEL.md),
-[Schemas](docs/SCHEMAS.md), and [Reproduction](docs/REPRODUCTION.md) for the V0.1
-contract and limits.
+See the standalone [privacy statement](docs/PRIVACY_AND_DATA_HANDLING.md),
+[product contract](docs/STEP_1_PRODUCT_CONTRACT.md),
+[disclaimer](DISCLAIMER.md),
+[Threat Model](docs/THREAT_MODEL.md), [Schemas](docs/SCHEMAS.md), and
+[Reproduction](docs/REPRODUCTION.md).
 
 ## Licence
 
 Skylark-owned source code and documentation are licensed under Apache-2.0.
 Future model weights, training data, customer evidence, protected evidence, and
 third-party repository contents are not licensed by that source-code licence.
+
+## Support
+
+Community support is best effort through GitHub Issues; there is no service
+level agreement. Report security vulnerabilities only through GitHub's private
+vulnerability-reporting flow described in [SECURITY.md](SECURITY.md).

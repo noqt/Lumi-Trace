@@ -1,0 +1,23 @@
+{
+  "next_actions": [
+    "ACQUIRE_ADDITIONAL_INDEPENDENT_SOURCE_FAMILIES",
+    "CONTINUE_ROLE_AND_HARD_NEGATIVE_DEVELOPMENT",
+    "LOCK_AT_MOST_THREE_CANDIDATES",
+    "OPEN_FRESH_MODEL_SELECTION_ONLY_AFTER_SUPPLY_AND_LOCK_GATES"
+  ],
+  "qualification_or_holdback_action_authorised": false,
+  "record_id": "v0.4.1-public-continuation-package:e96305ab01727a70bf7e450c2fdcd6c35c129e9bf49c552bbd2b57790431cdf0",
+  "required_external_data": {
+    "additional_model_selection_raw_groups": 449,
+    "additional_qualification_raw_groups": 535,
+    "model_selection_family_gap": 1,
+    "qualification_family_gap": 0
+  },
+  "resume_conditions": [
+    "NEW_RIGHTS_APPROVED_INDEPENDENT_PUBLIC_SOURCE_SUPPLY",
+    "DEVELOPMENT_SHORTLIST_AND_SELECTION_RULE_LOCKED",
+    "FRESH_PARTITION_INDEPENDENCE_GATES_PASS"
+  ],
+  "schema_version": "lumi-trace-v0.4.1-public-continuation-package-v1",
+  "state": "READY_TO_RESUME_DEVELOPMENT"
+}

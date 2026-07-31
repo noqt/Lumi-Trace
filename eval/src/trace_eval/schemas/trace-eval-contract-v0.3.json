@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "trace-eval-contract-v0.3.json",
+  "title": "Trace-Eval canonical record envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "record_id", "identity_exclusions", "payload"],
+  "properties": {
+    "schema_version": {
+      "enum": [
+        "environment-qualification-v1",
+        "repository-rights-manifest-v1",
+        "candidate-ranking-group-v1",
+        "label-set-v1",
+        "split-manifest-v1",
+        "exposure-transition-v1",
+        "evaluator-configuration-v1",
+        "metric-specification-v1",
+        "registry-snapshot-v1",
+        "run-record-v1",
+        "attempt-record-v1",
+        "case-result-v1",
+        "raw-output-seal-v1",
+        "replay-verification-v1",
+        "aggregate-metrics-v1",
+        "controlled-review-receipt-v1",
+        "qualification-decision-v1",
+        "training-readiness-decision-v1",
+        "programme-boundary-v1",
+        "natural-corpus-registry-v1",
+        "trace-code-location-label-v1",
+        "trace-code-metric-specification-v1",
+        "trace-code-case-result-v1",
+        "trace-code-aggregate-metrics-v1",
+        "repository-lineage-audit-v1",
+        "trace-ir-event-v1",
+        "trace-ir-episode-v1",
+        "trace-ir-label-v1",
+        "trace-ir-result-v1",
+        "trace-ir-metrics-v1",
+        "trace-ir-feasibility-decision-v1",
+        "v0.3-closure-v1"
+      ]
+    },
+    "record_id": {"type": "string", "pattern": "^[a-z0-9.-]+:[0-9a-f]{64}$"},
+    "identity_exclusions": {"const": ["observations"]},
+    "payload": {"type": "object", "minProperties": 1},
+    "observations": {"type": "object"}
+  }
+}

@@ -147,11 +147,12 @@ def _verify_checks(root: Path, source_revision: str) -> None:
 
 
 def _verify_evidence_package(
-    root: Path, source_revision: str
+    root: Path, source_revision: str, *, runtime_source: Path | None
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    source_root = str(ROOT / "src")
-    if source_root not in sys.path:
-        sys.path.insert(0, source_root)
+    if runtime_source is not None:
+        source_root = str(runtime_source)
+        if source_root not in sys.path:
+            sys.path.insert(0, source_root)
     from lumi_trace.cli import _verify_package  # noqa: PLC0415
 
     package = root / "evidence-package"
@@ -461,14 +462,14 @@ def _verify_exact_tree(root: Path, actual: dict[str, Path]) -> None:
         raise SealError("sealed evidence tree contains an unexpected or missing component")
 
 
-def verify_seal(root: Path) -> dict[str, Any]:
+def verify_seal(root: Path, *, runtime_source: Path | None = ROOT / "src") -> dict[str, Any]:
     """Verify the complete V0.1 evidence seal and return its manifest."""
 
     manifest, actual = verify_seal_manifest(root)
     source_revision = manifest["source_revision"]
     _assert_public_safe_json(root)
     _verify_checks(root, source_revision)
-    _, receipt = _verify_evidence_package(root, source_revision)
+    _, receipt = _verify_evidence_package(root, source_revision, runtime_source=runtime_source)
     _verify_qualification(root, source_revision, receipt)
     _verify_inventory(root, source_revision)
     _verify_release_artifacts(root, source_revision)
@@ -480,9 +481,17 @@ def verify_seal(root: Path) -> dict[str, Any]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("path", nargs="?", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument(
+        "--installed-runtime",
+        action="store_true",
+        help="verify contracts with the active environment's installed historical runtime",
+    )
     arguments = parser.parse_args(argv)
     try:
-        manifest = verify_seal(arguments.path)
+        manifest = verify_seal(
+            arguments.path,
+            runtime_source=None if arguments.installed_runtime else ROOT / "src",
+        )
     except (OSError, SealError, ValueError, zipfile.BadZipFile, tarfile.TarError) as exc:
         print(f"V0.1 evidence verification failed: {exc}", file=sys.stderr)
         return 1

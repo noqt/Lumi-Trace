@@ -20,7 +20,22 @@
       "const": "candidate-set-v1"
     },
     "algorithm": {
-      "const": "deterministic-candidate-ranking-v1"
+      "enum": [
+        "deterministic-candidate-ranking-v1",
+        "deterministic-candidate-ranking-v2",
+        "role-aware-sparse-v0.4.1.3"
+      ]
+    },
+    "candidate_algorithm": {
+      "enum": [
+        "label-blind-python-role-candidates-v0.4.1.5",
+        "label-blind-python-role-candidates-v0.4.1.6",
+        "label-blind-python-role-candidates-v0.4.1.7"
+      ]
+    },
+    "ranking_id": {
+      "type": "string",
+      "pattern": "^ranking:[0-9a-f]{64}$"
     },
     "finding_id": {
       "type": "string",
@@ -49,12 +64,175 @@
     "confidence_is_not_probability": {
       "const": true
     },
+    "confidence_descriptor": {
+      "enum": [
+        "ABSTAINED",
+        "FINDING_GUIDED_SIGNAL_PRESENT"
+      ]
+    },
+    "abstention": {
+      "$ref": "#/$defs/abstention"
+    },
     "candidate_set_id": {
       "type": "string",
       "pattern": "^candidate-set:[0-9a-f]{64}$"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "algorithm": {
+            "const": "role-aware-sparse-v0.4.1.3"
+          }
+        },
+        "required": [
+          "algorithm"
+        ]
+      },
+      "then": {
+        "required": [
+          "candidate_algorithm",
+          "ranking_id",
+          "confidence_descriptor",
+          "abstention"
+        ],
+        "properties": {
+          "candidates": {
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/candidate"
+                },
+                {
+                  "required": [
+                    "role"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "candidate_algorithm"
+              ]
+            },
+            {
+              "required": [
+                "ranking_id"
+              ]
+            },
+            {
+              "required": [
+                "confidence_descriptor"
+              ]
+            },
+            {
+              "required": [
+                "abstention"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "candidate_algorithm": {
+            "const": "label-blind-python-role-candidates-v0.4.1.7"
+          }
+        },
+        "required": [
+          "candidate_algorithm"
+        ]
+      },
+      "then": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "properties": {
+                "path": {
+                  "pattern": "^(?![\\s\\S]*[^\\u0020-\\u007e])[\\u0020-\\u007e]+$"
+                },
+                "symbol": {
+                  "properties": {
+                    "extractor": {
+                      "const": "python-lexical-v1"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "candidate_algorithm": {
+            "enum": [
+              "label-blind-python-role-candidates-v0.4.1.5",
+              "label-blind-python-role-candidates-v0.4.1.6"
+            ]
+          }
+        },
+        "required": [
+          "candidate_algorithm"
+        ]
+      },
+      "then": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "properties": {
+                "symbol": {
+                  "properties": {
+                    "extractor": {
+                      "const": "python-ast-v1"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
+    "abstention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "abstained",
+        "reason"
+      ],
+      "properties": {
+        "abstained": {
+          "type": "boolean"
+        },
+        "reason": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "const": "NO_POSITIVE_FINDING_GUIDED_SIGNAL"
+            },
+            {
+              "const": "CANDIDATE_GENERATION_TRUNCATED"
+            }
+          ]
+        }
+      }
+    },
     "relativePath": {
       "type": "string",
       "minLength": 1,
@@ -105,6 +283,8 @@
         },
         "matches": {
           "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
           "uniqueItems": true,
           "items": {
             "type": "string",
@@ -138,6 +318,7 @@
         "extractor": {
           "enum": [
             "python-ast-v1",
+            "python-lexical-v1",
             "lexical-v1"
           ]
         }
@@ -187,6 +368,16 @@
         "rank": {
           "type": "integer",
           "minimum": 1
+        },
+        "role": {
+          "enum": [
+            "implementation",
+            "wrapper",
+            "test",
+            "fixture",
+            "generated",
+            "vendor"
+          ]
         }
       },
       "allOf": [

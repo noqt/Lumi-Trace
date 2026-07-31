@@ -1,15 +1,45 @@
+prune docs
+prune eval
+prune evidence
+prune examples
+prune schemas
+prune scripts
+prune tests
+exclude model-inventory.yaml
+
 include CODE_OF_CONDUCT.md
 include CHANGELOG.md
 include CONTRIBUTING.md
+include DISCLAIMER.md
 include LICENSE
 include NOTICE
 include README.md
 include SECURITY.md
 include THIRD_PARTY_NOTICES.md
-include model-inventory.yaml
-recursive-include docs *.md
-prune evidence
-recursive-include examples *.md
-recursive-include schemas *.json
-recursive-include scripts *.py
-recursive-include tests *.py *.json *.sarif *.sh *.md LICENSE
+include docs/PRIVACY_AND_DATA_HANDLING.md
+include docs/RELEASE_SECURITY.md
+include docs/REPRODUCTION.md
+include docs/SCHEMAS.md
+include docs/STEP_1_PRODUCT_CONTRACT.md
+include docs/STEP_1_QUICKSTART.md
+include docs/STEP_1_RELEASE_GATE.md
+include docs/STEP_1_REPRODUCIBLE_RELEASE.md
+include docs/THREAT_MODEL.md
+include schemas/candidate-set-v1.json
+include schemas/evidence-bundle-v1.json
+include schemas/evidence-package-manifest-v1.json
+include schemas/localization-inference-request-v0.4.1.json
+include schemas/localization-raw-ranking-v0.4.1.json
+include schemas/manual-finding-v1.json
+include schemas/normalized-finding-collection-v1.json
+include schemas/normalized-finding-v1.json
+include schemas/repository-index-v1.json
+include schemas/reproduction-plan-v1.json
+include schemas/reproduction-receipt-v1.json
+include scripts/build_step1_release_evidence.py
+include scripts/normalize_step1_sdist.py
+recursive-include src *.py
+global-exclude *.py[cod]
+global-exclude __pycache__
+global-exclude .pytest_cache
+global-exclude .ruff_cache

@@ -1,94 +1,148 @@
-# Lumi Trace V0.1.0 Model Card
+# Lumi Trace V0.4.1 Development Model Card
 
 ## Status
 
-Lumi Trace V0.1.0 is a deterministic local vulnerability-evidence
-instrument. It is **not an ML model**.
+Lumi Trace V0.4.1 contains product support for a private development ranker,
+but no model weight is included in the repository, wheel, or source
+distribution. The candidate has not entered fresh model selection or
+qualification and is not authorised for customer or public use.
 
 | Field | Value |
 | --- | --- |
 | Inventory identity | `skylark.lumi.trace` |
-| Model status | `PROPOSED_NOT_TRAINED` |
-| Checkpoint | None |
-| Weight files | None |
-| Active learned parameters | 0 |
-| Skylark-trained parameters | 0 |
-| Training data | None |
+| Model status | `PRIVATE_DEVELOPMENT_CANDIDATE_NOT_QUALIFIED` |
+| Product runtime | `lumi-trace-runtime-v0.4.1-pre-release.8` |
+| Product package | `0.4.1` |
+| Checkpoint | Private governed canonical JSON; not packaged or published |
+| Active learned parameters | 10,455 |
+| Skylark-trained parameters | 10,455 |
+| Training groups | 506 |
+| Training repository families | 303 |
+| Foundation model | None |
+| Tokenizer | None |
+| External or downloaded weights | None |
 | Hosted inference | No |
 | API keys required | No |
+| Public weight release | Not authorised |
 
-This document reserves an inventory identity and records the absence of a
-model. It must not be used to imply that a Lumi Trace checkpoint, learned
-ranker, or trained AI artefact exists.
+The Apache-2.0 repository licence applies to Skylark-owned source code. It does
+not license the private checkpoint or governed training corpus.
 
-## V0.1 Behaviour
+## Architecture and Product Boundary
 
-V0.1 imports a SARIF or manually supplied vulnerability finding, indexes a
-user-supplied local repository, retrieves and ranks candidate files, symbols,
-and locations with deterministic rules, optionally attempts bounded local
-reproduction, and emits an auditable evidence package.
+The candidate is a from-scratch sparse integer pairwise linear ranker over
+16,384 deterministic hash buckets. Features are built only from the normalized
+finding, repository-visible paths and symbols, source-visible role classes,
+and deterministic baseline score components.
 
-The candidate ranking is a deterministic baseline. Its scores are produced by
-documented program logic and are not probabilities or learned predictions.
-The runtime does not call a model provider, use hosted inference, or require an
-API key.
+Product inference first generates and ranks deterministic candidates. The
+learned route may rerank only the deterministic top 1,000 candidates—the same
+support used for training—and applies a fixed bounded hybrid contribution.
+The remaining deterministic tail cannot be promoted by unseen learned
+features. The model is loaded from canonical JSON, verified by artifact
+identity, and hash-bound into the inference request.
 
-## Intended Use
+The model does not:
 
-Lumi Trace V0.1 is intended to help an authorised user collect local evidence
-about an existing vulnerability finding. It may be used to:
+- receive target paths, target symbols, fixed-revision data, scorer labels, or
+  qualification state;
+- execute repository code;
+- use a tokenizer, external model, remote code, hosted inference, or network;
+- snapshot repositories, reproduce findings, classify final evidence, generate
+  repairs, or discover vulnerabilities; or
+- provide a safety, exploitability, or remediation decision.
 
-- normalise SARIF or manual findings;
-- locate potentially relevant files and symbols;
-- run explicitly bounded reproduction instructions in a network-denied local
-  sandbox; and
-- export JSON and SARIF-compatible evidence for human review.
+The isolated evaluation builder denies out-of-root file access, sockets, and
+subprocess creation after installing its inference policy. Labels are revealed
+only to a separate scorer after the raw ranking seal verifies.
 
-The user remains responsible for repository access, permission to execute any
-reproduction instruction, and interpretation of the resulting evidence.
+## Training
 
-## Out-of-Scope Use
+Training used regenerated, label-blind candidates from the governed V0.4
+training sources after the contaminated V0.4 derivatives were invalidated.
+Only groups whose accepted target was present in the deterministic top-1,000
+support were used. The resulting training set contained 506 groups across 303
+repository families.
 
-V0.1 does not scan for new vulnerabilities, generate repairs, act as a SIEM,
-make an exploitability guarantee, or replace human security review. It must not
-be represented as a trained vulnerability model.
+The family-balanced pairwise integer perceptron ran for 16 epochs and recorded
+10,806 pair updates. Two clean CPU runs produced byte-identical canonical model
+artifacts. The private receipt records:
 
-## Training and Lineage
+- exact training replay: true;
+- active parameters: 10,455;
+- foundation model and tokenizer: none;
+- external weights downloaded: false;
+- network required: false; and
+- public weight release authorised: false.
 
-No training or fine-tuning was performed for V0.1. No model weights were
-downloaded. No training dataset, labelled candidate group, learned adapter, or
-checkpoint is included.
+The checkpoint identity is
+`lumi-trace-localization-model:c04f15d502040bb0a18715d367a58b16726ecf4a331e27e77de46e58dcff1745`.
+This identity is disclosed for traceability; the checkpoint contents remain
+private.
 
-Lumi Trace does **not** inherit or incorporate:
+## Development Evaluation
+
+All reported V0.4.1 development runs use the product implementation and seal
+raw rankings before scorer labels are opened. Early learned-only inference was
+retained as a failed experiment because it allowed candidates outside the
+training support to compete and materially regressed capability.
+
+The remediated hybrid route restricts learned scoring to the trained support
+and preserves deterministic score authority. Its guarded product run completed
+148 of 158 scheduled engineering-development groups; nine attempts reached the
+bounded runtime timeout and one failed closed in semantic review. Final
+evidence counts all ten unsuccessful attempts in the capability denominators.
+
+Two larger, stricter-margin sparse variants were reproduced and screened over
+the 151 current deterministic base rankings. Neither reached the predeclared
+0.03 material-gain threshold without a greater than 0.01 regression on a
+protected metric, so the smaller 10,455-parameter reference was retained. This
+is a development recommendation, not model selection.
+
+Development results are not model-selection or qualification evidence. No
+fresh partition was opened, no qualification capacity was consumed, and the
+protected holdback remains sealed and unopened.
+
+## Intended and Out-of-Scope Use
+
+The checkpoint is retained for governed V0.4.1 development and future fresh
+model selection once the independent data-supply gate is satisfied. It is not
+authorised for customer use, pilot deployment, public inference, publication,
+weight release, or qualification.
+
+The packaged deterministic Lumi Trace commands remain intended for authorised,
+customer-local finding normalization, location ranking, bounded
+network-denied reproduction, and evidence export. They do not certify a
+repository as safe, generate repairs, detect attacks, or replace human
+security review.
+
+## Lineage and Exclusions
+
+The candidate was trained from scratch and does not inherit or incorporate:
 
 - `CKPT-003`;
-- rejected Lumi V2.7 adapters;
-- protected V2.7 holdback material;
-- customer evidence; or
-- CyberGym tasks or task contents.
-
-The proposed future `TRACE-001` direction is a compact code-location ranker.
-It remains unauthorised and must not begin until every gate in
-[`TRAINING_READINESS.md`](TRAINING_READINESS.md) is satisfied and separate
-approval is recorded.
+- the V0.4 eight-parameter checkpoint;
+- rejected Lumi V2.7 adapters or protected holdback material;
+- CyberGym tasks or task contents;
+- customer evidence;
+- hosted-inference output; or
+- an external model, tokenizer, adapter, or weight file.
 
 ## Limitations
 
-The deterministic baseline can miss relevant implementations, rank unrelated
-locations highly, or be unable to reproduce a finding. A `CONFIRMED` result is
-limited to the recorded command, environment, repository identity, and
-observations. `UNSUPPORTED` and `INSUFFICIENT_EVIDENCE` are abstentions, not
-proof that a repository is safe.
+The route is Python-only, finding-guided, and bounded by deterministic
+candidate recall. Its evidence is development-only and public-source-heavy.
+Fresh model-selection and qualification partitions do not yet meet the
+predeclared supply floors. Role discrimination, early precision, family
+minimums, confidence bounds, and adversarial readiness must be established on
+fresh independent evidence before any capability claim.
 
-Reproduction executes untrusted repository content. Network denial reduces
-one class of risk but does not make execution harmless. Users should run Lumi
-Trace only on systems and repositories they are authorised to test and should
-review the local sandbox boundary before execution.
+## Licensing and Release
 
-## Licensing
-
-Skylark-owned V0.1 source code is licensed under Apache-2.0. That source-code
-licence does not license future weights, checkpoints, training data, customer
-data, third-party repository content, or protected Lumi evidence. See
-[`OPEN_SOURCE_BOUNDARY.md`](OPEN_SOURCE_BOUNDARY.md) and the repository's
-third-party notices.
+The checkpoint licence is
+`INTERNAL_EVALUATION_ONLY_PENDING_USER_RELEASE_DECISION`. There is no public
+weight licence and no weight-publication authority. Any future release
+requires explicit user approval, a public weight licence, disclosure review,
+reproducible inference package, training-data information, evaluation
+manifests, and verification that every release dependency and foundation
+artifact is appropriately licensed.

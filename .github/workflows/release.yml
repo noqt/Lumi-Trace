@@ -1,0 +1,129 @@
+name: Prepare signed GitHub release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing GitHub-verified signed tag to build (for example v0.4.1)"
+        required: true
+        type: string
+      publish:
+        description: "Create the public GitHub Release after all preparation checks pass"
+        required: true
+        default: false
+        type: boolean
+
+permissions: {}
+
+concurrency:
+  group: release-${{ inputs.release_tag }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Validate, build, and attest
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.release_tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Confirm annotated tag and package version
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$RELEASE_TAG" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "release_tag must be a v-prefixed semantic version" >&2; exit 2 ;;
+          esac
+          test "$(git cat-file -t "$RELEASE_TAG")" = tag
+          version="$(python -c 'from pathlib import Path; import tomllib; print(tomllib.loads(Path("pyproject.toml").read_text())["project"]["version"])')"
+          test "$RELEASE_TAG" = "v$version"
+      - name: Install release checks
+        run: |
+          python -m pip install --disable-pip-version-check --upgrade "pip==26.1.2"
+          python -m pip install --disable-pip-version-check -e ".[dev]"
+      - name: Validate release candidate
+        run: |
+          python -m pytest -q -m "not docker"
+          python scripts/check_licenses.py
+          python scripts/check_secrets.py
+          python scripts/check_dependencies.py
+          python scripts/check_public_boundary.py
+          python -m ruff check .
+          python -m ruff format --check .
+          python -m pip_audit --skip-editable --progress-spinner off
+      - name: Build reproducible release artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf dist raw-dist out/release-evidence
+          mkdir -p dist raw-dist out
+          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct HEAD)"
+          python -m build --no-isolation --wheel --outdir dist
+          python -m build --no-isolation --sdist --outdir raw-dist
+          raw_sdist="$(find raw-dist -name '*.tar.gz' -print -quit)"
+          normalized_sdist="dist/$(basename "$raw_sdist")"
+          python scripts/normalize_step1_sdist.py --input "$raw_sdist" --output "$normalized_sdist"
+          rm -f "$raw_sdist"
+          python -m twine check dist/*.whl dist/*.tar.gz
+          python scripts/build_step1_release_evidence.py \
+            --wheel "$(find dist -name '*.whl' -print -quit)" \
+            --sdist "$normalized_sdist" \
+            --source-revision "$GITHUB_SHA" \
+            --source-date-epoch "$SOURCE_DATE_EPOCH" \
+            --output out/release-evidence
+          cp out/release-evidence/artifact-inventory.json dist/release-artifact-inventory.json
+          cp out/release-evidence/manifest.json dist/release-evidence-manifest.json
+          cp out/release-evidence/sbom.spdx.json dist/release-sbom.spdx.json
+          cp out/release-evidence/summary.json dist/release-evidence-summary.json
+          sha256sum dist/*.whl dist/*.tar.gz > dist/SHA256SUMS
+      - name: Attest release artifacts
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4
+        with:
+          subject-path: "dist/**"
+      - name: Retain prepared release assets
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: lumi-trace-${{ inputs.release_tag }}-release-assets
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish approved GitHub release
+    if: ${{ inputs.publish }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: release
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
+    steps:
+      - name: Download prepared release assets
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: lumi-trace-${{ inputs.release_tag }}-release-assets
+          path: dist
+      - name: Create GitHub Release
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create "$RELEASE_TAG" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag --title "$RELEASE_TAG" --generate-notes

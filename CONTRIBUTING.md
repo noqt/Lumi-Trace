@@ -1,12 +1,13 @@
 # Contributing to Lumi Trace
 
-Lumi Trace V0.1.0 is a public source release. Contributions must preserve its
-deterministic, customer-local, fail-closed product contract and the hard stop
-before `TRACE-001` training.
+Lumi Trace's supported release line is a deterministic, customer-local,
+fail-closed product. Contributions must preserve that product contract and
+must not imply that a learned checkpoint is packaged, qualified, or used by
+the primary workflow.
 
 ## Scope
 
-Good V0.1 contributions improve finding import, immutable repository identity,
+Good contributions improve finding import, immutable repository identity,
 deterministic indexing and ranking, bounded Docker reproduction, evidence
 classification, schema validation, documentation, or focused synthetic tests.
 

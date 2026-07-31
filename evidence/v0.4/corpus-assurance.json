@@ -1,0 +1,99 @@
+{
+  "all_corpus_floors_passed": true,
+  "contains_case_identities": false,
+  "contains_private_paths": false,
+  "contains_source_or_labels": false,
+  "corpus_floors": {
+    "engineering_families": true,
+    "engineering_groups": true,
+    "holdback_families": true,
+    "holdback_groups": true,
+    "model_selection_families": true,
+    "model_selection_groups": true,
+    "qualification_controls": true,
+    "qualification_families": true,
+    "qualification_groups": true,
+    "training_families": true,
+    "training_groups": true
+  },
+  "cross_partition_family_count": 0,
+  "duplicate_cluster_count": 486,
+  "family_count": 367,
+  "group_count": 1228,
+  "largest_family_group_count": 179,
+  "partition_assurance_counts": {
+    "ENGINEERING_DEVELOPMENT": {
+      "families": 12,
+      "groups": 158,
+      "hard_negative_groups": 117,
+      "matched_controls": 158
+    },
+    "MODEL_SELECTION": {
+      "families": 19,
+      "groups": 131,
+      "hard_negative_groups": 89,
+      "matched_controls": 131
+    },
+    "PROTECTED_HOLDBACK": {
+      "families": 9,
+      "groups": 196,
+      "hard_negative_groups": 109,
+      "matched_controls": 196
+    },
+    "QUALIFICATION": {
+      "families": 10,
+      "groups": 202,
+      "hard_negative_groups": 184,
+      "matched_controls": 202
+    },
+    "TRAINING": {
+      "families": 317,
+      "groups": 541,
+      "hard_negative_groups": 315,
+      "matched_controls": 541
+    }
+  },
+  "partition_counts": {
+    "ENGINEERING_DEVELOPMENT": {
+      "families": 12,
+      "groups": 158,
+      "hard_negative_groups": 117,
+      "matched_controls": 158
+    },
+    "MODEL_SELECTION": {
+      "families": 19,
+      "groups": 131,
+      "hard_negative_groups": 89,
+      "matched_controls": 131
+    },
+    "PROTECTED_HOLDBACK": {
+      "families": 9,
+      "groups": 196,
+      "hard_negative_groups": 109,
+      "matched_controls": 196
+    },
+    "QUALIFICATION": {
+      "families": 10,
+      "groups": 202,
+      "hard_negative_groups": 184,
+      "matched_controls": 202
+    },
+    "TRAINING": {
+      "families": 317,
+      "groups": 541,
+      "hard_negative_groups": 315,
+      "matched_controls": 541
+    }
+  },
+  "policy_reconsideration_count": 150,
+  "quarantined_unassigned_candidate_count": 1562,
+  "repository_code_executed_during_intake": false,
+  "schema_version": "lumi-trace-v0.4-public-corpus-assurance-v1",
+  "state_counts": {
+    "EVALUATION_ONLY": 687,
+    "TRAINING_ELIGIBLE": 541
+  },
+  "terminalized_unselected_proposal_count": 223,
+  "training_family_cap_excluded_count": 0,
+  "training_family_group_cap": 25
+}

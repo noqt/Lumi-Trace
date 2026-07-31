@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "localization-linear-model-v0.4.1.json",
+  "title": "Lumi Trace V0.4.1 bounded integer localization model",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "algorithm",
+    "feature_contract",
+    "dimensions",
+    "base_ranker",
+    "weights",
+    "active_parameters",
+    "training_manifest_id",
+    "training_data_id",
+    "training_config",
+    "completed_epochs",
+    "pair_updates",
+    "family_balanced",
+    "foundation_model",
+    "tokenizer",
+    "remote_code",
+    "hosted_service",
+    "cpu_inference",
+    "artifact_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "lumi-trace-localization-linear-ranker-v0.4.1"
+    },
+    "algorithm": {
+      "const": "FAMILY_BALANCED_PAIRWISE_INTEGER_PERCEPTRON"
+    },
+    "feature_contract": {
+      "const": "label-blind-hashed-role-features-v0.4.1.1"
+    },
+    "dimensions": {
+      "const": 16384
+    },
+    "base_ranker": {
+      "const": "role-aware-sparse-v0.4.1.3"
+    },
+    "weights": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16384,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "index",
+          "weight"
+        ],
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 16383
+          },
+          "weight": {
+            "type": "integer",
+            "minimum": -1000000,
+            "maximum": 1000000,
+            "not": {
+              "const": 0
+            }
+          }
+        }
+      }
+    },
+    "active_parameters": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 16384
+    },
+    "training_manifest_id": {
+      "type": "string"
+    },
+    "training_data_id": {
+      "type": "string"
+    },
+    "training_config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "epochs",
+        "margin",
+        "maximum_candidates_per_group",
+        "maximum_pairs_per_group",
+        "seed"
+      ],
+      "properties": {
+        "epochs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 128
+        },
+        "margin": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "maximum_candidates_per_group": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 2000
+        },
+        "maximum_pairs_per_group": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        }
+      }
+    },
+    "completed_epochs": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 128
+    },
+    "pair_updates": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "family_balanced": {
+      "const": true
+    },
+    "foundation_model": {
+      "type": "null"
+    },
+    "tokenizer": {
+      "type": "null"
+    },
+    "remote_code": {
+      "const": false
+    },
+    "hosted_service": {
+      "const": false
+    },
+    "cpu_inference": {
+      "const": true
+    },
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^lumi-trace-localization-model:[0-9a-f]{64}$"
+    }
+  }
+}

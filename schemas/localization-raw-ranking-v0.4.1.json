@@ -1,0 +1,430 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "localization-raw-ranking-v0.4.1.json",
+  "title": "Lumi Trace V0.4.1 sealed raw localization ranking",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "runtime_identity",
+    "repository",
+    "quarantine_policy",
+    "candidate_algorithm",
+    "ranker",
+    "model_artifact_id",
+    "generation",
+    "candidate_count_ranked",
+    "candidate_inventory",
+    "candidates",
+    "abstention",
+    "telemetry",
+    "confidence_is_not_probability",
+    "ranking_id",
+    "raw_output_seal"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "localization-raw-ranking-v0.4.1"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^localization-request:[0-9a-f]{64}$"
+    },
+    "runtime_identity": {
+      "enum": [
+        "lumi-trace-runtime-v0.4.1-pre-release.8",
+        "lumi-trace-runtime-v0.4.1-pre-release.9",
+        "lumi-trace-runtime-v0.4.1-pre-release.10",
+        "lumi-trace-runtime-v0.4.1-pre-release.11"
+      ]
+    },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository_id",
+        "manifest_id",
+        "source_kind"
+      ],
+      "properties": {
+        "repository_id": {
+          "type": "string",
+          "pattern": "^repository:[0-9a-f]{64}$"
+        },
+        "manifest_id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "source_kind": {
+          "enum": [
+            "archive",
+            "directory"
+          ]
+        }
+      }
+    },
+    "quarantine_policy": {
+      "const": "target-agnostic-source-quarantine-v0.4.1.1"
+    },
+    "candidate_algorithm": {
+      "enum": [
+        "label-blind-python-role-candidates-v0.4.1.5",
+        "label-blind-python-role-candidates-v0.4.1.6",
+        "label-blind-python-role-candidates-v0.4.1.7"
+      ]
+    },
+    "ranker": {
+      "enum": [
+        "role-aware-sparse-v0.4.1.1",
+        "role-aware-sparse-v0.4.1.2",
+        "role-aware-sparse-v0.4.1.3",
+        "structured-role-sparse-v0.4.1.4",
+        "learned-role-hybrid-v0.4.1.3"
+      ]
+    },
+    "model_artifact_id": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^lumi-trace-localization-model:[0-9a-f]{64}$"
+        }
+      ]
+    },
+    "generation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository_file_count",
+        "repository_bytes",
+        "indexed_python_file_count",
+        "candidate_count",
+        "truncated",
+        "quarantine_counts",
+        "indexed_path_set_id"
+      ],
+      "properties": {
+        "repository_file_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "repository_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 17179869184
+        },
+        "indexed_python_file_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "candidate_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "quarantine_counts": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Z][A-Z0-9_]{0,63}$"
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "indexed_path_set_id": {
+          "type": "string",
+          "pattern": "^localization-indexed-paths:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "candidate_count_ranked": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100000
+    },
+    "candidate_inventory": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": {
+        "$ref": "#/$defs/inventoryCandidate"
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "$ref": "#/$defs/rankedCandidate"
+      }
+    },
+    "abstention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "abstained",
+        "reason"
+      ],
+      "properties": {
+        "abstained": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wall_seconds",
+        "cpu_seconds",
+        "peak_python_bytes",
+        "peak_memory_measured",
+        "network_used",
+        "repository_code_executed"
+      ],
+      "properties": {
+        "wall_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cpu_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "peak_python_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "peak_memory_measured": {
+          "type": "boolean"
+        },
+        "network_used": {
+          "const": false
+        },
+        "repository_code_executed": {
+          "const": false
+        }
+      }
+    },
+    "confidence_is_not_probability": {
+      "const": true
+    },
+    "ranking_id": {
+      "type": "string",
+      "pattern": "^localization-ranking:[0-9a-f]{64}$"
+    },
+    "raw_output_seal": {
+      "type": "string",
+      "pattern": "^localization-raw-output:[0-9a-f]{64}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "runtime_identity": {
+            "const": "lumi-trace-runtime-v0.4.1-pre-release.10"
+          }
+        },
+        "required": [
+          "runtime_identity"
+        ]
+      },
+      "then": {
+        "properties": {
+          "candidate_algorithm": {
+            "const": "label-blind-python-role-candidates-v0.4.1.6"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime_identity": {
+            "const": "lumi-trace-runtime-v0.4.1-pre-release.11"
+          }
+        },
+        "required": [
+          "runtime_identity"
+        ]
+      },
+      "then": {
+        "properties": {
+          "candidate_algorithm": {
+            "const": "label-blind-python-role-candidates-v0.4.1.7"
+          },
+          "candidate_inventory": {
+            "items": {
+              "properties": {
+                "path": {
+                  "pattern": "^(?![\\s\\S]*[^\\u0020-\\u007e])[\\u0020-\\u007e]+$"
+                }
+              }
+            }
+          },
+          "candidates": {
+            "items": {
+              "properties": {
+                "path": {
+                  "pattern": "^(?![\\s\\S]*[^\\u0020-\\u007e])[\\u0020-\\u007e]+$"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime_identity": {
+            "enum": [
+              "lumi-trace-runtime-v0.4.1-pre-release.8",
+              "lumi-trace-runtime-v0.4.1-pre-release.9"
+            ]
+          }
+        },
+        "required": [
+          "runtime_identity"
+        ]
+      },
+      "then": {
+        "properties": {
+          "candidate_algorithm": {
+            "const": "label-blind-python-role-candidates-v0.4.1.5"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_line",
+        "end_line"
+      ],
+      "properties": {
+        "start_line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "end_line": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "candidateCore": {
+      "type": "object",
+      "required": [
+        "candidate_id",
+        "kind",
+        "path",
+        "symbol",
+        "region",
+        "role"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string",
+          "pattern": "^localization-candidate:[0-9a-f]{64}$"
+        },
+        "kind": {
+          "enum": [
+            "file",
+            "symbol"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+        },
+        "symbol": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4096
+        },
+        "region": {
+          "$ref": "#/$defs/region"
+        },
+        "role": {
+          "enum": [
+            "implementation",
+            "wrapper",
+            "test",
+            "fixture",
+            "generated",
+            "vendor"
+          ]
+        }
+      }
+    },
+    "inventoryCandidate": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/candidateCore"
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "rankedCandidate": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/candidateCore"
+        },
+        {
+          "type": "object",
+          "required": [
+            "integer_score",
+            "score_components",
+            "rank"
+          ],
+          "properties": {
+            "integer_score": {
+              "type": "integer"
+            },
+            "score_components": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[A-Z][A-Z0-9_]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rank": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    }
+  }
+}

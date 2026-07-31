@@ -37,7 +37,17 @@ def test_sarif_import_preserves_rule_location_and_provenance(
     assert finding["locations"][0]["symbol"] == "unsafe_join"
 
 
-def test_sarif_remote_location_is_rejected(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "uri",
+    [
+        "https://example.invalid/a.py",
+        "ftp://example.invalid/a.py",
+        "s3://bucket/a.py",
+        "custom+transport://example.invalid/a.py",
+        "file://remote-host/share/a.py",
+    ],
+)
+def test_sarif_remote_location_is_rejected(tmp_path: Path, uri: str) -> None:
     sarif = {
         "version": "2.1.0",
         "runs": [
@@ -47,13 +57,7 @@ def test_sarif_remote_location_is_rejected(tmp_path: Path) -> None:
                     {
                         "ruleId": "X",
                         "message": {"text": "remote"},
-                        "locations": [
-                            {
-                                "physicalLocation": {
-                                    "artifactLocation": {"uri": "https://example.invalid/a.py"}
-                                }
-                            }
-                        ],
+                        "locations": [{"physicalLocation": {"artifactLocation": {"uri": uri}}}],
                     }
                 ],
             }
@@ -62,6 +66,100 @@ def test_sarif_remote_location_is_rejected(tmp_path: Path) -> None:
     path = tmp_path / "remote.sarif"
     path.write_text(json.dumps(sarif), encoding="utf-8")
     with pytest.raises(UnsupportedError):
+        import_sarif(path)
+
+
+def test_sarif_percent_decoded_nul_location_is_rejected(tmp_path: Path) -> None:
+    sarif = {
+        "version": "2.1.0",
+        "runs": [
+            {
+                "tool": {"driver": {"name": "fixture"}},
+                "results": [
+                    {
+                        "ruleId": "X",
+                        "message": {"text": "nul"},
+                        "locations": [
+                            {"physicalLocation": {"artifactLocation": {"uri": "src/%00module.py"}}}
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    path = tmp_path / "nul.sarif"
+    path.write_text(json.dumps(sarif), encoding="utf-8")
+    with pytest.raises(InputError, match="NUL"):
+        import_sarif(path)
+
+
+def test_sarif_ambiguous_uri_base_is_rejected(tmp_path: Path) -> None:
+    sarif = {
+        "version": "2.1.0",
+        "runs": [
+            {
+                "tool": {"driver": {"name": "fixture"}},
+                "results": [
+                    {
+                        "ruleId": "X",
+                        "message": {"text": "ambiguous base"},
+                        "locations": [
+                            {
+                                "physicalLocation": {
+                                    "artifactLocation": {
+                                        "uri": "src/module.py",
+                                        "uriBaseId": "UNRESOLVED_BASE",
+                                    }
+                                }
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    path = tmp_path / "ambiguous-base.sarif"
+    path.write_text(json.dumps(sarif), encoding="utf-8")
+    with pytest.raises(UnsupportedError, match="%SRCROOT%"):
+        import_sarif(path)
+
+
+@pytest.mark.parametrize(
+    "mapped_uri",
+    ["https://example.invalid/source/", "file:///private/source/", "../other/"],
+)
+def test_sarif_conflicting_srcroot_mapping_is_rejected(
+    tmp_path: Path,
+    mapped_uri: str,
+) -> None:
+    sarif = {
+        "version": "2.1.0",
+        "runs": [
+            {
+                "tool": {"driver": {"name": "fixture"}},
+                "originalUriBaseIds": {"%SRCROOT%": {"uri": mapped_uri}},
+                "results": [
+                    {
+                        "ruleId": "X",
+                        "message": {"text": "conflicting source root"},
+                        "locations": [
+                            {
+                                "physicalLocation": {
+                                    "artifactLocation": {
+                                        "uri": "src/module.py",
+                                        "uriBaseId": "%SRCROOT%",
+                                    }
+                                }
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    path = tmp_path / "conflicting-srcroot.sarif"
+    path.write_text(json.dumps(sarif), encoding="utf-8")
+    with pytest.raises(UnsupportedError, match="canonical local mapping"):
         import_sarif(path)
 
 

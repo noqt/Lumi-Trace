@@ -7,8 +7,13 @@ and documentation expressly distributed under that licence. It establishes an
 open-source software project; it does not establish or license an open-source
 AI model.
 
-Lumi Trace V0.1.0 contains no checkpoint, model weights, trained adapter, or
-training dataset.
+The source repository contains no checkpoint, model-weight file, training
+dataset, private feature group, or governed natural-corpus artifact. V0.4
+produced one bounded private checkpoint after its evidence gates passed. That
+checkpoint was invalidated for selection and qualification by the V0.4.1
+integrity review. V0.4.1 development checkpoints and their receipts remain in
+governed private storage; their existence does not place them under Apache-2.0
+or authorise weight publication.
 
 ## Excluded Materials
 
@@ -47,12 +52,18 @@ control and must not be committed or published by the project. Public examples
 and fixtures must be Skylark-authored or carry a verified permissive licence
 and explicit provenance.
 
-The sole generated-evidence exception is a versioned release seal produced
-exclusively from the repository's licensed, Skylark-authored synthetic fixture.
-Every artifact in that seal must be covered by its release-seal manifest and
-must pass licence, secret, dependency, and public-boundary checks. This
-exception does not permit customer, third-party, historical, holdback, or
-CyberGym-derived evidence.
+The generated-evidence exception permits either:
+
+1. a versioned release seal produced exclusively from the repository's
+   licensed, Skylark-authored synthetic fixture; or
+2. a separately versioned, disclosure-reviewed aggregate evaluation seal that
+   contains no repository or case identity, source, label, path, symbol,
+   revision, diff, raw output, customer data, or protected-partition substance.
+
+Every artifact must be covered by its seal manifest and pass licence, secret,
+dependency, and public-boundary checks. This exception never permits customer,
+third-party repository content, historical evidence, holdback substance,
+CyberGym material, or case-level derivatives.
 
 Third-party repository contents must not be republished as part of a Lumi
 Trace evidence package. Reports should minimise captured content and prefer
@@ -77,5 +88,42 @@ Before any public release, a reviewer must confirm that:
 - secret scanning passes.
 
 V0.1 source publication was separately authorised after the release-evidence
-review. Every later release must repeat the boundary review and receive its own
-publication decision.
+review. V0.2 implementation and sealing do not authorise publication; every
+later release must repeat the boundary review and receive its own publication
+decision.
+
+V0.3 retains natural repository manifests, location labels, event packages,
+controlled-review receipts, raw outputs, resource observations, and scored
+packages only in governed private storage. The public V0.3 seal contains
+contract records, counts, decisions, and disclosure-safe summaries; it contains
+no natural repository substance or incident-event content. V0.3 remains
+`NO_GO_PENDING_USER_REVIEW` for publication.
+
+V0.4 keeps source-candidate records, advisory material, exact revisions,
+repository objects, licence evidence, security findings, labels, audit cards,
+features, partition manifests, private results, and any checkpoint on governed
+F:/G: storage. Only aggregate counts, metrics, gate states, resource
+observations, decisions, and stop conditions may enter `evidence/v0.4`.
+
+The V0.4 source distribution includes training and assurance code, not training
+data or weights. A private training run does not authorise checkpoint
+publication. The public evidence must record `weight_files_published: false`,
+and repository publication remains `NO_GO_PENDING_USER_REVIEW` until the user
+reviews the sealed build.
+
+V0.4.1 invalidates contaminated V0.4 model-selection and qualification
+derivatives, preserves the unopened historical holdback, and regenerates
+development evidence through separated builder and scorer roles. Private
+development models may be exercised by an explicit local model path, but no
+model is bundled in a wheel, source distribution, container, or public evidence
+package. Fresh model-selection and qualification inputs, raw rankings, labels,
+scored results, information-flow logs, and checkpoint files remain exclusively
+on governed F:/G: storage.
+
+The disclosure-reviewed V0.4.1 evidence may contain aggregate remediation,
+development, adversarial-review, product-integration, resource, readiness, and
+continuation records. It must not contain repository, organisation, family,
+group, advisory, target, path, symbol, label, or partition-member identity. A
+V0.4.1 seal is evidence for the recorded qualification decision only; it does
+not authorise repository publication, checkpoint publication, a release, or
+TRACE-001 training.

@@ -1,0 +1,10 @@
+{
+  "aggregate_present": false,
+  "budget_state": "UNUSED_PRECONDITIONS_FAILED",
+  "consumed_runs": 0,
+  "maximum_runs": 1,
+  "run": false,
+  "schema_version": "lumi-trace-v0.3.1-public-qualification-summary-v1",
+  "used_for_remediation": false,
+  "used_for_threshold_selection": false
+}

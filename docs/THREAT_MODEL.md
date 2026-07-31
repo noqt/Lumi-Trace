@@ -1,4 +1,8 @@
-# Lumi Trace V0.1 Threat Model
+# Lumi Trace Runtime Threat Model
+
+Step 1 retains the V0.1 clean-room and optional-reproduction controls while
+using a Python-only, label-blind deterministic localizer for its primary
+ranking path. Ranking reads repository code as data and does not execute it.
 
 ## Scope and Security Goal
 
@@ -42,10 +46,12 @@ content, archives, findings, and plan steps are not.
 
 | Threat | V0.1 control |
 | --- | --- |
-| Archive traversal or host overwrite | Canonical relative paths; rejection of absolute and parent paths, links, special members, encrypted ZIP members, oversized members, and case/Unicode collisions; extraction only into a temporary root. |
+| Archive traversal or host overwrite | Canonical relative paths; rejection of absolute and parent paths, links, special members, encrypted ZIP members, oversized members, and case/Unicode collisions; extraction only into a temporary root. The current deterministic profile additionally requires printable-ASCII repository paths. |
 | Source mutation or time-of-check/time-of-use drift | Stable manifests before and after directory copying; re-hash of the materialised snapshot; integrity failure on mismatch. |
 | Symlink or special-file escape | Symlink directories, symlink files, devices, sockets, FIFOs, and archive links are unsupported. |
-| Archive or repository resource exhaustion | File-count, expanded-byte, per-member, per-text-file, Python-AST traversal, per-file/global token and symbol, index JSON-byte, timeout, output, PID, memory, CPU, swap, core, and file-descriptor limits. |
+| Archive or repository resource exhaustion | File-count, expanded-byte, per-member, per-text-file, Python-source-line, bracket-depth, f-string-depth, parser-projection character/work/AST-node/AST-depth, per-file/global token and symbol, index JSON-byte/item, timeout, output, PID, memory, CPU, swap, core, and file-descriptor limits. Parser projections are capped at 16,384 characters, 512 non-whitespace work units, 2,048 AST nodes and 128 AST levels. The fixed scanner uses byte-oriented mask storage and constant-space explicit-continuation counting. |
+| Host parser or Unicode database changes ranking output | The lexical front end freezes string/f-string handling and ASCII declaration identifiers before bounded Python 3.11 grammar validation; AST nodes never supply evidence fields; non-Python patterns use ASCII regex semantics; successful current-profile runs require printable-ASCII repository paths and CPython 3.11/3.12 with a recursion limit of at least 1,000; cross-runtime index and candidate bytes are release-gate comparisons. |
+| Lexical symbol mistaken for proof of valid code | Unsupported or declaration-ambiguous Python files emit no partial symbols. Accepted symbols remain lexical landmarks only; the extractor does not assert that unrelated statements are semantically valid or that the file imports or compiles. |
 | Command injection through plan text | Every step is a non-empty argv string array passed without host-shell parsing; working directories are canonical repository-relative paths. An explicit `/bin/sh` argv remains an intentional command chosen by the plan author. |
 | Automatic execution from a scanner finding | SARIF and manual findings contain evidence only. Lumi Trace never derives or executes commands from SARIF; reproduction requires a separate local plan and image argument. |
 | Image substitution or network pull | The input must be `sha256:<digest>` or `NAME@sha256:<digest>`, must already be local, is resolved to an immutable `sha256:` image ID, and runs with `--pull never`. |

@@ -1,0 +1,28 @@
+{
+  "identity_exclusions": [
+    "observations"
+  ],
+  "payload": {
+    "authority": "USER_APPROVED_BUILD_BRIEF_2026-07-23",
+    "holdback_state": "FROZEN_UNOPENED",
+    "permitted_activities": [
+      "TRACE_CODE_NATURAL_EVALUATION",
+      "TRACE_IR_INERT_FIXTURE_FEASIBILITY",
+      "PUBLIC_SAFE_EVIDENCE_SEALING"
+    ],
+    "prohibited_sources": [
+      "CUSTOMER_DATA",
+      "CYBERGYM",
+      "HISTORICAL_LUMI_EVIDENCE",
+      "LUMI_SCOUT",
+      "PROTECTED_HOLDBACK",
+      "PUBLIC_TARGETS",
+      "LIVE_TELEMETRY"
+    ],
+    "training_authorised": false,
+    "version": "0.3",
+    "weights_acquired": false
+  },
+  "record_id": "programme-boundary:069c87d8dadea290e56621243fb6ec8fe3b9fe0910b1685aedf98a4b6b04018b",
+  "schema_version": "programme-boundary-v1"
+}

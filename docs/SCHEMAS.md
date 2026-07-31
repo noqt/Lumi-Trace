@@ -1,4 +1,4 @@
-# Lumi Trace V0.1 Schemas
+# Lumi Trace Schemas
 
 ## Contract Policy
 
@@ -11,6 +11,49 @@ Schema names and `schema_version` values are part of the V0.1 compatibility
 contract. A breaking change requires a new schema-version name; an existing v1
 contract must not be silently reinterpreted.
 
+## Step 1 deterministic profile
+
+- `localization-inference-request-v0.4.1.json` is the only inference-side
+  request accepted by the localizer. It contains the normalized finding,
+  immutable repository artifact identity, and bounded configuration. Audit
+  receipts, targets, fixed revisions, labels, and qualification state are not
+  accepted.
+- `localization-raw-ranking-v0.4.1.json` defines the bounded candidate
+  inventory, exported ranking, source-visible role classes, telemetry,
+  abstention, ranking identity, and raw-output seal.
+
+Step 1 uses runtime identity `lumi-trace-runtime-v0.4.1-pre-release.11`,
+candidate algorithm `label-blind-python-role-candidates-v0.4.1.7`, repository
+index `deterministic-lexical-index-v4`, Python symbol extractor
+`python-lexical-v1`, and deterministic ranker
+`role-aware-sparse-v0.4.1.3`. Historical `.8` raw output remains verifiable.
+Governed V0.4.1 reconstruction scripts explicitly pin `.8` and its historical
+decision rule, and its execution is fail-closed outside CPython 3.12.
+
+The superseded unreleased `.9`/candidate `.5`/index-v2 profile and the failed
+AST remediation `.10`/candidate `.6`/index-v3 profile are accepted only for
+validation of already-created evidence; constructors and runtime execution
+reject both. The Step 1 CLI emits `.11` only. Runtime/candidate,
+candidate/index and Python-extractor pairings cannot be mixed. Current v4
+index paths, `.7` candidate paths, and `.11` raw inventory/ranked paths are
+printable ASCII by contract. The v4 index records the fixed Python
+grammar-projection bounds: 16,384 characters, 512 non-whitespace work units,
+2,048 AST nodes and 128 AST levels. Current execution also requires CPython
+3.11 or 3.12 with a recursion limit of at least 1,000.
+
+`candidate-set-v1` and `evidence-bundle-v1` retain their strict legacy profile
+and add a distinguishable Step 1 profile keyed by the deterministic algorithm.
+Legacy documents remain valid. New product documents additionally bind the
+candidate algorithm, ranker, role, ranking identity, confidence descriptor,
+and fail-closed abstention, including `CANDIDATE_GENERATION_TRUNCATED` when a
+bounded inventory is incomplete. Unknown or mixed-profile fields remain
+invalid.
+
+Runtime verification applies canonical identities and cross-field invariants
+that JSON Schema alone cannot express, including inventory/ranking membership,
+sequential ranks, candidate identities, ranking/bundle bindings, and the
+complete raw-output seal.
+
 ## Published Schema Files
 
 | Schema | Purpose |
@@ -19,17 +62,24 @@ contract must not be silently reinterpreted.
 | `schemas/normalized-finding-v1.json` | Normalized manual or SARIF finding, including input hash, rule, severity, safe relative locations, keywords, and fingerprints. |
 | `schemas/normalized-finding-collection-v1.json` | Manifest emitted when SARIF import writes multiple normalized findings. |
 | `schemas/repository-index-v1.json` | Immutable repository identity plus deterministic file, token, exclusion, and symbol index. |
-| `schemas/candidate-set-v1.json` | Ranked file and symbol candidates, integer scores, reason codes, and stable identities. |
-| `schemas/evidence-bundle-v1.json` | Complete finding, repository provenance, candidate, reproduction, classification, telemetry, and limitation evidence. |
+| `schemas/candidate-set-v1.json` | Ranked file and symbol candidates, integer scores/reasons, roles, ranker identity, confidence semantics, fail-closed abstention, and stable identities. |
+| `schemas/evidence-bundle-v1.json` | Finding, repository provenance, ranking summary, candidates, reproduction, classification, telemetry, and limitations. |
 | `schemas/evidence-package-manifest-v1.json` | Exact artifact names, byte sizes, hashes, and identity for a trace package. |
 | `schemas/reproduction-plan-v1.json` | Explicit argv-only plan, predicates, output-preview policy, and resource limits. |
 | `schemas/reproduction-receipt-v1.json` | Local image and policy identity, qualification attestations, bounded step results, repository immutability, and receipt identity. |
-| `schemas/resolved-dependency-inventory-v1.json` | Sanitized installed tool closure with canonical package name, version, licence, and direct/transitive relationship only. |
-| `schemas/model-inventory-v1.json` | Skylark micro-model inventory record, including the `PROPOSED_NOT_TRAINED`, zero-weight state. |
+| `schemas/localization-inference-request-v0.4.1.json` | Strict allowed-field request for the deterministic product localizer. |
+| `schemas/localization-raw-ranking-v0.4.1.json` | Bounded candidate inventory, ranked head, telemetry, abstention, and raw seal. |
 
-At the time a release is sealed, every file named above must exist and validate
-the corresponding generated fixture. Missing schema files are release blockers,
-not permission to infer a contract from prose.
+Every product schema named above is included in the Step 1 wheel and source
+distribution and validates its generated fixture. Development/evaluator
+schemas retained elsewhere in the repository are intentionally outside the
+Step 1 package boundary. A missing product schema is a release blocker, not
+permission to infer a contract from prose.
+
+`candidate-set-v1` score reasons use one canonical match contract in V0.1.1:
+`matches`, when present, contains 1 to 20 unique, non-empty strings in ascending
+code-point order. Producers omit an empty match list. Runtime verification
+enforces ordering in addition to the structural JSON Schema constraints.
 
 ## Accepted Input Contracts
 
@@ -48,7 +98,9 @@ strict field and location validation.
 SARIF input must declare version `2.1.0`. Each selected result becomes one
 normalized finding. A complete `trace` must select one result when a SARIF
 document contains multiple results. Remote artifact locations are unsupported.
-No SARIF field is treated as a reproduction command.
+Artifact `uriBaseId` must be omitted or explicitly use `%SRCROOT%`; unresolved
+or alternative bases fail closed. No SARIF field is treated as a reproduction
+command.
 
 ### `reproduction-plan-v1`
 

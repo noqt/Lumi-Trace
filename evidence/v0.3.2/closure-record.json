@@ -1,0 +1,15 @@
+{
+  "capability": "DETERMINISTIC_PYTHON_SECURITY_FINDING_LOCALISATION",
+  "closure_state": "CAPABILITY_RECOVERED / CORPUS_SCALE_REQUIRED",
+  "holdback_opened": false,
+  "next_commercial_validation_step": "CONTROLLED_LOCAL_PILOT_WITH_CUSTOMER_OWNED_REPOSITORIES",
+  "public_release": false,
+  "publication_decision": "NO_GO_PENDING_USER_REVIEW",
+  "qualification_budget_consumed": 1,
+  "qualification_passed": false,
+  "qualification_run": true,
+  "runtime_version": "0.1.2",
+  "schema_version": "lumi-trace-v0.3.2-public-closure-v1",
+  "trace_001_training": false,
+  "weights": 0
+}

@@ -1,0 +1,26 @@
+{
+  "candidate_roles": [
+    "CANDIDATE_RERANKER",
+    "VULNERABLE_SAFE_DISCRIMINATOR",
+    "LOCATION_ROLE_CLASSIFIER",
+    "EVIDENCE_PAIR_SCORER",
+    "INCIDENT_EVENT_RELEVANCE_SCORER",
+    "SAFE_ABSTENTION_CLASSIFIER"
+  ],
+  "comparator_classes": [
+    "DETERMINISTIC_TRACE",
+    "LEXICAL_OR_STATISTICAL_BASELINE",
+    "SMALL_ENCODER_CLASSIFIER",
+    "INTERMEDIATE_MICRO_MODEL",
+    "SUB_1B_STRUCTURED_OUTPUT_CANDIDATE",
+    "LARGER_OPEN_SECURITY_MODEL_CEILING",
+    "RANDOM_MAJORITY_ALWAYS_ABSTAIN_CONTROLS"
+  ],
+  "decision": "NO_MODEL_BUILD_AUTHORISED",
+  "foundation_selected": false,
+  "licence_review_completed": false,
+  "schema_version": "lumi-trace-v0.3-micro-model-decision-v1",
+  "separate_brief_required": true,
+  "training_recommendation": "DO_NOT_BEGIN_TRACE_001",
+  "weights_acquired": false
+}

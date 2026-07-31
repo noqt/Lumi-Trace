@@ -1,0 +1,30 @@
+{
+  "decision": "EXTERNAL_DATA_SUPPLY_INSUFFICIENT",
+  "eligible_organization_count": 31,
+  "eligible_raw_group_count": 306,
+  "eligible_repository_count": 75,
+  "model_selection_opened": false,
+  "planned_partitions": {
+    "MODEL_SELECTION_FRESH": {
+      "family_count": 14,
+      "minimum_families": 15,
+      "minimum_useful_groups": 200,
+      "raw_group_count": 61,
+      "raw_target": 510,
+      "supply_gate_passed": false
+    },
+    "QUALIFICATION_FRESH": {
+      "family_count": 17,
+      "minimum_families": 15,
+      "minimum_useful_groups": 250,
+      "raw_group_count": 72,
+      "raw_target": 607,
+      "supply_gate_passed": false
+    }
+  },
+  "protected_holdback_opened": false,
+  "qualification_opened": false,
+  "record_id": "v0.4.1-public-data-readiness:7494bcb6f7d9e6495ac4e21ff643b576631bb74fc853ff4f0df82e802e03434b",
+  "schema_version": "lumi-trace-v0.4.1-public-data-readiness-v1",
+  "thresholds_weakened": false
+}

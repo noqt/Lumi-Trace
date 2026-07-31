@@ -323,6 +323,12 @@ def _extract_zip(archive: Path, destination: Path, limits: RepositoryLimits) -> 
             unix_mode = member.external_attr >> 16
             if stat.S_ISLNK(unix_mode):
                 raise UnsupportedError(f"archive symlink is unsupported: {member.filename}")
+            unix_type = stat.S_IFMT(unix_mode)
+            expected_types = {0, stat.S_IFDIR} if member.is_dir() else {0, stat.S_IFREG}
+            if unix_type not in expected_types:
+                raise UnsupportedError(
+                    f"archive links and special members are unsupported: {member.filename}"
+                )
             target = destination.joinpath(*relative.parts)
             if member.is_dir():
                 target.mkdir(parents=True, exist_ok=True)

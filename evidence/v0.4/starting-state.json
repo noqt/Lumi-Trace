@@ -1,0 +1,9 @@
+{
+  "cybergym_tasks_used": false,
+  "historical_holdback_used": false,
+  "historical_v0_3_2_evidence_unchanged": true,
+  "previous_public_evidence_seal": "lumi-trace-v0.3.2-public-evidence:c2d944aa8ac9880584555c64c95063f39ef8fdc56ec7d91fffda445b41091c77",
+  "schema_version": "lumi-trace-v0.4-public-starting-state-v1",
+  "source_revision": "d1fa11088bc2c02e48f3f3f7877e0b090d90efaf",
+  "spent_v0_3_2_qualification_used_for_development": false
+}

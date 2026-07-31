@@ -1,0 +1,93 @@
+{
+  "identity_exclusions": [
+    "observations"
+  ],
+  "payload": {
+    "closure_state": "DATA_GATES_PENDING",
+    "gates": [
+      {
+        "detail": "The sealed V0.2 evaluator evidence and exact V0.1 wheel were verified.",
+        "evidence": [
+          "lumi-trace-v0.2-public-evidence:96b65c7de93d0332ba645ebc475ffc637b6147d87150bd930e962e3a9188ce63",
+          "sha256:c3872c3ab25b1df4c4e2f31711f9072d25e4955a1cda3eecd89e421d901c0bba",
+          "sha256:a5309c14c6e2f2d929886fe4ce13e9fbf483b35a1b5ae5d191829ecb11c2ce3d",
+          "sha256:534a7b818e9c9e9728866a32b5392b648a587629bcb276b83c2edba10a64d498",
+          "lumi-trace-v0.3-environment:90bbb5133149b950e746fcb9acd97afd576c9c42b57860a2779a17d24f45c871"
+        ],
+        "gate": "v0_2_environment_and_v0_1_runtime_verified",
+        "status": "MET"
+      },
+      {
+        "detail": "Accepted natural pilot: 0 groups across 0 repositories.",
+        "evidence": [
+          "natural-corpus-registry:fead5062bc323dca1dd6f1925af9223b01a7a5a395f01e61e907b06690ab4de4"
+        ],
+        "gate": "v0_3_natural_pilot_scale",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "No natural repositories were admitted, so disjoint partitions cannot establish data readiness.",
+        "evidence": [
+          "repository-lineage-audit:182e1ae9ff892aa9c8fdcf377ef81caf0d7f6cd38df29dc3d86d164b96d2df90"
+        ],
+        "gate": "repository_disjoint_governed_partitions",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "Required at least 500 useful groups; observed 0.",
+        "evidence": [
+          "natural-corpus-registry:fead5062bc323dca1dd6f1925af9223b01a7a5a395f01e61e907b06690ab4de4"
+        ],
+        "gate": "500_useful_labelled_groups",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "Required at least 25 unrelated repositories; observed 0.",
+        "evidence": [
+          "natural-corpus-registry:fead5062bc323dca1dd6f1925af9223b01a7a5a395f01e61e907b06690ab4de4"
+        ],
+        "gate": "25_unrelated_training_repositories",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "Natural controlled-reviewed labels are required at scale.",
+        "evidence": [
+          "natural-corpus-registry:fead5062bc323dca1dd6f1925af9223b01a7a5a395f01e61e907b06690ab4de4"
+        ],
+        "gate": "meaningful_hard_negatives_and_safe_controls",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "No governed natural label set reached the training-readiness scale.",
+        "evidence": [
+          "natural-corpus-registry:fead5062bc323dca1dd6f1925af9223b01a7a5a395f01e61e907b06690ab4de4"
+        ],
+        "gate": "audited_location_and_reproduction_labels",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "Performance thresholds were declined because development evidence is absent.",
+        "evidence": [],
+        "gate": "approved_performance_threshold",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "No model or weights were selected or acquired under V0.3 authority.",
+        "evidence": [],
+        "gate": "foundation_model_and_weight_licence",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "detail": "No separate TRACE-001 authority record exists.",
+        "evidence": [],
+        "gate": "separate_trace_001_authority",
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      }
+    ],
+    "recommendation": "DO_NOT_BEGIN_TRACE_001",
+    "training_started": false,
+    "weights_downloaded": false
+  },
+  "record_id": "training-readiness-decision:e962dd8ad291efb359c0251913f883fc3beefcd21a71ca9a0fd7caccf1ec3045",
+  "schema_version": "training-readiness-decision-v1"
+}

@@ -1,0 +1,202 @@
+{
+  "aggregate_record_id": "trace-code-aggregate-metrics:a8650948ff0101521a1aee22a80585db3cf0ce54ac4f8e17b8a6ca7c783aa6f3",
+  "excluded_counts": {},
+  "metric_spec_id": "trace-code-metric-specification:bdd0fb4eff494ba7b9d21d5ebf46753d0777f7cef3ac02b9d70aa16353d513c9",
+  "micro": {
+    "abstention_coverage": {
+      "denominator": 40,
+      "numerator": 40,
+      "rate": 1.0
+    },
+    "disposition_confusion": {
+      "INSUFFICIENT_EVIDENCE->INSUFFICIENT_EVIDENCE": 40
+    },
+    "false_supported_disposition": {
+      "count": 0,
+      "rate": {
+        "denominator": 40,
+        "numerator": 0,
+        "rate": 0.0
+      }
+    },
+    "false_vulnerability_rate": {
+      "denominator": 20,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "file_recall": {
+      "1": {
+        "denominator": 20,
+        "numerator": 5,
+        "rate": 0.25
+      },
+      "10": {
+        "denominator": 20,
+        "numerator": 9,
+        "rate": 0.45
+      },
+      "20": {
+        "denominator": 20,
+        "numerator": 11,
+        "rate": 0.55
+      },
+      "5": {
+        "denominator": 20,
+        "numerator": 6,
+        "rate": 0.3
+      }
+    },
+    "group_count": 40,
+    "hard_negative_outrank": {
+      "denominator": 10,
+      "numerator": 7,
+      "rate": 0.7
+    },
+    "location_role_correct_recall": {
+      "1": {
+        "denominator": 20,
+        "numerator": 2,
+        "rate": 0.1
+      },
+      "10": {
+        "denominator": 20,
+        "numerator": 2,
+        "rate": 0.1
+      },
+      "20": {
+        "denominator": 20,
+        "numerator": 3,
+        "rate": 0.15
+      },
+      "5": {
+        "denominator": 20,
+        "numerator": 2,
+        "rate": 0.1
+      }
+    },
+    "mean_reciprocal_rank": {
+      "denominator": 20,
+      "mean": 0.28732142857142856,
+      "sum": 5.746428571428571
+    },
+    "no_relevant_candidate": {
+      "denominator": 20,
+      "numerator": 9,
+      "rate": 0.45
+    },
+    "region_recall": {
+      "1": {
+        "denominator": 20,
+        "numerator": 2,
+        "rate": 0.1
+      },
+      "10": {
+        "denominator": 20,
+        "numerator": 2,
+        "rate": 0.1
+      },
+      "20": {
+        "denominator": 20,
+        "numerator": 3,
+        "rate": 0.15
+      },
+      "5": {
+        "denominator": 20,
+        "numerator": 2,
+        "rate": 0.1
+      }
+    },
+    "symbol_recall": {
+      "1": {
+        "denominator": 19,
+        "numerator": 2,
+        "rate": 0.10526315789473684
+      },
+      "10": {
+        "denominator": 19,
+        "numerator": 2,
+        "rate": 0.10526315789473684
+      },
+      "20": {
+        "denominator": 19,
+        "numerator": 3,
+        "rate": 0.15789473684210525
+      },
+      "5": {
+        "denominator": 19,
+        "numerator": 2,
+        "rate": 0.10526315789473684
+      }
+    },
+    "target_indexability": {
+      "denominator": 20,
+      "numerator": 18,
+      "rate": 0.9
+    },
+    "unsafe_non_abstention": {
+      "denominator": 40,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "unsupported_input_acceptance": {
+      "denominator": 0,
+      "numerator": 0,
+      "rate": null
+    },
+    "wrong_location_role_top_one": {
+      "denominator": 20,
+      "numerator": 1,
+      "rate": 0.05
+    }
+  },
+  "repository_family_macro": {
+    "count": 7,
+    "false_supported": {
+      "mean": 0.0,
+      "units": 7
+    },
+    "file_recall": {
+      "1": {
+        "mean": 0.23809523809523808,
+        "units": 7
+      },
+      "10": {
+        "mean": 0.42857142857142855,
+        "units": 7
+      },
+      "20": {
+        "mean": 0.5238095238095238,
+        "units": 7
+      },
+      "5": {
+        "mean": 0.2857142857142857,
+        "units": 7
+      }
+    }
+  },
+  "runtime_version": "0.1.1",
+  "schema_version": "lumi-trace-v0.3.2-public-v0.1.1-baseline-v1",
+  "strata_counts": {
+    "cwe=CWE-150": 2,
+    "cwe=CWE-20": 4,
+    "cwe=CWE-22": 6,
+    "cwe=CWE-352": 2,
+    "cwe=CWE-400": 4,
+    "cwe=CWE-426": 2,
+    "cwe=CWE-502": 2,
+    "cwe=CWE-601": 2,
+    "cwe=CWE-693": 2,
+    "cwe=CWE-770": 6,
+    "cwe=CWE-78": 2,
+    "cwe=CWE-79": 4,
+    "cwe=CWE-835": 2,
+    "direct_cue=UNKNOWN": 40,
+    "finding_format=manual": 40,
+    "hard_negative_family=UNKNOWN": 40,
+    "label_source=UNKNOWN": 40,
+    "language=Python": 40,
+    "repository_size_band=LARGE": 4,
+    "repository_size_band=MEDIUM": 6,
+    "repository_size_band=SMALL": 30
+  }
+}

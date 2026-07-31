@@ -11,11 +11,39 @@ from . import __version__
 from .canonical import stable_id
 from .errors import IntegrityError
 from .findings import validate_normalized_finding
-from .indexing import INDEX_ALGORITHM, verify_repository_identity
-from .ranking import verify_ranked_candidates
+from .indexing import (
+    INDEX_ALGORITHM,
+    LEGACY_INDEX_ALGORITHM,
+    STEP1_AST_INDEX_ALGORITHM,
+    SUPPORTED_INDEX_ALGORITHMS,
+    verify_repository_identity,
+)
+from .localization import (
+    CANDIDATE_TRUNCATION_ABSTENTION,
+    NO_SIGNAL_ABSTENTION,
+    STEP1_AST_CANDIDATE_ALGORITHM,
+    V041_EVIDENCE_CANDIDATE_ALGORITHM,
+)
+from .ranking import (
+    PRODUCT_CANDIDATE_ALGORITHM,
+    PRODUCT_RANKING_ALGORITHM,
+    PRODUCT_ROLES,
+    RANKING_ALGORITHM,
+    verify_ranked_candidates,
+)
 from .sandbox import verify_reproduction_receipt
 
 _REASON_CODE = re.compile(r"^[A-Z][A-Z0-9_]*$")
+_INDEX_BY_PRODUCT_CANDIDATE_ALGORITHM = {
+    V041_EVIDENCE_CANDIDATE_ALGORITHM: LEGACY_INDEX_ALGORITHM,
+    STEP1_AST_CANDIDATE_ALGORITHM: STEP1_AST_INDEX_ALGORITHM,
+    PRODUCT_CANDIDATE_ALGORITHM: INDEX_ALGORITHM,
+}
+_EXTRACTOR_BY_PRODUCT_CANDIDATE_ALGORITHM = {
+    V041_EVIDENCE_CANDIDATE_ALGORITHM: "python-ast-v1",
+    STEP1_AST_CANDIDATE_ALGORITHM: "python-ast-v1",
+    PRODUCT_CANDIDATE_ALGORITHM: "python-lexical-v1",
+}
 
 
 def classify_evidence(
@@ -206,6 +234,31 @@ def build_evidence_bundle(
         if isinstance(sandbox, dict):
             reproduction["sandbox_qualified"] = bool(sandbox.get("qualified"))
 
+    ranking = None
+    if candidate_set.get("algorithm") == PRODUCT_RANKING_ALGORITHM:
+        roles = sorted(
+            {
+                str(candidate["role"])
+                for candidate in candidate_set["candidates"]  # type: ignore[index]
+                if isinstance(candidate, dict)
+            }
+        )
+        ranking = {
+            "ranker": candidate_set["algorithm"],
+            "candidate_algorithm": candidate_set["candidate_algorithm"],
+            "ranking_id": candidate_set["ranking_id"],
+            "candidate_count_considered": candidate_set["candidate_count_considered"],
+            "candidates_emitted": len(candidate_set["candidates"]),  # type: ignore[arg-type]
+            "score_basis": "DETERMINISTIC_INTEGER_COMPONENTS_WITH_ROLE_PRIORS",
+            "roles_emitted": roles,
+            "abstention": candidate_set["abstention"],
+            "confidence_descriptor": candidate_set["confidence_descriptor"],
+            "confidence_is_not_probability": True,
+        }
+    current_product_profile = (
+        candidate_set.get("candidate_algorithm") == PRODUCT_CANDIDATE_ALGORITHM
+    )
+
     payload: dict[str, object] = {
         "schema_version": "evidence-bundle-v1",
         "tool": {
@@ -259,11 +312,23 @@ def build_evidence_bundle(
         },
         "limitations": [
             "Candidate scores are deterministic retrieval heuristics, not probabilities.",
-            "Non-Python symbol extraction is lexical and may be incomplete.",
+            (
+                "Step 1 implementation-location ranking considers Python files and symbols only."
+                if ranking is not None
+                else "Non-Python symbol extraction is lexical and may be incomplete."
+            ),
+            (
+                "Current Step 1 deterministic artifacts require printable-ASCII repository paths."
+                if current_product_profile
+                else "Repository-path support depends on the selected historical profile."
+            ),
+            "Extracted symbols are lexical landmarks and do not assert that files compile.",
             "CONFIRMED applies only to the declared reproduction witness in the supplied snapshot.",
             "No learned model, checkpoint, hosted inference, or repair generation is used.",
         ],
     }
+    if ranking is not None:
+        payload["ranking"] = ranking
     payload["bundle_id"] = stable_id("evidence-bundle", payload)
     return payload
 
@@ -285,7 +350,12 @@ def verify_evidence_bundle(bundle: dict[str, object]) -> None:
         "limitations",
         "bundle_id",
     }
-    if not isinstance(bundle, dict) or set(bundle) != required:
+    optional = {"ranking"}
+    if (
+        not isinstance(bundle, dict)
+        or not required.issubset(bundle)
+        or set(bundle) - required - optional
+    ):
         raise IntegrityError("evidence bundle fields do not match evidence-bundle-v1")
     if bundle.get("schema_version") != "evidence-bundle-v1":
         raise IntegrityError("not an evidence-bundle-v1 document")
@@ -332,7 +402,7 @@ def verify_evidence_bundle(bundle: dict[str, object]) -> None:
         }
         or not isinstance(index.get("index_id"), str)
         or re.fullmatch(r"index:[0-9a-f]{64}", index["index_id"]) is None
-        or index.get("algorithm") != INDEX_ALGORITHM
+        or index.get("algorithm") not in SUPPORTED_INDEX_ALGORITHMS
         or any(
             not _nonnegative_integer(index.get(key))
             for key in ("file_count", "indexed_text_file_count", "symbol_count")
@@ -348,7 +418,76 @@ def verify_evidence_bundle(bundle: dict[str, object]) -> None:
         or any(not _nonnegative_integer(value) for value in exclusions.values())
     ):
         raise IntegrityError("evidence bundle index exclusions are invalid")
-    verify_ranked_candidates(bundle.get("candidates"))
+    ranking = bundle.get("ranking")
+    verify_ranked_candidates(
+        bundle.get("candidates"),
+        require_role=ranking is not None,
+        expected_symbol_extractor=(
+            _EXTRACTOR_BY_PRODUCT_CANDIDATE_ALGORITHM.get(str(ranking.get("candidate_algorithm")))
+            if isinstance(ranking, dict)
+            else None
+        ),
+        require_ascii_paths=(
+            isinstance(ranking, dict)
+            and ranking.get("candidate_algorithm") == PRODUCT_CANDIDATE_ALGORITHM
+        ),
+    )
+    if ranking is not None:
+        candidates = bundle["candidates"]
+        if not isinstance(ranking, dict) or set(ranking) != {
+            "ranker",
+            "candidate_algorithm",
+            "ranking_id",
+            "candidate_count_considered",
+            "candidates_emitted",
+            "score_basis",
+            "roles_emitted",
+            "abstention",
+            "confidence_descriptor",
+            "confidence_is_not_probability",
+        }:
+            raise IntegrityError("evidence bundle ranking summary is invalid")
+        abstention = ranking.get("abstention")
+        expected_roles = sorted(
+            {str(candidate["role"]) for candidate in candidates if isinstance(candidate, dict)}
+        )
+        if (
+            ranking.get("ranker") != PRODUCT_RANKING_ALGORITHM
+            or ranking.get("candidate_algorithm") not in _INDEX_BY_PRODUCT_CANDIDATE_ALGORITHM
+            or _INDEX_BY_PRODUCT_CANDIDATE_ALGORITHM.get(str(ranking.get("candidate_algorithm")))
+            != index.get("algorithm")
+            or ranking.get("score_basis") != "DETERMINISTIC_INTEGER_COMPONENTS_WITH_ROLE_PRIORS"
+            or ranking.get("roles_emitted") != expected_roles
+            or any(role not in PRODUCT_ROLES for role in expected_roles)
+            or ranking.get("candidates_emitted") != len(candidates)
+            or not _nonnegative_integer(ranking.get("candidate_count_considered"))
+            or ranking["candidate_count_considered"] < len(candidates)
+            or not isinstance(abstention, dict)
+            or set(abstention) != {"abstained", "reason"}
+            or not isinstance(abstention.get("abstained"), bool)
+            or (
+                abstention["abstained"]
+                and abstention.get("reason")
+                not in {NO_SIGNAL_ABSTENTION, CANDIDATE_TRUNCATION_ABSTENTION}
+            )
+            or (not abstention["abstained"] and abstention.get("reason") is not None)
+            or (abstention["abstained"] and candidates)
+            or (not abstention["abstained"] and not candidates)
+            or ranking.get("confidence_descriptor")
+            != ("ABSTAINED" if abstention.get("abstained") else "FINDING_GUIDED_SIGNAL_PRESENT")
+            or ranking.get("confidence_is_not_probability") is not True
+        ):
+            raise IntegrityError("evidence bundle ranking summary is inconsistent")
+        ranking_identity = {
+            "algorithm": PRODUCT_RANKING_ALGORITHM,
+            "candidate_algorithm": ranking["candidate_algorithm"],
+            "finding_id": finding["finding_id"],
+            "index_id": index["index_id"],
+            "candidate_ids": [candidate["candidate_id"] for candidate in candidates],
+            "abstention": abstention,
+        }
+        if ranking.get("ranking_id") != stable_id("ranking", ranking_identity):
+            raise IntegrityError("evidence bundle ranking identity is invalid")
     reproduction = (
         bundle.get("reproduction") if isinstance(bundle.get("reproduction"), dict) else None
     )
@@ -441,6 +580,13 @@ def verify_evidence_bundle(bundle: dict[str, object]) -> None:
         or telemetry.get("symbols_indexed") != index.get("symbol_count")
         or telemetry.get("candidates_emitted") != len(candidates)
         or telemetry.get("candidates_considered") < len(candidates)
+        or (
+            isinstance(ranking, dict)
+            and (
+                telemetry.get("candidates_considered") != ranking.get("candidate_count_considered")
+                or telemetry.get("candidates_emitted") != ranking.get("candidates_emitted")
+            )
+        )
         or telemetry.get("reproduction_steps")
         != (len(receipt.get("steps", [])) if isinstance(receipt, dict) else 0)
     ):
@@ -490,6 +636,9 @@ def _sarif_location(candidate: dict[str, Any], *, identifier: int | None = None)
             "scoreReasons": candidate["score_reasons"],
         },
     }
+    role = candidate.get("role")
+    if isinstance(role, str):
+        location["properties"]["locationRole"] = role
     if identifier is not None:
         location["id"] = identifier
     symbol = candidate.get("symbol")
@@ -511,6 +660,7 @@ def export_sarif(bundle: dict[str, object]) -> dict[str, object]:
     finding = bundle["finding"]
     rule = finding["rule"]
     classification = bundle["classification"]
+    ranking = bundle.get("ranking")
     candidates = bundle.get("candidates", [])
     outcome = str(classification["outcome"])
     severity = str(finding["severity"]["normalized"])
@@ -534,12 +684,27 @@ def export_sarif(bundle: dict[str, object]) -> dict[str, object]:
             "confidenceGrade": classification["confidence_grade"],
             "confidenceBasisPoints": classification["confidence_basis_points"],
             "confidenceIsNotProbability": True,
+            "rankingAlgorithm": (
+                ranking["ranker"] if isinstance(ranking, dict) else RANKING_ALGORITHM
+            ),
             "repositoryId": bundle["repository"]["repository_id"],
             "modelCheckpoint": None,
             "currentWeights": 0,
         },
         "fingerprints": finding.get("fingerprints", {}),
     }
+    if isinstance(ranking, dict):
+        result["properties"].update(
+            {
+                "candidateAlgorithm": ranking["candidate_algorithm"],
+                "rankingId": ranking["ranking_id"],
+                "rankingAbstained": ranking["abstention"]["abstained"],
+                "rankingAbstentionReason": ranking["abstention"]["reason"],
+                "rankingConfidenceDescriptor": ranking["confidence_descriptor"],
+                "rankingConfidenceIsNotProbability": True,
+                "rankedRoles": ranking["roles_emitted"],
+            }
+        )
     if candidates:
         result["locations"] = [_sarif_location(candidates[0])]
         result["relatedLocations"] = [
@@ -556,7 +721,7 @@ def export_sarif(bundle: dict[str, object]) -> dict[str, object]:
                     "driver": {
                         "name": "Lumi Trace",
                         "semanticVersion": __version__,
-                        "informationUri": "https://github.com/noqt/Skylark-Lumi-Trace",
+                        "informationUri": "https://github.com/noqt/Lumi-Trace",
                         "rules": [
                             {
                                 "id": rule["id"],

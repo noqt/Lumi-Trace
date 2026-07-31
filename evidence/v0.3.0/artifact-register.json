@@ -1,0 +1,121 @@
+{
+  "artifacts": [
+    {
+      "custody": "PUBLIC_SAFE",
+      "name": "programme boundary and authority record",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PUBLIC_SAFE",
+      "name": "V0.3 environment qualification",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PRIVATE_GOVERNED",
+      "name": "rights and redistribution manifest",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PRIVATE_GOVERNED",
+      "name": "repository-lineage and independence audit",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PRIVATE_GOVERNED",
+      "name": "natural-corpus registry",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PRIVATE_GOVERNED",
+      "name": "split and exposure manifest",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PRIVATE_GOVERNED",
+      "name": "candidate-ranking group records",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PRIVATE_GOVERNED",
+      "name": "location-role label records",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PRIVATE_GOVERNED",
+      "name": "controlled-review and correction receipts",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PRIVATE_GOVERNED",
+      "name": "hard-negative and safe-control taxonomy",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PUBLIC_SAFE",
+      "name": "locked metric specification",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PUBLIC_SAFE",
+      "name": "development threshold decision",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PRIVATE_GOVERNED",
+      "name": "raw run seals",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PRIVATE_GOVERNED",
+      "name": "scored run and replay packages",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PRIVATE_GOVERNED",
+      "name": "natural baseline report",
+      "state": "NOT_RUN_DATA_GATES_PENDING"
+    },
+    {
+      "custody": "PUBLIC_SAFE",
+      "name": "qualification decision where authorised",
+      "state": "NOT_RUN_DATA_GATES_PENDING"
+    },
+    {
+      "custody": "PRIVATE_GOVERNED",
+      "name": "Trace IR contracts and labels",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PRIVATE_GOVERNED",
+      "name": "Trace IR feasibility report",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PUBLIC_SAFE",
+      "name": "resource and deployment-envelope report",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PUBLIC_SAFE",
+      "name": "updated training-readiness decision",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PUBLIC_SAFE",
+      "name": "micro-model decision pack",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PUBLIC_SAFE",
+      "name": "public-boundary review",
+      "state": "RETAINED"
+    },
+    {
+      "custody": "PUBLIC_SAFE",
+      "name": "final V0.3 closure record",
+      "state": "RETAINED"
+    }
+  ],
+  "private_third_party_substance_published": false,
+  "schema_version": "lumi-trace-v0.3-required-artifact-register-v1"
+}

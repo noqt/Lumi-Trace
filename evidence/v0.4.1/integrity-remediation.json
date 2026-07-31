@@ -1,0 +1,18 @@
+{
+  "builder_allowed_field_projection": true,
+  "builder_filesystem_guard": true,
+  "builder_network_and_subprocess_guard": true,
+  "candidate_generation_label_access": false,
+  "contaminated_derivatives_state": "SUPERSEDED_INVALID_EVIDENCE",
+  "execution_aggregate_disposition_id": "v0.4.1-execution-aggregate-disposition:b268ebcd85a0a6babae81b602072109ccb07daaf94fb57d8cfc2c1a26b5c3117",
+  "final_route_metrics_recomputed_from_all_scheduled_groups": true,
+  "information_flow_manifest_id": "localization-information-flow:56745dcba4fd5e7285f62cf485802d065edb25f321bd757ec579ae6d2f260dbc",
+  "invalid_attempts_in_denominators": true,
+  "predecessor_defect": "GROUND_TRUTH_TARGET_ACCESS_BEFORE_RAW_RANKING_SEAL",
+  "predecessor_qualification_state": "SPENT_INVALID_AUDIT_ONLY",
+  "protected_holdback_opened": false,
+  "raw_output_sealed_before_scoring": true,
+  "record_id": "v0.4.1-public-integrity-remediation:a826b9b55f7a1a9c8df9d294738146b28c7159715c18ad462e86897df08728ad",
+  "schema_version": "lumi-trace-v0.4.1-public-integrity-remediation-v1",
+  "target_agnostic_quarantine": true
+}

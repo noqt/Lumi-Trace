@@ -1,0 +1,143 @@
+{
+  "candidate_algorithm": "label-blind-python-role-candidates-v0.4.1.5",
+  "confidence_is_not_probability": true,
+  "model_selection_evidence": false,
+  "partition": "ENGINEERING_DEVELOPMENT",
+  "qualification_evidence": false,
+  "quarantine_policy": "target-agnostic-source-quarantine-v0.4.1.1",
+  "record_id": "v0.4.1-public-development-summary:199cd784c5b17e36e2322e8c89019030a1ecf0dbc3bc21ae27d410c7c453cb9c",
+  "route_gates": {
+    "learned-role-hybrid-v0.4.1.3": {
+      "false_supported_disposition": true,
+      "false_vulnerability_safe_control": true,
+      "file_recall_at_10": false,
+      "file_recall_at_20": false,
+      "file_recall_at_5": false,
+      "file_target_indexability": false,
+      "hard_negative_outrank": false,
+      "location_role_recall_at_20": false,
+      "mean_reciprocal_rank": true,
+      "minimum_family_recall_at_20": false,
+      "no_relevant_candidate": true,
+      "repository_family_macro_recall_at_20": false,
+      "role_target_indexability": false,
+      "unsafe_non_abstention": true,
+      "valid_attempt_completion": false,
+      "wrong_location_role_top_one": false,
+      "zero_recall_family_count": false
+    },
+    "role-aware-sparse-v0.4.1.3": {
+      "false_supported_disposition": true,
+      "false_vulnerability_safe_control": true,
+      "file_recall_at_10": false,
+      "file_recall_at_20": false,
+      "file_recall_at_5": false,
+      "file_target_indexability": true,
+      "hard_negative_outrank": false,
+      "location_role_recall_at_20": false,
+      "mean_reciprocal_rank": true,
+      "minimum_family_recall_at_20": false,
+      "no_relevant_candidate": true,
+      "repository_family_macro_recall_at_20": false,
+      "role_target_indexability": false,
+      "unsafe_non_abstention": true,
+      "valid_attempt_completion": false,
+      "wrong_location_role_top_one": false,
+      "zero_recall_family_count": false
+    }
+  },
+  "routes": [
+    {
+      "completed_group_count": 151,
+      "failed_attempt_count": 7,
+      "generation": {
+        "candidate_count": 1099090,
+        "groups_with_truncation": 87,
+        "indexed_python_file_count": 336954
+      },
+      "metrics": {
+        "false_supported_disposition": 0,
+        "false_vulnerability_safe_control": 0,
+        "family_count": 12,
+        "file_recall_at_10": 0.6139240506329114,
+        "file_recall_at_20": 0.6835443037974683,
+        "file_recall_at_5": 0.47468354430379744,
+        "file_target_indexability": 0.9556962025316456,
+        "group_count": 158,
+        "hard_negative_denominator": 108,
+        "hard_negative_outrank": 0.24074074074074073,
+        "location_role_correct_recall_at_10": 0.3291139240506329,
+        "location_role_correct_recall_at_20": 0.43037974683544306,
+        "location_role_correct_recall_at_5": 0.25316455696202533,
+        "maximum_family_recall_at_20": 1.0,
+        "mean_reciprocal_rank": 0.38766606551356725,
+        "minimum_family_recall_at_20": 0.0,
+        "no_relevant_candidate": 0.04430379746835443,
+        "positive_claim_scope": "CANDIDATE_RANKING_ONLY",
+        "repository_family_macro_recall_at_20": 0.759764174651815,
+        "role_target_indexability": 0.9367088607594937,
+        "target_indexability": 0.9556962025316456,
+        "unsafe_non_abstention": 0,
+        "valid_attempt_completion": 0.9556962025316456,
+        "wrong_location_role_top_one": 0.2088607594936709,
+        "zero_recall_family_count": 1
+      },
+      "model_artifact_id": null,
+      "ranker": "role-aware-sparse-v0.4.1.3",
+      "scheduled_group_count": 158,
+      "telemetry": {
+        "maximum_peak_python_bytes": 0,
+        "peak_memory_measurement_available": false,
+        "sum_cpu_seconds": 10194.953125,
+        "sum_wall_seconds": 15952.761470999743
+      }
+    },
+    {
+      "completed_group_count": 148,
+      "failed_attempt_count": 10,
+      "generation": {
+        "candidate_count": 1069090,
+        "groups_with_truncation": 84,
+        "indexed_python_file_count": 314842
+      },
+      "metrics": {
+        "false_supported_disposition": 0,
+        "false_vulnerability_safe_control": 0,
+        "family_count": 12,
+        "file_recall_at_10": 0.6075949367088608,
+        "file_recall_at_20": 0.6835443037974683,
+        "file_recall_at_5": 0.47468354430379744,
+        "file_target_indexability": 0.9367088607594937,
+        "group_count": 158,
+        "hard_negative_denominator": 108,
+        "hard_negative_outrank": 0.23148148148148148,
+        "location_role_correct_recall_at_10": 0.34177215189873417,
+        "location_role_correct_recall_at_20": 0.44936708860759494,
+        "location_role_correct_recall_at_5": 0.2721518987341772,
+        "maximum_family_recall_at_20": 1.0,
+        "mean_reciprocal_rank": 0.38824018191053683,
+        "minimum_family_recall_at_20": 0.0,
+        "no_relevant_candidate": 0.06329113924050633,
+        "positive_claim_scope": "CANDIDATE_RANKING_ONLY",
+        "repository_family_macro_recall_at_20": 0.7523671709064969,
+        "role_target_indexability": 0.9177215189873418,
+        "target_indexability": 0.9367088607594937,
+        "unsafe_non_abstention": 0,
+        "valid_attempt_completion": 0.9367088607594937,
+        "wrong_location_role_top_one": 0.22151898734177214,
+        "zero_recall_family_count": 1
+      },
+      "model_artifact_id": "lumi-trace-localization-model:c04f15d502040bb0a18715d367a58b16726ecf4a331e27e77de46e58dcff1745",
+      "ranker": "learned-role-hybrid-v0.4.1.3",
+      "scheduled_group_count": 158,
+      "telemetry": {
+        "maximum_peak_python_bytes": 0,
+        "peak_memory_measurement_available": false,
+        "sum_cpu_seconds": 9680.296875,
+        "sum_wall_seconds": 15178.311019000015
+      }
+    }
+  ],
+  "runtime_identity": "lumi-trace-runtime-v0.4.1-pre-release.8",
+  "schema_version": "lumi-trace-v0.4.1-public-development-summary-v1"
+}

@@ -1,0 +1,18 @@
+{
+  "corpus_package_id": "trace-eval-package:2e804f502c5058ab1491360ff731df330131ee1aed35f12241aca9bfbaca36e1",
+  "development_run_id": "trace-eval-run:ed0a3f7c97e0bd02365b3c6c89cfe82d0964fafb6e38ab4e7062f843b86ecd60",
+  "evaluator_artifact_sha256": "sha256:7d1b81a9559d6cde474f155e97e1df108884232b7d0174f8568e53dcef5a38b8",
+  "evaluator_reproducible_builds": true,
+  "evaluator_version": "0.3.1",
+  "pre_run_package_id": "trace-eval-package:842ff752ca5a923ab0e47cdfd61cd70f2399f03d11c95c8167f383484ab31347",
+  "pre_run_seal_id": "pre-run-seal:4706d7e7e38cc473caed466fe33aac1ece4d62a3a59e0fdd29def9e0653aa12c",
+  "previous_public_evidence_seal": "lumi-trace-v0.3-public-evidence:a56044b38ff78687739a9d01ea32697c57f5b45d67063e8babf9931cc2da7b70",
+  "raw_sealed_before_labels": true,
+  "replay_identity_agreement": true,
+  "replay_semantic_agreement": true,
+  "runtime_artifact_sha256": "sha256:c3872c3ab25b1df4c4e2f31711f9072d25e4955a1cda3eecd89e421d901c0bba",
+  "runtime_changed": false,
+  "runtime_version": "0.1.0",
+  "schema_version": "lumi-trace-v0.3.1-public-baseline-provenance-v1",
+  "source_revision": "43c285d48ea0a4b80a93ab40d759c97cad07f61d"
+}

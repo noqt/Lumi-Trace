@@ -27,6 +27,11 @@ from seal_v0_1 import (  # noqa: E402
     _write_json,
 )
 from verify_v0_1_evidence import verify_seal_manifest  # noqa: E402
+from verify_v0_3_1_evidence import verify as verify_v0_3_1_evidence  # noqa: E402
+from verify_v0_3_2_evidence import verify as verify_v0_3_2_evidence  # noqa: E402
+from verify_v0_3_evidence import verify as verify_v0_3_evidence  # noqa: E402
+from verify_v0_4_1_evidence import verify as verify_v0_4_1_evidence  # noqa: E402
+from verify_v0_4_evidence import verify as verify_v0_4_evidence  # noqa: E402
 
 REVISION = "a" * 40
 
@@ -150,6 +155,7 @@ def test_sdist_excludes_a_populated_evidence_tree(tmp_path: Path, project_root: 
             "build",
             "dist",
             "evidence",
+            "out",
         ),
     )
     evidence_root = source_root / "evidence" / "v0.1.0"
@@ -158,6 +164,14 @@ def test_sdist_excludes_a_populated_evidence_tree(tmp_path: Path, project_root: 
         (evidence_root / f"partial-{index:02d}.json").write_text(
             '{"incomplete":true}\n', encoding="utf-8"
         )
+    for generated in (
+        source_root / "eval" / "build" / "lib" / "generated.py",
+        source_root / "eval" / ".pytest_cache" / "README.md",
+        source_root / "eval" / ".ruff_cache" / "state.json",
+        source_root / "eval" / "src" / "skylark_lumi_trace_eval.egg-info" / "SOURCES.txt",
+    ):
+        generated.parent.mkdir(parents=True, exist_ok=True)
+        generated.write_text("generated and not distributable\n", encoding="utf-8")
 
     output = tmp_path / "dist"
     subprocess.run(
@@ -184,3 +198,100 @@ def test_sdist_excludes_a_populated_evidence_tree(tmp_path: Path, project_root: 
     assert any(member.name == "MANIFEST.in" for member in members)
     assert any(member.as_posix().endswith("/src/lumi_trace/__init__.py") for member in members)
     assert not any("evidence" in member.parts for member in members)
+    assert not any("build" in member.parts for member in members)
+    assert not any(".pytest_cache" in member.parts for member in members)
+    assert not any(".ruff_cache" in member.parts for member in members)
+    assert not any(member.name == "skylark_lumi_trace_eval.egg-info" for member in members)
+
+
+def test_v0_3_public_evidence_verifies_and_detects_tamper(
+    tmp_path: Path, project_root: Path
+) -> None:
+    evidence = project_root / "evidence" / "v0.3.0"
+    if not evidence.is_dir():
+        pytest.skip("V0.3 seal is generated after the implementation revision is committed")
+    manifest = verify_v0_3_evidence(evidence)
+    assert manifest["source_revision"]
+
+    copied = tmp_path / "v0.3.0"
+    shutil.copytree(evidence, copied)
+    summary = copied / "natural-corpus-summary.json"
+    value = json.loads(summary.read_text(encoding="utf-8"))
+    value["accepted_groups"] = 1
+    summary.write_text(json.dumps(value), encoding="utf-8")
+    with pytest.raises(ValueError, match="artifact mismatch"):
+        verify_v0_3_evidence(copied)
+
+
+def test_v0_3_1_public_evidence_verifies_and_detects_tamper(
+    tmp_path: Path, project_root: Path
+) -> None:
+    evidence = project_root / "evidence" / "v0.3.1"
+    if not evidence.is_dir():
+        pytest.skip("V0.3.1 seal is generated after the implementation revision is committed")
+    manifest = verify_v0_3_1_evidence(evidence)
+    assert manifest["source_revision"]
+
+    copied = tmp_path / "v0.3.1"
+    shutil.copytree(evidence, copied)
+    resource = copied / "resource-summary.json"
+    value = json.loads(resource.read_text(encoding="utf-8"))
+    value["development"]["completed_attempts"] = 40
+    resource.write_text(json.dumps(value), encoding="utf-8")
+    with pytest.raises(ValueError, match="artifact mismatch"):
+        verify_v0_3_1_evidence(copied)
+
+
+def test_v0_3_2_public_evidence_verifies_and_detects_tamper(
+    tmp_path: Path, project_root: Path
+) -> None:
+    evidence = project_root / "evidence" / "v0.3.2"
+    if not evidence.is_dir():
+        pytest.skip("V0.3.2 seal is generated after the qualification decision")
+    manifest = verify_v0_3_2_evidence(evidence)
+    assert manifest["source_revision"]
+
+    copied = tmp_path / "v0.3.2"
+    shutil.copytree(evidence, copied)
+    resource = copied / "resource-summary.json"
+    value = json.loads(resource.read_text(encoding="utf-8"))
+    value["development"]["completed_attempts"] = 39
+    resource.write_text(json.dumps(value), encoding="utf-8")
+    with pytest.raises(ValueError, match="artifact mismatch"):
+        verify_v0_3_2_evidence(copied)
+
+
+def test_v0_4_public_evidence_verifies_and_detects_tamper(
+    tmp_path: Path, project_root: Path
+) -> None:
+    evidence = project_root / "evidence" / "v0.4"
+    if not evidence.is_dir():
+        pytest.skip("V0.4 seal is generated after the qualification decision")
+    manifest = verify_v0_4_evidence(evidence)
+    assert manifest["source_revision"]
+
+    copied = tmp_path / "v0.4"
+    shutil.copytree(evidence, copied)
+    closure = copied / "closure-record.json"
+    value = json.loads(closure.read_text(encoding="utf-8"))
+    value["public_release"] = True
+    closure.write_text(json.dumps(value), encoding="utf-8")
+    with pytest.raises(ValueError, match="artifact mismatch"):
+        verify_v0_4_evidence(copied)
+
+
+def test_v0_4_1_public_evidence_verifies_and_detects_tamper(
+    tmp_path: Path, project_root: Path
+) -> None:
+    evidence = project_root / "evidence" / "v0.4.1"
+    if not evidence.is_dir():
+        pytest.skip("V0.4.1 seal is generated after final development evidence")
+    manifest = verify_v0_4_1_evidence(evidence)
+    assert manifest["seal_id"].startswith("lumi-trace-v0.4.1-public-evidence:")
+
+    copied = tmp_path / "v0.4.1"
+    shutil.copytree(evidence, copied)
+    payload = copied / "closure-record.json"
+    payload.write_text('{"tampered":true}\n', encoding="utf-8")
+    with pytest.raises(Exception, match="does not match"):
+        verify_v0_4_1_evidence(copied)

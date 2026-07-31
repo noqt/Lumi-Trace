@@ -1,0 +1,62 @@
+{
+  "artifacts": [
+    {
+      "path": "baseline-provenance.json",
+      "sha256": "sha256:2e3b95bf3575bcb02fa24e89ddabdd489c2efb8276b9f917aa3187ed012870d5",
+      "size_bytes": 1155
+    },
+    {
+      "path": "closure-record.json",
+      "sha256": "sha256:ba7f6e0585a0fd1cb5fad981699c72430e367d58aa3b4c5d0aad633279425013",
+      "size_bytes": 1186
+    },
+    {
+      "path": "development-aggregate-metrics.json",
+      "sha256": "sha256:caaf4ce274035a20058d0b923fad7114b3a2e98f442dfdb80dabbd37bad298e3",
+      "size_bytes": 9083
+    },
+    {
+      "path": "natural-corpus-summary.json",
+      "sha256": "sha256:efa380a2a2396943906e7186e9a98e97b80d7a5c2144f845456b1992ca63162d",
+      "size_bytes": 1249
+    },
+    {
+      "path": "public-boundary-review.json",
+      "sha256": "sha256:edae1e28a6221d871b44d5578515b7cfa0158a97993199b6109403c8c06b82ab",
+      "size_bytes": 642
+    },
+    {
+      "path": "qualification-aggregate-metrics.json",
+      "sha256": "sha256:7ad016c21c1dba9cf329f3d2bc0ae729cdb17682eec8d0e8d19af8276f9432c0",
+      "size_bytes": 115
+    },
+    {
+      "path": "qualification-summary.json",
+      "sha256": "sha256:46811e9e61860a531cd4c51bbd9529181637410f85374c895cf12276002dbfb7",
+      "size_bytes": 288
+    },
+    {
+      "path": "resource-summary.json",
+      "sha256": "sha256:ef7e7fdc8be65e338100d80651029867b5a3a7e7feb0a34a22b32732a5d2ea5b",
+      "size_bytes": 621
+    },
+    {
+      "path": "threshold-decision.json",
+      "sha256": "sha256:be6dc19ab774373dc542acf8d87165cc6bca95e360898f105037e0523378cb16",
+      "size_bytes": 1757
+    },
+    {
+      "path": "trace-ir-boundary.json",
+      "sha256": "sha256:f539c9f3d98cc193927f2520f5726b64c0d027e2d9f8273d5718eeeb9f62eb3f",
+      "size_bytes": 239
+    },
+    {
+      "path": "training-readiness-decision.json",
+      "sha256": "sha256:3ad34062bd4bc264edde985bdc1e6efea97f0cb37e26d486ff5314b62bcc8ede",
+      "size_bytes": 1262
+    }
+  ],
+  "schema_version": "lumi-trace-v0.3.1-public-evidence-seal-v1",
+  "seal_id": "lumi-trace-v0.3.1-public-evidence:e06658ab3ab0b6f1d9085f1d3f5d0c672f7d4283d5e554f0305452e8492f567f",
+  "source_revision": "43c285d48ea0a4b80a93ab40d759c97cad07f61d"
+}

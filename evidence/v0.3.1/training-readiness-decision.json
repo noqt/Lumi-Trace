@@ -1,0 +1,45 @@
+{
+  "identity_exclusions": [
+    "observations"
+  ],
+  "payload": {
+    "closure_state": "NOT_QUALIFIED / REMEDIATION_REQUIRED",
+    "gates": [
+      {
+        "gate": "500_useful_labelled_groups",
+        "observed": 58,
+        "required": 500,
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "gate": "25_unrelated_training_repositories",
+        "observed": 10,
+        "required": 25,
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "gate": "future_training_rights",
+        "observed": false,
+        "required": true,
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      },
+      {
+        "gate": "protected_holdback",
+        "observed": "FROZEN_UNOPENED",
+        "required": "SEPARATELY_APPROVED_AND_AUDITED",
+        "status": "UNMET / UNOPENED"
+      },
+      {
+        "gate": "explicit_training_authority",
+        "observed": false,
+        "required": true,
+        "status": "UNMET / EVIDENCE_REQUIRED"
+      }
+    ],
+    "recommendation": "DO_NOT_BEGIN_TRACE_001",
+    "training_started": false,
+    "weights_downloaded": false
+  },
+  "record_id": "training-readiness-decision:5270fc0ca9c8693ea15d9c0d3a8ab795dc081414a24d1fdd5f1ca39f20f7e234",
+  "schema_version": "training-readiness-decision-v1"
+}

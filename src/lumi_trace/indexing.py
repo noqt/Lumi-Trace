@@ -6,27 +6,48 @@ from __future__ import annotations
 import ast
 import json
 import re
+import sys
 import unicodedata
 from collections import Counter
 from collections.abc import Iterable
 from pathlib import Path, PurePosixPath
 
-from .canonical import stable_id
+from .canonical import is_printable_ascii, stable_id
 from .errors import IntegrityError, UnsupportedError
+from .python_symbols import (
+    MAX_BRACKET_DEPTH,
+    MAX_FSTRING_DEPTH,
+    MAX_PYTHON_PROJECTION_AST_DEPTH,
+    MAX_PYTHON_PROJECTION_AST_NODES,
+    MAX_PYTHON_PROJECTION_CHARS,
+    MAX_PYTHON_PROJECTION_WORK,
+    scan_python_declarations,
+    split_python_lines,
+    supported_python_runtime,
+)
 from .repository import repository_manifest
 
-INDEX_ALGORITHM = "deterministic-lexical-index-v1"
+LEGACY_INDEX_ALGORITHM = "deterministic-lexical-index-v2"
+STEP1_AST_INDEX_ALGORITHM = "deterministic-lexical-index-v3"
+INDEX_ALGORITHM = "deterministic-lexical-index-v4"
+SUPPORTED_INDEX_ALGORITHMS = frozenset(
+    {LEGACY_INDEX_ALGORITHM, STEP1_AST_INDEX_ALGORITHM, INDEX_ALGORITHM}
+)
+PYTHON_AST_FEATURE_VERSION = (3, 11)
+LEGACY_INDEX_PYTHON_VERSION = (3, 12)
 DEFAULT_MAX_TEXT_BYTES = 2 * 1024 * 1024
 MAX_UNIQUE_TOKENS = 50_000
 MAX_SYMBOLS_PER_FILE = 5_000
 MAX_INDEX_FILE_RECORDS = 25_000
-MAX_TOTAL_TOKEN_ENTRIES = 100_000
-MAX_TOTAL_SYMBOLS = 10_000
+MAX_TOTAL_TOKEN_ENTRIES = 250_000
+MAX_TOTAL_SYMBOLS = 50_000
 MAX_SYMBOL_TOKENS = 16
 MAX_SYMBOL_NAME_CHARS = 256
 MAX_QUALIFIED_SYMBOL_CHARS = 1_024
 MAX_PYTHON_AST_NODES = 200_000
+MAX_PYTHON_SOURCE_LINES = 200_000
 MAX_INDEX_JSON_BYTES = 60 * 1024 * 1024
+MAX_INDEX_JSON_ITEMS = 900_000
 
 LANGUAGE_BY_SUFFIX = {
     ".c": "c",
@@ -85,6 +106,42 @@ def tokenize(value: str) -> list[str]:
 
 def _language(path: str) -> str:
     return LANGUAGE_BY_SUFFIX.get(Path(path).suffix.lower(), "text")
+
+
+def _index_priority(path: str) -> int:
+    """Allocate global index budgets to implementation source before observations."""
+
+    parsed = PurePosixPath(path)
+    parts = {part.casefold() for part in parsed.parts}
+    stem = parsed.stem.casefold()
+    source = parsed.suffix.casefold() in LANGUAGE_BY_SUFFIX
+    test_or_harness = bool(parts & {"test", "tests", "testing", "spec", "specs"}) or (
+        stem.startswith(("test_", "spec_")) or stem.endswith(("_test", "_spec"))
+    )
+    documentation_or_example = bool(
+        parts
+        & {
+            "doc",
+            "docs",
+            "documentation",
+            "example",
+            "examples",
+            "demo",
+            "demos",
+            "benchmark",
+            "benchmarks",
+        }
+    )
+    localisation = parsed.suffix.casefold() in {".mo", ".po", ".pot"} or bool(
+        parts & {"i18n", "l10n", "locale", "locales", "translations"}
+    )
+    if source and not (test_or_harness or documentation_or_example):
+        return 0
+    if source:
+        return 1
+    if localisation or documentation_or_example:
+        return 3
+    return 2
 
 
 def _looks_text(path: str, data: bytes) -> bool:
@@ -160,11 +217,18 @@ class _PythonSymbols(ast.NodeVisitor):
         self.scope.pop()
 
 
-def _python_symbols(
-    text: str, *, max_symbols: int = MAX_SYMBOLS_PER_FILE
+def _python_symbols_ast(
+    text: str,
+    *,
+    max_symbols: int = MAX_SYMBOLS_PER_FILE,
+    feature_version: tuple[int, int] | None = PYTHON_AST_FEATURE_VERSION,
 ) -> tuple[list[dict[str, object]], str | None, bool]:
     try:
-        tree = ast.parse(text)
+        tree = (
+            ast.parse(text)
+            if feature_version is None
+            else ast.parse(text, feature_version=feature_version)
+        )
     except SyntaxError:
         return [], "syntax_error", False
     except RecursionError:
@@ -177,6 +241,39 @@ def _python_symbols(
     except (_PythonTraversalLimit, RecursionError):
         return visitor.symbols, "complexity_limit", False
     return visitor.symbols, None, False
+
+
+def _python_symbols(
+    text: str,
+    *,
+    max_symbols: int = MAX_SYMBOLS_PER_FILE,
+) -> tuple[list[dict[str, object]], str | None, bool]:
+    declarations, issue, limited = scan_python_declarations(
+        text,
+        maximum_symbols=max_symbols,
+        maximum_lines=MAX_PYTHON_SOURCE_LINES,
+        maximum_name_chars=MAX_SYMBOL_NAME_CHARS,
+        maximum_qualified_name_chars=MAX_QUALIFIED_SYMBOL_CHARS,
+    )
+    symbols = [
+        {
+            "name": declaration["name"],
+            "qualified_name": declaration["qualified_name"],
+            "kind": (
+                "class"
+                if declaration["declaration_kind"] == "class"
+                else "method"
+                if declaration["scope_depth"]
+                else "function"
+            ),
+            "start_line": declaration["start_line"],
+            "end_line": declaration["end_line"],
+            "tokens": sorted(set(tokenize(str(declaration["qualified_name"]))))[:MAX_SYMBOL_TOKENS],
+            "extractor": "python-lexical-v1",
+        }
+        for declaration in declarations
+    ]
+    return symbols, issue, limited
 
 
 _LEXICAL_PATTERNS: dict[str, tuple[tuple[str, re.Pattern[str]], ...]] = {
@@ -261,14 +358,33 @@ _LEXICAL_PATTERNS: dict[str, tuple[tuple[str, re.Pattern[str]], ...]] = {
         ("function", re.compile(r"^\s*function\s+([A-Za-z_][A-Za-z0-9_]*)")),
     ),
 }
+_FIXED_LEXICAL_PATTERNS = {
+    language: tuple(
+        (
+            kind,
+            re.compile(
+                pattern.pattern,
+                (pattern.flags & ~re.UNICODE) | re.ASCII,
+            ),
+        )
+        for kind, pattern in patterns
+    )
+    for language, patterns in _LEXICAL_PATTERNS.items()
+}
 
 
 def _lexical_symbols(
-    text: str, language: str, *, max_symbols: int = MAX_SYMBOLS_PER_FILE
+    text: str,
+    language: str,
+    *,
+    max_symbols: int = MAX_SYMBOLS_PER_FILE,
+    fixed_newlines: bool = True,
+    fixed_ascii: bool = True,
 ) -> tuple[list[dict[str, object]], bool]:
-    patterns = _LEXICAL_PATTERNS.get(language, ())
+    patterns = (_FIXED_LEXICAL_PATTERNS if fixed_ascii else _LEXICAL_PATTERNS).get(language, ())
     symbols: list[dict[str, object]] = []
-    for line_number, line in enumerate(text.splitlines(), start=1):
+    lines = split_python_lines(text) if fixed_newlines else text.splitlines()
+    for line_number, line in enumerate(lines, start=1):
         for kind, pattern in patterns:
             match = pattern.search(line)
             if not match:
@@ -307,9 +423,22 @@ def build_repository_index(
     repository_identity: dict[str, object],
     *,
     max_text_bytes: int = DEFAULT_MAX_TEXT_BYTES,
+    algorithm: str = INDEX_ALGORITHM,
 ) -> dict[str, object]:
     """Build a deterministic file/token/symbol index from a snapshot."""
 
+    if algorithm not in SUPPORTED_INDEX_ALGORITHMS:
+        raise ValueError("unsupported repository index algorithm")
+    if algorithm == LEGACY_INDEX_ALGORITHM and (
+        sys.implementation.name != "cpython" or sys.version_info[:2] != LEGACY_INDEX_PYTHON_VERSION
+    ):
+        raise UnsupportedError("legacy repository index reconstruction requires CPython 3.12")
+    if algorithm == STEP1_AST_INDEX_ALGORITHM:
+        raise UnsupportedError("superseded Step 1 repository index is verification-only")
+    if algorithm == INDEX_ALGORITHM and not supported_python_runtime():
+        raise UnsupportedError(
+            "current Step 1 index requires CPython 3.11 or 3.12 with the governed recursion limit"
+        )
     if (
         not isinstance(max_text_bytes, int)
         or isinstance(max_text_bytes, bool)
@@ -317,6 +446,13 @@ def build_repository_index(
     ):
         raise ValueError(f"max_text_bytes must be between 1 and {DEFAULT_MAX_TEXT_BYTES}")
     manifest, _ = repository_manifest(root)
+    if algorithm == INDEX_ALGORITHM and any(
+        not is_printable_ascii(str(record["path"])) for record in manifest
+    ):
+        raise UnsupportedError(
+            "current Step 1 index requires printable ASCII repository paths "
+            "for cross-runtime determinism"
+        )
     if len(manifest) > MAX_INDEX_FILE_RECORDS:
         raise UnsupportedError(
             f"repository exceeds index file-record limit of {MAX_INDEX_FILE_RECORDS}"
@@ -328,7 +464,14 @@ def build_repository_index(
     global_symbol_limit_reached = False
     exclusions = Counter()
 
-    for source_record in manifest:
+    processing_order = sorted(
+        manifest,
+        key=lambda item: (
+            _index_priority(str(item["path"])),
+            str(item["path"]).encode("utf-8"),
+        ),
+    )
+    for source_record in processing_order:
         path = str(source_record["path"])
         size = int(source_record["size_bytes"])
         record: dict[str, object] = {
@@ -376,11 +519,27 @@ def build_repository_index(
             max(0, MAX_TOTAL_SYMBOLS - symbol_count),
         )
         if language == "python":
-            symbols, parse_issue, symbol_limit = _python_symbols(text, max_symbols=symbol_budget)
+            if algorithm == LEGACY_INDEX_ALGORITHM:
+                symbols, parse_issue, symbol_limit = _python_symbols_ast(
+                    text,
+                    max_symbols=symbol_budget,
+                    feature_version=None,
+                )
+            else:
+                symbols, parse_issue, symbol_limit = _python_symbols(
+                    text,
+                    max_symbols=symbol_budget,
+                )
             if parse_issue:
                 record["symbol_extraction_issue"] = parse_issue
         else:
-            symbols, symbol_limit = _lexical_symbols(text, language, max_symbols=symbol_budget)
+            symbols, symbol_limit = _lexical_symbols(
+                text,
+                language,
+                max_symbols=symbol_budget,
+                fixed_newlines=algorithm == INDEX_ALGORITHM,
+                fixed_ascii=algorithm == INDEX_ALGORITHM,
+            )
         if symbol_limit and symbol_budget < MAX_SYMBOLS_PER_FILE:
             global_symbol_limit_reached = True
         symbols.sort(
@@ -394,7 +553,9 @@ def build_repository_index(
         record.update(
             {
                 "content_indexed": True,
-                "line_count": len(text.splitlines()),
+                "line_count": len(
+                    split_python_lines(text) if algorithm == INDEX_ALGORITHM else text.splitlines()
+                ),
                 "tokens": tokens,
                 "token_limit_reached": token_limit,
                 "symbols": symbols,
@@ -404,9 +565,37 @@ def build_repository_index(
         symbol_count += len(symbols)
         files.append(record)
 
+    files.sort(key=lambda item: str(item["path"]).encode("utf-8"))
+    limits = {
+        "max_text_bytes": max_text_bytes,
+        "max_unique_tokens_per_file": MAX_UNIQUE_TOKENS,
+        "max_symbols_per_file": MAX_SYMBOLS_PER_FILE,
+        "max_index_file_records": MAX_INDEX_FILE_RECORDS,
+        "max_total_token_entries": MAX_TOTAL_TOKEN_ENTRIES,
+        "max_total_symbols": MAX_TOTAL_SYMBOLS,
+        "max_symbol_tokens": MAX_SYMBOL_TOKENS,
+        "max_symbol_name_chars": MAX_SYMBOL_NAME_CHARS,
+        "max_qualified_symbol_chars": MAX_QUALIFIED_SYMBOL_CHARS,
+        "max_index_json_bytes": MAX_INDEX_JSON_BYTES,
+        "max_index_json_items": MAX_INDEX_JSON_ITEMS,
+    }
+    if algorithm == INDEX_ALGORITHM:
+        limits.update(
+            {
+                "max_python_source_lines": MAX_PYTHON_SOURCE_LINES,
+                "max_python_bracket_depth": MAX_BRACKET_DEPTH,
+                "max_python_fstring_depth": MAX_FSTRING_DEPTH,
+                "max_python_projection_chars": MAX_PYTHON_PROJECTION_CHARS,
+                "max_python_projection_work": MAX_PYTHON_PROJECTION_WORK,
+                "max_python_projection_ast_nodes": MAX_PYTHON_PROJECTION_AST_NODES,
+                "max_python_projection_ast_depth": MAX_PYTHON_PROJECTION_AST_DEPTH,
+            }
+        )
+    else:
+        limits["max_python_ast_nodes"] = MAX_PYTHON_AST_NODES
     payload: dict[str, object] = {
         "schema_version": "repository-index-v1",
-        "algorithm": INDEX_ALGORITHM,
+        "algorithm": algorithm,
         "repository": repository_identity,
         "file_count": len(files),
         "indexed_text_file_count": sum(bool(item["content_indexed"]) for item in files),
@@ -416,25 +605,17 @@ def build_repository_index(
             "token_entries": global_token_limit_reached,
             "symbols": global_symbol_limit_reached,
         },
-        "limits": {
-            "max_text_bytes": max_text_bytes,
-            "max_unique_tokens_per_file": MAX_UNIQUE_TOKENS,
-            "max_symbols_per_file": MAX_SYMBOLS_PER_FILE,
-            "max_index_file_records": MAX_INDEX_FILE_RECORDS,
-            "max_total_token_entries": MAX_TOTAL_TOKEN_ENTRIES,
-            "max_total_symbols": MAX_TOTAL_SYMBOLS,
-            "max_symbol_tokens": MAX_SYMBOL_TOKENS,
-            "max_symbol_name_chars": MAX_SYMBOL_NAME_CHARS,
-            "max_qualified_symbol_chars": MAX_QUALIFIED_SYMBOL_CHARS,
-            "max_python_ast_nodes": MAX_PYTHON_AST_NODES,
-            "max_index_json_bytes": MAX_INDEX_JSON_BYTES,
-        },
+        "limits": limits,
         "files": files,
     }
     payload["index_id"] = stable_id("index", payload)
     if _serialized_index_size(payload) > MAX_INDEX_JSON_BYTES:
         raise UnsupportedError(
             f"repository index exceeds JSON artifact limit of {MAX_INDEX_JSON_BYTES} bytes"
+        )
+    if _index_json_item_count(payload) > MAX_INDEX_JSON_ITEMS:
+        raise UnsupportedError(
+            f"repository index exceeds JSON item limit of {MAX_INDEX_JSON_ITEMS}"
         )
     return payload
 
@@ -447,6 +628,23 @@ def _serialized_index_size(index: dict[str, object]) -> int:
             json.dumps(index, allow_nan=False, ensure_ascii=True, indent=2, sort_keys=True) + "\n"
         ).encode("utf-8")
     )
+
+
+def _index_json_item_count(index: object) -> int:
+    """Count JSON value nodes exactly as the evaluator's bounded loader does."""
+
+    count = 0
+    pending = [index]
+    while pending:
+        value = pending.pop()
+        count += 1
+        if count > MAX_INDEX_JSON_ITEMS:
+            return count
+        if isinstance(value, dict):
+            pending.extend(value.values())
+        elif isinstance(value, list):
+            pending.extend(value)
+    return count
 
 
 def verify_repository_identity(repository: dict[str, object]) -> None:
@@ -506,7 +704,7 @@ def verify_repository_index(index: dict[str, object]) -> None:
         "files",
         "index_id",
     }
-    if set(index) != required or index.get("algorithm") != INDEX_ALGORITHM:
+    if set(index) != required or index.get("algorithm") not in SUPPORTED_INDEX_ALGORITHMS:
         raise IntegrityError("repository index fields or algorithm are invalid")
     repository = index.get("repository")
     if not isinstance(repository, dict):
@@ -537,9 +735,23 @@ def verify_repository_index(index: dict[str, object]) -> None:
         "max_symbol_tokens",
         "max_symbol_name_chars",
         "max_qualified_symbol_chars",
-        "max_python_ast_nodes",
         "max_index_json_bytes",
+        "max_index_json_items",
     }
+    if index["algorithm"] == INDEX_ALGORITHM:
+        expected_limit_fields.update(
+            {
+                "max_python_source_lines",
+                "max_python_bracket_depth",
+                "max_python_fstring_depth",
+                "max_python_projection_chars",
+                "max_python_projection_work",
+                "max_python_projection_ast_nodes",
+                "max_python_projection_ast_depth",
+            }
+        )
+    else:
+        expected_limit_fields.add("max_python_ast_nodes")
     if (
         not isinstance(limits, dict)
         or set(limits) != expected_limit_fields
@@ -553,10 +765,23 @@ def verify_repository_index(index: dict[str, object]) -> None:
         or limits["max_symbol_tokens"] != MAX_SYMBOL_TOKENS
         or limits["max_symbol_name_chars"] != MAX_SYMBOL_NAME_CHARS
         or limits["max_qualified_symbol_chars"] != MAX_QUALIFIED_SYMBOL_CHARS
-        or limits["max_python_ast_nodes"] != MAX_PYTHON_AST_NODES
         or limits["max_index_json_bytes"] != MAX_INDEX_JSON_BYTES
+        or limits["max_index_json_items"] != MAX_INDEX_JSON_ITEMS
     ):
         raise IntegrityError("repository index limits are invalid")
+    if index["algorithm"] == INDEX_ALGORITHM:
+        if (
+            limits["max_python_source_lines"] != MAX_PYTHON_SOURCE_LINES
+            or limits["max_python_bracket_depth"] != MAX_BRACKET_DEPTH
+            or limits["max_python_fstring_depth"] != MAX_FSTRING_DEPTH
+            or limits["max_python_projection_chars"] != MAX_PYTHON_PROJECTION_CHARS
+            or limits["max_python_projection_work"] != MAX_PYTHON_PROJECTION_WORK
+            or limits["max_python_projection_ast_nodes"] != MAX_PYTHON_PROJECTION_AST_NODES
+            or limits["max_python_projection_ast_depth"] != MAX_PYTHON_PROJECTION_AST_DEPTH
+        ):
+            raise IntegrityError("repository index lexical limits are invalid")
+    elif limits["max_python_ast_nodes"] != MAX_PYTHON_AST_NODES:
+        raise IntegrityError("repository index AST limit is invalid")
     global_limit_reached = index.get("global_limit_reached")
     if (
         not isinstance(global_limit_reached, dict)
@@ -597,7 +822,12 @@ def verify_repository_index(index: dict[str, object]) -> None:
         ):
             raise IntegrityError("repository index file record is invalid")
         path = record.get("path")
-        if not isinstance(path, str) or not _safe_index_path(path):
+        if (
+            not isinstance(path, str)
+            or not _safe_index_path(path)
+            or index["algorithm"] == INDEX_ALGORITHM
+            and not is_printable_ascii(path)
+        ):
             raise IntegrityError("repository index file path is unsafe")
         paths.append(path)
         collision_key = unicodedata.normalize("NFC", path).casefold()
@@ -652,6 +882,12 @@ def verify_repository_index(index: dict[str, object]) -> None:
             "complexity_limit",
         ):
             raise IntegrityError("repository index symbol-extraction issue is invalid")
+        if (
+            index["algorithm"] == INDEX_ALGORITHM
+            and extraction_issue is not None
+            and record["symbols"]
+        ):
+            raise IntegrityError("current repository index cannot retain partial Python symbols")
         if len(record["tokens"]) > MAX_UNIQUE_TOKENS:
             raise IntegrityError("repository index per-file token limit is exceeded")
         for token, count in record["tokens"].items():
@@ -664,6 +900,13 @@ def verify_repository_index(index: dict[str, object]) -> None:
                 raise IntegrityError("repository index token data is invalid")
         if len(record["symbols"]) > MAX_SYMBOLS_PER_FILE:
             raise IntegrityError("repository index per-file symbol limit is exceeded")
+        expected_extractor = (
+            "python-lexical-v1"
+            if record["language"] == "python" and index["algorithm"] == INDEX_ALGORITHM
+            else "python-ast-v1"
+            if record["language"] == "python"
+            else "lexical-v1"
+        )
         for symbol in record["symbols"]:
             symbol_required = {
                 "name",
@@ -693,7 +936,7 @@ def verify_repository_index(index: dict[str, object]) -> None:
                 or not _positive_index_integer(end_line)
                 or end_line < start_line
                 or end_line > record["line_count"]
-                or symbol.get("extractor") not in {"python-ast-v1", "lexical-v1"}
+                or symbol.get("extractor") != expected_extractor
             ):
                 raise IntegrityError("repository index symbol location is invalid")
             symbol_tokens = symbol["tokens"]
@@ -732,6 +975,8 @@ def verify_repository_index(index: dict[str, object]) -> None:
         raise IntegrityError("repository index identity mismatch")
     if _serialized_index_size(index) > MAX_INDEX_JSON_BYTES:
         raise IntegrityError("repository index JSON artifact limit is exceeded")
+    if _index_json_item_count(index) > MAX_INDEX_JSON_ITEMS:
+        raise IntegrityError("repository index JSON item limit is exceeded")
 
 
 def _safe_index_path(value: str) -> bool:

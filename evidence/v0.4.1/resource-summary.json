@@ -1,0 +1,29 @@
+{
+  "active_parameters": 10455,
+  "cpu_inference": true,
+  "development_peak_memory_measured": false,
+  "gpu_required": false,
+  "installed_fixture_replay": {
+    "deterministic": {
+      "candidate_count": 5,
+      "maximum_cpu_seconds": 0.046875,
+      "maximum_peak_python_bytes": 1069867,
+      "maximum_wall_seconds": 0.06111460001557134,
+      "network_used": false,
+      "repository_code_executed": false
+    },
+    "learned": {
+      "candidate_count": 5,
+      "maximum_cpu_seconds": 0.21875,
+      "maximum_peak_python_bytes": 1070275,
+      "maximum_wall_seconds": 0.224547200021334,
+      "network_used": false,
+      "repository_code_executed": false
+    }
+  },
+  "model_size_bytes": 557811,
+  "reason_envelope_not_qualified": "FRESH_QUALIFICATION_NOT_READY",
+  "record_id": "v0.4.1-public-resource-summary:1491922a195650cf514c5c15265aa2c7084f15876d0cfbc694003c67b59e4f88",
+  "schema_version": "lumi-trace-v0.4.1-public-resource-summary-v1",
+  "sixteen_gib_large_repository_envelope_qualified": false
+}

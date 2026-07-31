@@ -1,0 +1,29 @@
+{
+  "local_cpu_capable": true,
+  "networked_inference_runs": 0,
+  "qualification_wall_seconds": 1555.828216599999,
+  "repository_controlled_code_executed": false,
+  "schema_version": "lumi-trace-v0.4-public-resource-summary-v1",
+  "trace_development": {
+    "checkpoint_bytes": 1115,
+    "cpu_seconds": 86.578125,
+    "local_cpu_inference": true,
+    "peak_python_memory_bytes": 3283718,
+    "wall_seconds": 88.00449619998108
+  },
+  "trace_model_selection": {
+    "checkpoint_bytes": 1115,
+    "cpu_seconds": 65.796875,
+    "local_cpu_inference": true,
+    "peak_python_memory_bytes": 3123203,
+    "wall_seconds": 66.5714020000014
+  },
+  "training": {
+    "checkpoint_bytes": 1115,
+    "cpu_seconds_two_clean_runs": 336.359375,
+    "local_cpu_training": true,
+    "peak_python_memory_bytes": 210632567,
+    "quantized_artifact_bytes": 573,
+    "wall_seconds_two_clean_runs": 340.4103102000081
+  }
+}

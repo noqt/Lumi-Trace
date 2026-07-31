@@ -1,0 +1,139 @@
+{
+  "records": [
+    {
+      "identity_exclusions": [
+        "observations"
+      ],
+      "payload": {
+        "corrections": [],
+        "decision": "TARGETS_CONSTRUCTED",
+        "disagreements": [],
+        "input_hashes": [
+          "sha256:6ca11eaea7768ac1f65a8d5fcba2c5135dac62c4bac805eae004a70090d5b831",
+          "sha256:c06edd7927e50fb19e46dab781868e7d9740d543d608242b0d4ac4b3bc58f413",
+          "sha256:9f6bb2c8011679a4319daf90bf5d8f29445a834590c65de587b4a0b76e81e166",
+          "sha256:f3c1d5a34df3a4f5dcfb25dcfad9b82b8fc4110090a4e2b5dcea7180af955804"
+        ],
+        "method": "Source-of-truth fixture inspection without Lumi Trace candidate output",
+        "role": "LABEL_CONSTRUCTION_BLIND_PASS"
+      },
+      "record_id": "controlled-review-receipt:ccfea51591d8342f83bca795d5aee88946ba0ea7c7b9eb860168ec1ba21606c3",
+      "schema_version": "controlled-review-receipt-v1"
+    },
+    {
+      "identity_exclusions": [
+        "observations"
+      ],
+      "payload": {
+        "corrections": [],
+        "decision": "ACCEPTED_PUBLIC_SYNTHETIC_LABELS",
+        "disagreements": [],
+        "input_hashes": [
+          "controlled-review-receipt:ccfea51591d8342f83bca795d5aee88946ba0ea7c7b9eb860168ec1ba21606c3",
+          "sha256:6ca11eaea7768ac1f65a8d5fcba2c5135dac62c4bac805eae004a70090d5b831",
+          "sha256:c06edd7927e50fb19e46dab781868e7d9740d543d608242b0d4ac4b3bc58f413",
+          "sha256:9f6bb2c8011679a4319daf90bf5d8f29445a834590c65de587b4a0b76e81e166",
+          "sha256:f3c1d5a34df3a4f5dcfb25dcfad9b82b8fc4110090a4e2b5dcea7180af955804"
+        ],
+        "method": "Separate sealed-input pass checking target and no-plan safety semantics",
+        "role": "CONTROLLED_REVIEW_BLIND_PASS"
+      },
+      "record_id": "controlled-review-receipt:389b02429a9f43b4c691461739d51ae0a0327793b1fd9a17e397b006022d2d3d",
+      "schema_version": "controlled-review-receipt-v1"
+    },
+    {
+      "identity_exclusions": [
+        "observations"
+      ],
+      "payload": {
+        "corrections": [],
+        "group_id": "trace-public-exact-symbol",
+        "hard_negative_paths": [],
+        "label_set_id": "public-label-exact-symbol",
+        "matching_rule": "FIRST_ACCEPTED_EXACT_KIND_WITH_ANY_LINE_OVERLAP",
+        "reproduction": {
+          "expected_outcome": "INSUFFICIENT_EVIDENCE",
+          "plan_state": "INTENTIONALLY_ABSENT"
+        },
+        "review_receipt_ids": [
+          "controlled-review-receipt:ccfea51591d8342f83bca795d5aee88946ba0ea7c7b9eb860168ec1ba21606c3",
+          "controlled-review-receipt:389b02429a9f43b4c691461739d51ae0a0327793b1fd9a17e397b006022d2d3d"
+        ],
+        "targets": [
+          {
+            "kind": "symbol",
+            "path": "src/archive.sh",
+            "symbol": "unsafe_join"
+          }
+        ]
+      },
+      "record_id": "label-set:72227a627a17d5ecb6012b659dc622cc038e0f7ff34cdb2a06a32e030b7b12e3",
+      "schema_version": "label-set-v1"
+    },
+    {
+      "identity_exclusions": [
+        "observations"
+      ],
+      "payload": {
+        "corrections": [],
+        "group_id": "trace-public-message-region",
+        "hard_negative_paths": [],
+        "label_set_id": "public-label-message-region",
+        "matching_rule": "FIRST_ACCEPTED_EXACT_KIND_WITH_ANY_LINE_OVERLAP",
+        "reproduction": {
+          "expected_outcome": "INSUFFICIENT_EVIDENCE",
+          "plan_state": "INTENTIONALLY_ABSENT"
+        },
+        "review_receipt_ids": [
+          "controlled-review-receipt:ccfea51591d8342f83bca795d5aee88946ba0ea7c7b9eb860168ec1ba21606c3",
+          "controlled-review-receipt:389b02429a9f43b4c691461739d51ae0a0327793b1fd9a17e397b006022d2d3d"
+        ],
+        "targets": [
+          {
+            "kind": "region",
+            "path": "src/archive.sh",
+            "region": {
+              "end_line": 4,
+              "start_line": 4
+            }
+          }
+        ]
+      },
+      "record_id": "label-set:16a3e710deba8a073c2f2c1a42ea993d22c3460e64778a72b8c5c2e6f5215623",
+      "schema_version": "label-set-v1"
+    },
+    {
+      "identity_exclusions": [
+        "observations"
+      ],
+      "payload": {
+        "corrections": [],
+        "group_id": "trace-public-hard-negative",
+        "hard_negative_paths": [
+          "tests/reproduce.sh"
+        ],
+        "label_set_id": "public-label-hard-negative",
+        "matching_rule": "FIRST_ACCEPTED_EXACT_KIND_WITH_ANY_LINE_OVERLAP",
+        "reproduction": {
+          "expected_outcome": "INSUFFICIENT_EVIDENCE",
+          "plan_state": "INTENTIONALLY_ABSENT"
+        },
+        "review_receipt_ids": [
+          "controlled-review-receipt:ccfea51591d8342f83bca795d5aee88946ba0ea7c7b9eb860168ec1ba21606c3",
+          "controlled-review-receipt:389b02429a9f43b4c691461739d51ae0a0327793b1fd9a17e397b006022d2d3d"
+        ],
+        "targets": [
+          {
+            "kind": "symbol",
+            "path": "src/archive.sh",
+            "symbol": "unsafe_join"
+          }
+        ]
+      },
+      "record_id": "label-set:a478535e107bab858fc3633767025d70f661c7330a87a3580348e6089a05b162",
+      "schema_version": "label-set-v1"
+    }
+  ],
+  "registry_id": "trace-eval-registry:909f48924eae7ed03ff61cdc8b69e97eea3642fa7789be5c1fea5a8c33214ada",
+  "schema_version": "trace-eval-registry-file-v1"
+}

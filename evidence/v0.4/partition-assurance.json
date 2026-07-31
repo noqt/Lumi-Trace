@@ -1,0 +1,42 @@
+{
+  "counts": {
+    "ENGINEERING_DEVELOPMENT": {
+      "families": 12,
+      "groups": 158,
+      "hard_negative_groups": 117,
+      "matched_controls": 158
+    },
+    "MODEL_SELECTION": {
+      "families": 19,
+      "groups": 131,
+      "hard_negative_groups": 89,
+      "matched_controls": 131
+    },
+    "PROTECTED_HOLDBACK": {
+      "families": 9,
+      "groups": 196,
+      "hard_negative_groups": 109,
+      "matched_controls": 196
+    },
+    "QUALIFICATION": {
+      "families": 10,
+      "groups": 202,
+      "hard_negative_groups": 184,
+      "matched_controls": 202
+    },
+    "TRAINING": {
+      "families": 317,
+      "groups": 541,
+      "hard_negative_groups": 315,
+      "matched_controls": 541
+    }
+  },
+  "family_disjoint": true,
+  "protected_holdback_opened": false,
+  "protected_holdback_state": "SEALED_UNOPENED",
+  "qualification_runs_consumed": 1,
+  "qualification_single_use": true,
+  "qualification_used_for_tuning": false,
+  "schema_version": "lumi-trace-v0.4-public-partition-assurance-v1",
+  "sealed_before_training": true
+}

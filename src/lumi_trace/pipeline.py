@@ -9,11 +9,16 @@ from pathlib import Path
 from typing import Literal
 
 from . import __version__
-from .canonical import dump_json, load_json, sha256_file, stable_id
+from .canonical import canonical_sha256, dump_json, load_json, sha256_file, stable_id
 from .errors import InputError
 from .findings import import_manual, import_sarif, load_normalized_finding
 from .indexing import build_repository_index
-from .ranking import rank_candidates
+from .localization import (
+    STEP1_MAXIMUM_CANDIDATES,
+    build_raw_localization,
+    construct_inference_request,
+)
+from .ranking import project_localization_candidates
 from .reporting import build_evidence_bundle, export_sarif
 from .repository import RepositoryWorkspace
 from .sandbox import DockerSandbox, load_reproduction_plan
@@ -37,13 +42,21 @@ def source_revision(project_root: Path | None = None) -> str:
         ).stdout.strip()
         if Path(top_level).resolve(strict=True) != root.resolve(strict=True):
             return f"release:{__version__}"
-        return subprocess.run(
+        revision = subprocess.run(
             ["git", "-C", str(root), "rev-parse", "HEAD"],
             check=True,
             capture_output=True,
             text=True,
             timeout=10,
         ).stdout.strip()
+        dirty = subprocess.run(
+            ["git", "-C", str(root), "status", "--porcelain", "--untracked-files=normal"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        ).stdout
+        return f"uncommitted:{revision}" if dirty.strip() else revision
     except (FileNotFoundError, subprocess.SubprocessError):
         return f"release:{__version__}"
 
@@ -107,6 +120,10 @@ def trace_repository(
 
     if reproduction_plan_path is not None and not image:
         raise InputError("--image is required when --plan is supplied")
+    if image is not None and reproduction_plan_path is None:
+        raise InputError("--image is only valid when --plan is supplied")
+    if finding_format != "sarif" and (run_index is not None or result_index is not None):
+        raise InputError("--run-index and --result-index are only valid for SARIF input")
     if output_directory.exists():
         raise InputError("output directory already exists; choose a new evidence-package path")
     original_repository_root = repository_source if repository_source.is_dir() else None
@@ -123,7 +140,24 @@ def trace_repository(
         if workspace.root is None or workspace.identity is None:
             raise RuntimeError("repository workspace did not materialise")
         index = build_repository_index(workspace.root, workspace.identity)
-        candidate_set = rank_candidates(finding, index, top_k=top_k)
+        request = construct_inference_request(
+            finding=finding,
+            repository_artifact_sha256=canonical_sha256(workspace.identity["manifest_id"]),
+            source_kind="directory",
+            top_k=top_k,
+            maximum_candidates=STEP1_MAXIMUM_CANDIDATES,
+            measure_peak_memory=False,
+        )
+        raw_localization = build_raw_localization(
+            request,
+            repository_source=workspace.root,
+        )
+        candidate_set = project_localization_candidates(
+            finding,
+            index,
+            raw_localization,
+            top_k=top_k,
+        )
         receipt = None
         if reproduction_plan_path is not None:
             plan = load_reproduction_plan(reproduction_plan_path)
@@ -166,6 +200,7 @@ def trace_repository(
         staging.replace(output_directory)
     return {
         "bundle": bundle,
+        "candidate_set": candidate_set,
         "sarif": sarif,
         "manifest": manifest,
         "output_directory": output_directory,

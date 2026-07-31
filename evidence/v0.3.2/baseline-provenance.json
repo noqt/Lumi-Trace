@@ -1,0 +1,19 @@
+{
+  "baseline_package_id": "trace-eval-package:af69ceea1e0349e36b75ee7c1d5b5e10e65f2bcfc8d74044bec4868631912a03",
+  "capability_lock_package_id": "trace-eval-package:7ca3489fce82ffb376232768e0c00f6104104c6cf55c8f625b1f5050500e898a",
+  "control_package_id": "trace-eval-package:dadbd1f7501fafcf80e4a3080f68bcf3f1ab8e544764b808157f7d46c41b7549",
+  "development_replay_identity_agreement": true,
+  "development_replay_semantic_agreement": true,
+  "evaluator_artifact_sha256": "sha256:1edf6597313106c7b546d666b018655b3ef76a90234a2e93079b1e5dba59e122",
+  "evaluator_reproducible_builds": true,
+  "evaluator_version": "0.3.3",
+  "original_runtime_artifact_sha256": "sha256:c3872c3ab25b1df4c4e2f31711f9072d25e4955a1cda3eecd89e421d901c0bba",
+  "previous_public_evidence_seal": "lumi-trace-v0.3.1-public-evidence:e06658ab3ab0b6f1d9085f1d3f5d0c672f7d4283d5e554f0305452e8492f567f",
+  "qualification_package_id": "trace-eval-package:3595c17d5d484f4a4b1951dddd3e7605d2a732053b662223170b9f06004da7c4",
+  "runtime_artifact_sha256": "sha256:6c674f15eb2d0178e3d0054d05dd733127981e640e8891fe37c135d394d42173",
+  "runtime_reproducible_builds": true,
+  "runtime_source_revision": "1b7d4e713e367d1a1c98b54a03b47cd3978db36f",
+  "runtime_version": "0.1.2",
+  "schema_version": "lumi-trace-v0.3.2-public-provenance-v1",
+  "source_revision": "6b2984ce3ac4a2f36684f316986ace01685e1597"
+}

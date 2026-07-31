@@ -1,0 +1,274 @@
+{
+  "identity_exclusions": [
+    "observations"
+  ],
+  "payload": {
+    "case_result_ids": [
+      "trace-code-case-result:34b1c022c869ad479f8200d4ec0f92cc7b8c2bc2c2a4abadf3c1dba565a67969",
+      "trace-code-case-result:0d1123f0a6b2169b187a84fa98e2b51e0a8d3cb7bbd819b35f93fc0cf0bf6520",
+      "trace-code-case-result:631cfcadfd6869b9bd886c0c107add51ceb5d9e536ee70fbcccae5048a462c40",
+      "trace-code-case-result:e0296464c4332b47cc6c9a29a58e947e76a665ccf87ac1289b6a24e925cbcfd7",
+      "trace-code-case-result:503ed97a2036a665d896cc7868798bf4bb80a566d0d3d902f2c0d0972504f964",
+      "trace-code-case-result:76bcda35bb06ad8050f34fc7c7503dacf0d05f2fe8b43785214aa911a642d021",
+      "trace-code-case-result:a72ebbe5c72030dc0b083e5d4c037bd18f77ace759355153e79806af6146dba4",
+      "trace-code-case-result:30b38142aeeae7df7985725dcb7dbb30fee3f15c2930e449f9edc6c1f4a9b3ce",
+      "trace-code-case-result:b4a3ccf9c7594fbadd108233ae8a690740b0e3fb87d15a0e41961621648087b4",
+      "trace-code-case-result:39d2075c4ea9e5f10115206f065e26dce1598a6228c5bde213e4b24e2613582f",
+      "trace-code-case-result:151db3c0fd1643db1dbb98cf0f920dd49930aa88afeb4b402731c4c38a671295",
+      "trace-code-case-result:8812a21ea4216db6b3cd468ef26646a54d7da3a5949ebb5d08c05a30b1046503",
+      "trace-code-case-result:11ea5c0cbbab9bbfadd41197bdd0feea03a170817d6f4eb2d4c2966273ab3665",
+      "trace-code-case-result:50dff50f34cfada3130b77452b79ee819b81548d2e89bc5927a060daea9d89ce",
+      "trace-code-case-result:4578d6aa0fa33e5f6665a16c2965ad479bddaeb1e088b49c4a718f4b61a98a33",
+      "trace-code-case-result:bc393e14c105ae0164c37cd57fcd5e19ae79f58b84f4dfc76e95ed232109958b",
+      "trace-code-case-result:3fc432f0a0cef6a7b1b1af28036a1c1305bddd91f7c5130cdeac7528d43bf5c1",
+      "trace-code-case-result:44e350b71b2b8810b2d9f10a5ec01c7b1a3c51af2f7cdb651aa6036cb9bd5a2e",
+      "trace-code-case-result:d1e5d7d4dd77eef33fe39467a547e23b6a0ad63b685c9a926122cf7e5aff776b",
+      "trace-code-case-result:14c8c8d7c6ca8e88b17567c1bf22329708f6c659579644dbd4ac337b54103dc2",
+      "trace-code-case-result:88bdbf11fedc105160c6293e2acda0e12a4a17e1f4ca2dc9ba12844cfa680a78",
+      "trace-code-case-result:612b25f038c67e26275937df24311b4b3f6219993d2ecfa0e6599c94f2a90b1e",
+      "trace-code-case-result:7edd68f5e4ad60b6213217af925651d93c082dd3e015296c442bc0c544483508",
+      "trace-code-case-result:ab8a0cacc44fa820b7a88a07020238854c4a0bedb967e7b75f081d288506442f",
+      "trace-code-case-result:39104fd106919668ae07c6677acd90ac7384684d39bc3aa4536ab8e5ba6dcb07",
+      "trace-code-case-result:c3fa48f4bf6d7d3926612b15ceb0d9280455de90f1597b70f27816ec39a80d2a",
+      "trace-code-case-result:fb50e7d1d943f21360013c4026aed2a4684cfa959f8bdfe63866cb2c9f756c65",
+      "trace-code-case-result:d86b7f323372335dff79b1dc03423587299df4be247865beb933baee515a4028",
+      "trace-code-case-result:bb04b7994e242c2dc0f90053f91a164d276093f3ef085caf8fc805446a08f0d8",
+      "trace-code-case-result:49582e42af57691e977537b7cfe5fde6d323979c4bd8825154033a17c32d5c80",
+      "trace-code-case-result:2b1b104cff074cf7b0fabfb704a16b6010b874e5e89bf747040d488d9837ea82",
+      "trace-code-case-result:ae9c2bcadb1d0654254085fdc77cbdca04b445425d28b49eacd12c7ef6841d73",
+      "trace-code-case-result:dcc766634f3b4953ec20f65e63732d825db100b01e88d2184e6e3852436e1dbd",
+      "trace-code-case-result:8a170fc78bb82dc546867080e2a40b5818f828830862db2f7f070d78c097c6e0",
+      "trace-code-case-result:d363f6c831acc0ba32705bc5dcb74ab6e1c76f1aa0b7a1143a2a03a754bad712",
+      "trace-code-case-result:b153ca5ff95cafe3d7cc533345eac5daf66421a58fe85accce01604efd76858b",
+      "trace-code-case-result:a318be967581ff01272773f2f4e3d4173e6752b80391346afb31bec15f24c7ba",
+      "trace-code-case-result:c2de8c69089476d09d14180f463d25ab55a319b7beb78f9a6f35122baad8a1a2",
+      "trace-code-case-result:bc185c4068ce1e77dde1f0c084de08b34001df3ae715c9545303235c79ced69b",
+      "trace-code-case-result:4251f320277b82540f54753be88fd16d0314133c9f67876c7298345557b9aaba"
+    ],
+    "excluded": {},
+    "metric_spec_id": "trace-code-metric-specification:bdd0fb4eff494ba7b9d21d5ebf46753d0777f7cef3ac02b9d70aa16353d513c9",
+    "micro": {
+      "abstention_coverage": {
+        "denominator": 40,
+        "numerator": 40,
+        "rate": 1.0
+      },
+      "disposition_confusion": {
+        "INSUFFICIENT_EVIDENCE->INSUFFICIENT_EVIDENCE": 8,
+        "INSUFFICIENT_EVIDENCE->UNSUPPORTED_INPUT": 32
+      },
+      "false_supported_disposition": {
+        "count": 0,
+        "rate": {
+          "denominator": 40,
+          "numerator": 0,
+          "rate": 0.0
+        }
+      },
+      "false_vulnerability_rate": {
+        "denominator": 20,
+        "numerator": 0,
+        "rate": 0.0
+      },
+      "file_recall": {
+        "1": {
+          "denominator": 20,
+          "numerator": 1,
+          "rate": 0.05
+        },
+        "10": {
+          "denominator": 20,
+          "numerator": 2,
+          "rate": 0.1
+        },
+        "20": {
+          "denominator": 20,
+          "numerator": 3,
+          "rate": 0.15
+        },
+        "5": {
+          "denominator": 20,
+          "numerator": 1,
+          "rate": 0.05
+        }
+      },
+      "group_count": 40,
+      "hard_negative_outrank": {
+        "denominator": 1,
+        "numerator": 1,
+        "rate": 1.0
+      },
+      "location_role_correct_recall": {
+        "1": {
+          "denominator": 20,
+          "numerator": 0,
+          "rate": 0.0
+        },
+        "10": {
+          "denominator": 20,
+          "numerator": 0,
+          "rate": 0.0
+        },
+        "20": {
+          "denominator": 20,
+          "numerator": 0,
+          "rate": 0.0
+        },
+        "5": {
+          "denominator": 20,
+          "numerator": 0,
+          "rate": 0.0
+        }
+      },
+      "mean_reciprocal_rank": {
+        "denominator": 20,
+        "mean": 0.0625,
+        "sum": 1.25
+      },
+      "no_relevant_candidate": {
+        "denominator": 20,
+        "numerator": 17,
+        "rate": 0.85
+      },
+      "region_recall": {
+        "1": {
+          "denominator": 20,
+          "numerator": 0,
+          "rate": 0.0
+        },
+        "10": {
+          "denominator": 20,
+          "numerator": 0,
+          "rate": 0.0
+        },
+        "20": {
+          "denominator": 20,
+          "numerator": 0,
+          "rate": 0.0
+        },
+        "5": {
+          "denominator": 20,
+          "numerator": 0,
+          "rate": 0.0
+        }
+      },
+      "symbol_recall": {
+        "1": {
+          "denominator": 19,
+          "numerator": 0,
+          "rate": 0.0
+        },
+        "10": {
+          "denominator": 19,
+          "numerator": 0,
+          "rate": 0.0
+        },
+        "20": {
+          "denominator": 19,
+          "numerator": 0,
+          "rate": 0.0
+        },
+        "5": {
+          "denominator": 19,
+          "numerator": 0,
+          "rate": 0.0
+        }
+      },
+      "target_indexability": {
+        "denominator": 20,
+        "numerator": 4,
+        "rate": 0.2
+      },
+      "unsafe_non_abstention": {
+        "denominator": 40,
+        "numerator": 0,
+        "rate": 0.0
+      },
+      "unsupported_input_acceptance": {
+        "denominator": 0,
+        "numerator": 0,
+        "rate": null
+      },
+      "wrong_location_role_top_one": {
+        "denominator": 20,
+        "numerator": 0,
+        "rate": 0.0
+      }
+    },
+    "repository_family_macro": {
+      "count": 7,
+      "false_supported": {
+        "mean": 0.0,
+        "units": 7
+      },
+      "file_recall": {
+        "1": {
+          "mean": 0.047619047619047616,
+          "units": 7
+        },
+        "10": {
+          "mean": 0.09523809523809523,
+          "units": 7
+        },
+        "20": {
+          "mean": 0.14285714285714285,
+          "units": 7
+        },
+        "5": {
+          "mean": 0.047619047619047616,
+          "units": 7
+        }
+      }
+    },
+    "repository_macro": {
+      "count": 38,
+      "false_supported": {
+        "mean": 0.0,
+        "units": 38
+      },
+      "file_recall": {
+        "1": {
+          "mean": 0.05,
+          "units": 20
+        },
+        "10": {
+          "mean": 0.1,
+          "units": 20
+        },
+        "20": {
+          "mean": 0.15,
+          "units": 20
+        },
+        "5": {
+          "mean": 0.05,
+          "units": 20
+        }
+      }
+    },
+    "strata": {
+      "cwe=CWE-150": 2,
+      "cwe=CWE-20": 4,
+      "cwe=CWE-22": 6,
+      "cwe=CWE-352": 2,
+      "cwe=CWE-400": 4,
+      "cwe=CWE-426": 2,
+      "cwe=CWE-502": 2,
+      "cwe=CWE-601": 2,
+      "cwe=CWE-693": 2,
+      "cwe=CWE-770": 6,
+      "cwe=CWE-78": 2,
+      "cwe=CWE-79": 4,
+      "cwe=CWE-835": 2,
+      "direct_cue=UNKNOWN": 40,
+      "finding_format=manual": 40,
+      "hard_negative_family=UNKNOWN": 40,
+      "label_source=UNKNOWN": 40,
+      "language=Python": 40,
+      "repository_size_band=LARGE": 4,
+      "repository_size_band=MEDIUM": 6,
+      "repository_size_band=SMALL": 30
+    }
+  },
+  "record_id": "trace-code-aggregate-metrics:e8160820dce73ee675b831607352cd5179073b1eae806b11211f38b174a6c13e",
+  "schema_version": "trace-code-aggregate-metrics-v1"
+}

@@ -1,0 +1,188 @@
+{
+  "aggregate_id": "aggregate-metrics:bd8b6416b8713faf8a28aff46220f44fa0d3f9f0fdcb39729ae89a906a24d189",
+  "controlled_review": true,
+  "failure_counts": {
+    "HARD_NEGATIVE_OUTRANKED_TARGET": 1
+  },
+  "group_count": 3,
+  "micro": {
+    "accepted_target_coverage": {
+      "denominator": 3,
+      "numerator": 3,
+      "rate": 1.0
+    },
+    "false_confirmations": {
+      "count": 0,
+      "rate": {
+        "denominator": 3,
+        "numerator": 0,
+        "rate": 0.0
+      }
+    },
+    "file_indexability": {
+      "denominator": 3,
+      "numerator": 3,
+      "rate": 1.0
+    },
+    "file_recall_end_to_end": {
+      "1": {
+        "denominator": 3,
+        "numerator": 2,
+        "rate": 0.6666666666666666
+      },
+      "10": {
+        "denominator": 3,
+        "numerator": 3,
+        "rate": 1.0
+      },
+      "20": {
+        "denominator": 3,
+        "numerator": 3,
+        "rate": 1.0
+      },
+      "5": {
+        "denominator": 3,
+        "numerator": 3,
+        "rate": 1.0
+      }
+    },
+    "file_recall_indexable_only": {
+      "1": {
+        "denominator": 3,
+        "numerator": 2,
+        "rate": 0.6666666666666666
+      },
+      "10": {
+        "denominator": 3,
+        "numerator": 3,
+        "rate": 1.0
+      },
+      "20": {
+        "denominator": 3,
+        "numerator": 3,
+        "rate": 1.0
+      },
+      "5": {
+        "denominator": 3,
+        "numerator": 3,
+        "rate": 1.0
+      }
+    },
+    "first_relevant_rank_distribution": {
+      "1": 2,
+      "2": 1
+    },
+    "group_count": 3,
+    "hard_negative_outrank": {
+      "denominator": 1,
+      "numerator": 1,
+      "rate": 1.0
+    },
+    "mean_reciprocal_rank": {
+      "denominator": 3,
+      "mean": 0.8333333333333334,
+      "sum_reciprocal_rank": 2.5
+    },
+    "no_relevant_candidate": {
+      "denominator": 3,
+      "numerator": 0,
+      "rate": 0.0
+    },
+    "region_hit_rate": {
+      "1": {
+        "denominator": 1,
+        "numerator": 1,
+        "rate": 1.0
+      },
+      "10": {
+        "denominator": 1,
+        "numerator": 1,
+        "rate": 1.0
+      },
+      "20": {
+        "denominator": 1,
+        "numerator": 1,
+        "rate": 1.0
+      },
+      "5": {
+        "denominator": 1,
+        "numerator": 1,
+        "rate": 1.0
+      }
+    },
+    "reproduction": {
+      "agreement": {
+        "denominator": 3,
+        "numerator": 3,
+        "rate": 1.0
+      },
+      "safe_abstention": {
+        "denominator": 3,
+        "numerator": 3,
+        "rate": 1.0
+      }
+    },
+    "score_reason_distribution": {
+      "EXACT_REPORTED_PATH": 3,
+      "EXACT_REPORTED_SYMBOL": 1,
+      "IDENTIFIER_CONTENT_MATCH": 15,
+      "MESSAGE_CONTENT_MATCH": 15,
+      "PATH_BASENAME_MATCH": 7,
+      "PATH_TOKEN_MATCH": 6,
+      "REPORTED_REGION_OVERLAP": 1,
+      "SYMBOL_TOKEN_MATCH": 3,
+      "TEST_PATH_PENALTY": 2
+    },
+    "snapshot_materialisation": {
+      "denominator": 3,
+      "numerator": 3,
+      "rate": 1.0
+    },
+    "symbol_recall": {
+      "1": {
+        "denominator": 2,
+        "numerator": 1,
+        "rate": 0.5
+      },
+      "10": {
+        "denominator": 2,
+        "numerator": 2,
+        "rate": 1.0
+      },
+      "20": {
+        "denominator": 2,
+        "numerator": 2,
+        "rate": 1.0
+      },
+      "5": {
+        "denominator": 2,
+        "numerator": 2,
+        "rate": 1.0
+      }
+    }
+  },
+  "repository_macro": {
+    "file_recall": {
+      "1": {
+        "mean": 0.6666666666666666,
+        "repositories": 1
+      },
+      "10": {
+        "mean": 1.0,
+        "repositories": 1
+      },
+      "20": {
+        "mean": 1.0,
+        "repositories": 1
+      },
+      "5": {
+        "mean": 1.0,
+        "repositories": 1
+      }
+    },
+    "repository_count": 1
+  },
+  "run_id": "trace-eval-run:dca88a039a8c62f1576581bb359cd59306d663e719464796149752ed82b5471f",
+  "run_package_id": "trace-eval-package:b8c6a12a9fe1cf076e316cf2773a8c6cf3ad91c93c5ab92b26a103699053502f",
+  "schema_version": "trace-eval-public-summary-v1"
+}

@@ -103,10 +103,22 @@ def _security_severity(rule: dict[str, Any], fallback: Any) -> dict[str, str]:
 
 
 def _safe_relative_path(value: str, repository_root: Path | None = None) -> str:
-    parsed = urllib.parse.urlsplit(value)
-    if parsed.scheme.lower() in {"http", "https", "ssh", "git"}:
-        raise UnsupportedError("remote SARIF artifact locations are unsupported")
-    raw_path = urllib.parse.unquote(parsed.path if parsed.scheme else value).replace("\\", "/")
+    windows_drive_path = re.match(r"^[A-Za-z]:[\\/]", value) is not None
+    if windows_drive_path:
+        raw_path = urllib.parse.unquote(value)
+    else:
+        parsed = urllib.parse.urlsplit(value)
+        scheme = parsed.scheme.casefold()
+        if scheme and scheme != "file":
+            raise UnsupportedError("remote SARIF artifact locations are unsupported")
+        if scheme == "file" and parsed.netloc:
+            raise UnsupportedError("remote file URI authorities are unsupported")
+        if parsed.query or parsed.fragment:
+            raise UnsupportedError("SARIF artifact location queries and fragments are unsupported")
+        raw_path = urllib.parse.unquote(parsed.path if scheme else value)
+    raw_path = raw_path.replace("\\", "/")
+    if "\x00" in raw_path:
+        raise InputError("finding location contains a NUL byte")
     if re.match(r"^/[A-Za-z]:/", raw_path):
         raw_path = raw_path[1:]
     is_absolute = raw_path.startswith("/") or bool(re.match(r"^[A-Za-z]:/", raw_path))
@@ -373,6 +385,11 @@ def _sarif_location(
     artifact = physical.get("artifactLocation")
     if not isinstance(artifact, dict) or not isinstance(artifact.get("uri"), str):
         return None
+    uri_base_id = artifact.get("uriBaseId")
+    if uri_base_id is not None and uri_base_id != "%SRCROOT%":
+        raise UnsupportedError(
+            "SARIF artifact uriBaseId must be omitted or use the explicit %SRCROOT% boundary"
+        )
     result: dict[str, object] = {
         "path": _safe_relative_path(artifact["uri"], repository_root),
         "region": _region(physical.get("region")),
@@ -388,6 +405,23 @@ def _sarif_location(
         if symbol:
             result["symbol"] = symbol.strip()
     return result
+
+
+def _validate_sarif_uri_bases(run: dict[str, Any]) -> None:
+    """Reject a declared source-root alias that changes its local meaning."""
+
+    bases = run.get("originalUriBaseIds")
+    if bases is None:
+        return
+    if not isinstance(bases, dict):
+        raise InputError("SARIF run.originalUriBaseIds must be an object")
+    source_root = bases.get("%SRCROOT%")
+    if source_root is not None and (
+        not isinstance(source_root, dict)
+        or set(source_root) != {"uri"}
+        or source_root.get("uri") != "./"
+    ):
+        raise UnsupportedError('SARIF %SRCROOT% must use the canonical local mapping {"uri":"./"}')
 
 
 def import_sarif(
@@ -417,6 +451,7 @@ def import_sarif(
         run = runs[selected_run]
         if not isinstance(run, dict):
             raise InputError("SARIF run must be an object")
+        _validate_sarif_uri_bases(run)
         tool = run.get("tool")
         if not isinstance(tool, dict):
             raise InputError("SARIF run.tool must be an object")

@@ -1,0 +1,209 @@
+{
+  "aggregate": {
+    "aggregate_record_id": "trace-code-aggregate-metrics:0a3635fedba707cf9e1a3d972f11b2389c44e366b7253b2f3e517783b0c31a34",
+    "excluded_counts": {},
+    "metric_spec_id": "trace-code-metric-specification-v2:df6bb5af4f40e70f6615f3729c50590b41d1b3ddeba4fd8e7b291be02815ffda",
+    "micro": {
+      "abstention_coverage": {
+        "denominator": 18,
+        "numerator": 18,
+        "rate": 1.0
+      },
+      "disposition_confusion": {
+        "INSUFFICIENT_EVIDENCE->INSUFFICIENT_EVIDENCE": 18
+      },
+      "false_supported_disposition": {
+        "count": 0,
+        "rate": {
+          "denominator": 18,
+          "numerator": 0,
+          "rate": 0.0
+        }
+      },
+      "false_vulnerability_rate": {
+        "denominator": 9,
+        "numerator": 0,
+        "rate": 0.0
+      },
+      "file_recall": {
+        "1": {
+          "denominator": 9,
+          "numerator": 1,
+          "rate": 0.1111111111111111
+        },
+        "10": {
+          "denominator": 9,
+          "numerator": 5,
+          "rate": 0.5555555555555556
+        },
+        "20": {
+          "denominator": 9,
+          "numerator": 6,
+          "rate": 0.6666666666666666
+        },
+        "5": {
+          "denominator": 9,
+          "numerator": 3,
+          "rate": 0.3333333333333333
+        }
+      },
+      "group_count": 18,
+      "hard_negative_outrank": {
+        "denominator": 8,
+        "numerator": 3,
+        "rate": 0.375
+      },
+      "location_role_correct_recall": {
+        "1": {
+          "denominator": 9,
+          "numerator": 0,
+          "rate": 0.0
+        },
+        "10": {
+          "denominator": 9,
+          "numerator": 2,
+          "rate": 0.2222222222222222
+        },
+        "20": {
+          "denominator": 9,
+          "numerator": 3,
+          "rate": 0.3333333333333333
+        },
+        "5": {
+          "denominator": 9,
+          "numerator": 2,
+          "rate": 0.2222222222222222
+        }
+      },
+      "mean_reciprocal_rank": {
+        "denominator": 9,
+        "mean": 0.20646523716699156,
+        "sum": 1.858187134502924
+      },
+      "no_relevant_candidate": {
+        "denominator": 9,
+        "numerator": 3,
+        "rate": 0.3333333333333333
+      },
+      "region_recall": {
+        "1": {
+          "denominator": 9,
+          "numerator": 0,
+          "rate": 0.0
+        },
+        "10": {
+          "denominator": 9,
+          "numerator": 2,
+          "rate": 0.2222222222222222
+        },
+        "20": {
+          "denominator": 9,
+          "numerator": 3,
+          "rate": 0.3333333333333333
+        },
+        "5": {
+          "denominator": 9,
+          "numerator": 2,
+          "rate": 0.2222222222222222
+        }
+      },
+      "symbol_recall": {
+        "1": {
+          "denominator": 9,
+          "numerator": 0,
+          "rate": 0.0
+        },
+        "10": {
+          "denominator": 9,
+          "numerator": 2,
+          "rate": 0.2222222222222222
+        },
+        "20": {
+          "denominator": 9,
+          "numerator": 2,
+          "rate": 0.2222222222222222
+        },
+        "5": {
+          "denominator": 9,
+          "numerator": 2,
+          "rate": 0.2222222222222222
+        }
+      },
+      "target_indexability": {
+        "denominator": 9,
+        "numerator": 9,
+        "rate": 1.0
+      },
+      "unsafe_non_abstention": {
+        "denominator": 18,
+        "numerator": 0,
+        "rate": 0.0
+      },
+      "unsupported_input_acceptance": {
+        "denominator": 0,
+        "numerator": 0,
+        "rate": null
+      },
+      "wrong_location_role_top_one": {
+        "denominator": 9,
+        "numerator": 2,
+        "rate": 0.2222222222222222
+      }
+    },
+    "repository_family_macro": {
+      "count": 3,
+      "false_supported": {
+        "mean": 0.0,
+        "units": 3
+      },
+      "file_recall": {
+        "1": {
+          "maximum": 0.3333333333333333,
+          "mean": 0.1111111111111111,
+          "minimum": 0.0,
+          "units": 3,
+          "zero_unit_count": 2
+        },
+        "10": {
+          "maximum": 0.6666666666666666,
+          "mean": 0.5555555555555555,
+          "minimum": 0.3333333333333333,
+          "units": 3,
+          "zero_unit_count": 0
+        },
+        "20": {
+          "maximum": 1.0,
+          "mean": 0.6666666666666666,
+          "minimum": 0.3333333333333333,
+          "units": 3,
+          "zero_unit_count": 0
+        },
+        "5": {
+          "maximum": 0.6666666666666666,
+          "mean": 0.3333333333333333,
+          "minimum": 0.0,
+          "units": 3,
+          "zero_unit_count": 1
+        }
+      }
+    },
+    "runtime_version": "0.1.2",
+    "schema_version": "lumi-trace-v0.3.2-public-qualification-metrics-v1",
+    "strata_counts": {
+      "cwe=CWE-200": 6,
+      "cwe=CWE-22": 2,
+      "cwe=CWE-522": 2,
+      "cwe=CWE-669": 2,
+      "cwe=CWE-670": 2,
+      "cwe=CWE-770": 4,
+      "direct_cue=UNKNOWN": 18,
+      "finding_format=manual": 18,
+      "hard_negative_family=UNKNOWN": 18,
+      "label_source=UNKNOWN": 18,
+      "language=Python": 18,
+      "repository_size_band=SMALL": 18
+    }
+  },
+  "run": true,
+  "schema_version": "lumi-trace-v0.3.2-public-qualification-aggregate-v1"
+}

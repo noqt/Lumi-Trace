@@ -1,0 +1,62 @@
+{
+  "artifacts": [
+    {
+      "path": "baseline-comparators.json",
+      "sha256": "sha256:7e94b034f664b293693d363f8f3ca7be7864f8c3bd12ea1f654951811f24716e",
+      "size_bytes": 38538
+    },
+    {
+      "path": "closure-record.json",
+      "sha256": "sha256:a2e94df077a83bf780a763e02c8610c0dea63695c35c08610d0d8a4341704369",
+      "size_bytes": 466
+    },
+    {
+      "path": "corpus-assurance.json",
+      "sha256": "sha256:44cd055d5a5901223f8ddd1150704e88536489e6c9b3cdb45b1ed561867d8c7b",
+      "size_bytes": 2577
+    },
+    {
+      "path": "partition-assurance.json",
+      "sha256": "sha256:1aec5801c9fd613280ff7bbbf24cc863078205a01b170ee7b3c7339e66a53035",
+      "size_bytes": 1053
+    },
+    {
+      "path": "pilot-package.json",
+      "sha256": "sha256:6e95a8463f6097127d8fcbdd3d89532a189c60e5d8db163d1f092f7a3bd91895",
+      "size_bytes": 507
+    },
+    {
+      "path": "public-boundary-review.json",
+      "sha256": "sha256:ae23abbd623b37386b0554473fa5039e26703f4ea374440c0086e38e3cb9c100",
+      "size_bytes": 770
+    },
+    {
+      "path": "qualification-summary.json",
+      "sha256": "sha256:2997e76bf09bfb53729eaf86285ac26e8d5264daaefcbe72397540b1d7c02947",
+      "size_bytes": 21954
+    },
+    {
+      "path": "resource-summary.json",
+      "sha256": "sha256:0612ab5f8dafa86f75d0f92fff4216ce42370cb174f8cad10c7e329f914a3b5c",
+      "size_bytes": 899
+    },
+    {
+      "path": "starting-state.json",
+      "sha256": "sha256:9e421c3ff58c9a8229c7cf454b1c4dc442fe93bbb208f5dad3dbbc84b3cb1b48",
+      "size_bytes": 446
+    },
+    {
+      "path": "trace-001-experiment.json",
+      "sha256": "sha256:37eb9b511aa4afbede9f0f515a59218a9e8cef085b4b892e3e669c25ddcd5323",
+      "size_bytes": 47484
+    },
+    {
+      "path": "training-readiness.json",
+      "sha256": "sha256:c103cb5d20ae556674c9ebb4f9bdb52eaa1c1dddc753ca3586adee0212a0da80",
+      "size_bytes": 934
+    }
+  ],
+  "schema_version": "lumi-trace-v0.4-public-evidence-seal-v1",
+  "seal_id": "lumi-trace-v0.4-public-evidence:d5404d104a946046cfce4439e338c8bef9223331f93057a2c3e87e47a4553c3a",
+  "source_revision": "d1fa11088bc2c02e48f3f3f7877e0b090d90efaf"
+}

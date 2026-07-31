@@ -1,0 +1,70 @@
+{
+  "declared_hardware_envelope": {
+    "case_disk_limit_bytes": 134217728,
+    "case_wall_limit_seconds": 600,
+    "cpu_only_supported": true,
+    "maximum_index_json_items": 900000,
+    "maximum_index_symbols": 50000,
+    "maximum_index_tokens": 250000,
+    "memory_limit_bytes": 2147483648,
+    "pid_limit": 64
+  },
+  "development": {
+    "attempt_count": 40,
+    "attempts_with_cpu_time": 40,
+    "cache_states": {
+      "COLD_DISPOSABLE_WORKSPACE": 40
+    },
+    "completed_attempts": 40,
+    "failed_attempts": 0,
+    "failure_code_counts": {},
+    "maximum_peak_resident_bytes": 240971776,
+    "maximum_wall_time_ms": 260275,
+    "retained_artifact_bytes": 165744141,
+    "retained_log_bytes": 10920,
+    "termination_reason_counts": {
+      "COMPLETED": 40
+    },
+    "total_cpu_time_ms": 2620662,
+    "total_wall_time_ms": 1350270
+  },
+  "diagnostic": {
+    "attempt_count": 40,
+    "classification": "INSUFFICIENT_HARD_WALL_FOR_BOUNDED_COLD_INDEXING",
+    "completed_attempts": 36,
+    "failure_code_counts": {
+      "RESOURCE_LIMIT_REACHED": 4
+    },
+    "final_hard_wall_seconds": 600,
+    "maximum_peak_resident_bytes": 46600192,
+    "maximum_repository_bytes": 45097365,
+    "maximum_repository_file_count": 6899,
+    "original_runtime_wall_limit_ms": 180260,
+    "process_tree_termination_required": true,
+    "remediation": "INCREASE_HARD_WALL_TO_600_SECONDS_WITH_PROCESS_TREE_TERMINATION",
+    "resource_failure_count": 4,
+    "schema_version": "lumi-trace-v0.3.2-resource-diagnostic-summary-v1"
+  },
+  "networked_reproduction_runs": 0,
+  "qualification": {
+    "attempt_count": 18,
+    "attempts_with_cpu_time": 18,
+    "cache_states": {
+      "COLD_DISPOSABLE_WORKSPACE": 18
+    },
+    "completed_attempts": 18,
+    "failed_attempts": 0,
+    "failure_code_counts": {},
+    "maximum_peak_resident_bytes": 50782208,
+    "maximum_wall_time_ms": 8656,
+    "retained_artifact_bytes": 19580155,
+    "retained_log_bytes": 4950,
+    "termination_reason_counts": {
+      "COMPLETED": 18
+    },
+    "total_cpu_time_ms": 40386,
+    "total_wall_time_ms": 101752
+  },
+  "repository_controlled_code_executed": false,
+  "schema_version": "lumi-trace-v0.3.2-public-resource-summary-v1"
+}

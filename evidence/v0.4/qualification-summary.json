@@ -1,0 +1,675 @@
+{
+  "comparators": {
+    "always_abstain": {
+      "aggregate": {
+        "false_supported_disposition": 0,
+        "false_vulnerability_safe_control": 0,
+        "family_count": 10,
+        "file_recall_at_10": 0.0,
+        "file_recall_at_20": 0.0,
+        "file_recall_at_5": 0.0,
+        "group_count": 202,
+        "hard_negative_denominator": 133,
+        "hard_negative_outrank": 0.0,
+        "location_role_correct_recall_at_20": 0.0,
+        "maximum_family_recall_at_20": 0.0,
+        "mean_reciprocal_rank": 0.0,
+        "minimum_family_recall_at_20": 0.0,
+        "no_relevant_candidate": 0.0,
+        "positive_claim_scope": "CANDIDATE_RANKING_ONLY",
+        "repository_family_macro_recall_at_20": 0.0,
+        "target_indexability": 1.0,
+        "unsafe_non_abstention": 0,
+        "valid_attempt_completion": 1.0,
+        "wrong_location_role_top_one": 0.0,
+        "zero_recall_family_count": 10
+      },
+      "all_gates_passed": false,
+      "confidence_intervals": {
+        "file_recall_at_10": {
+          "lower": 0.0,
+          "rate": 0.0,
+          "successes": 0,
+          "total": 202,
+          "upper": 0.01866222112252115
+        },
+        "file_recall_at_20": {
+          "lower": 0.0,
+          "rate": 0.0,
+          "successes": 0,
+          "total": 202,
+          "upper": 0.01866222112252115
+        },
+        "file_recall_at_5": {
+          "lower": 0.0,
+          "rate": 0.0,
+          "successes": 0,
+          "total": 202,
+          "upper": 0.01866222112252115
+        },
+        "hard_negative_outrank": {
+          "lower": 0.0,
+          "rate": 0.0,
+          "successes": 0,
+          "total": 133,
+          "upper": 0.02807233168807166
+        },
+        "location_role_recall_at_20": {
+          "lower": 0.0,
+          "rate": 0.0,
+          "successes": 0,
+          "total": 202,
+          "upper": 0.01866222112252115
+        },
+        "no_relevant_candidate": {
+          "lower": 0.0,
+          "rate": 0.0,
+          "successes": 0,
+          "total": 202,
+          "upper": 0.01866222112252115
+        },
+        "target_indexable": {
+          "lower": 0.981337778877479,
+          "rate": 1.0,
+          "successes": 202,
+          "total": 202,
+          "upper": 1.0
+        },
+        "valid_attempt": {
+          "lower": 0.981337778877479,
+          "rate": 1.0,
+          "successes": 202,
+          "total": 202,
+          "upper": 1.0
+        },
+        "wrong_location_role_top_one": {
+          "lower": 0.0,
+          "rate": 0.0,
+          "successes": 0,
+          "total": 202,
+          "upper": 0.01866222112252115
+        }
+      },
+      "gate_results": {
+        "false_supported_disposition": true,
+        "false_vulnerability_safe_control": true,
+        "file_recall_at_10": false,
+        "file_recall_at_20": false,
+        "file_recall_at_5": false,
+        "hard_negative_outrank": true,
+        "location_role_correct_recall_at_20": false,
+        "mean_reciprocal_rank": false,
+        "minimum_family_recall_at_20": false,
+        "no_relevant_candidate": true,
+        "repository_family_macro_recall_at_20": false,
+        "target_indexability": true,
+        "unsafe_non_abstention": true,
+        "valid_attempt_completion": true,
+        "wrong_location_role_top_one": true,
+        "zero_recall_family_count": false
+      }
+    },
+    "lexical": {
+      "aggregate": {
+        "false_supported_disposition": 0,
+        "false_vulnerability_safe_control": 0,
+        "family_count": 10,
+        "file_recall_at_10": 0.7524752475247525,
+        "file_recall_at_20": 0.8168316831683168,
+        "file_recall_at_5": 0.6039603960396039,
+        "group_count": 202,
+        "hard_negative_denominator": 133,
+        "hard_negative_outrank": 0.09774436090225563,
+        "location_role_correct_recall_at_20": 0.2079207920792079,
+        "maximum_family_recall_at_20": 1.0,
+        "mean_reciprocal_rank": 0.46975133075224346,
+        "minimum_family_recall_at_20": 0.7932960893854749,
+        "no_relevant_candidate": 0.0,
+        "positive_claim_scope": "CANDIDATE_RANKING_ONLY",
+        "repository_family_macro_recall_at_20": 0.9793296089385475,
+        "target_indexability": 1.0,
+        "unsafe_non_abstention": 0,
+        "valid_attempt_completion": 1.0,
+        "wrong_location_role_top_one": 0.32673267326732675,
+        "zero_recall_family_count": 0
+      },
+      "all_gates_passed": false,
+      "confidence_intervals": {
+        "file_recall_at_10": {
+          "lower": 0.6886182884309799,
+          "rate": 0.7524752475247525,
+          "successes": 152,
+          "total": 202,
+          "upper": 0.8069087088239846
+        },
+        "file_recall_at_20": {
+          "lower": 0.7577478619307462,
+          "rate": 0.8168316831683168,
+          "successes": 165,
+          "total": 202,
+          "upper": 0.864089938546072
+        },
+        "file_recall_at_5": {
+          "lower": 0.5351799880204192,
+          "rate": 0.6039603960396039,
+          "successes": 122,
+          "total": 202,
+          "upper": 0.6688605402610367
+        },
+        "hard_negative_outrank": {
+          "lower": 0.05801480382428815,
+          "rate": 0.09774436090225563,
+          "successes": 13,
+          "total": 133,
+          "upper": 0.1600584254285214
+        },
+        "location_role_recall_at_20": {
+          "lower": 0.15766537343310288,
+          "rate": 0.2079207920792079,
+          "successes": 42,
+          "total": 202,
+          "upper": 0.26907790425233025
+        },
+        "no_relevant_candidate": {
+          "lower": 0.0,
+          "rate": 0.0,
+          "successes": 0,
+          "total": 202,
+          "upper": 0.01866222112252115
+        },
+        "target_indexable": {
+          "lower": 0.981337778877479,
+          "rate": 1.0,
+          "successes": 202,
+          "total": 202,
+          "upper": 1.0
+        },
+        "valid_attempt": {
+          "lower": 0.981337778877479,
+          "rate": 1.0,
+          "successes": 202,
+          "total": 202,
+          "upper": 1.0
+        },
+        "wrong_location_role_top_one": {
+          "lower": 0.2658121771913423,
+          "rate": 0.32673267326732675,
+          "successes": 66,
+          "total": 202,
+          "upper": 0.39412027567289765
+        }
+      },
+      "gate_results": {
+        "false_supported_disposition": true,
+        "false_vulnerability_safe_control": true,
+        "file_recall_at_10": true,
+        "file_recall_at_20": false,
+        "file_recall_at_5": false,
+        "hard_negative_outrank": true,
+        "location_role_correct_recall_at_20": false,
+        "mean_reciprocal_rank": true,
+        "minimum_family_recall_at_20": true,
+        "no_relevant_candidate": true,
+        "repository_family_macro_recall_at_20": true,
+        "target_indexability": true,
+        "unsafe_non_abstention": true,
+        "valid_attempt_completion": true,
+        "wrong_location_role_top_one": false,
+        "zero_recall_family_count": true
+      }
+    },
+    "random": {
+      "aggregate": {
+        "false_supported_disposition": 0,
+        "false_vulnerability_safe_control": 0,
+        "family_count": 10,
+        "file_recall_at_10": 0.09900990099009901,
+        "file_recall_at_20": 0.16336633663366337,
+        "file_recall_at_5": 0.04455445544554455,
+        "group_count": 202,
+        "hard_negative_denominator": 133,
+        "hard_negative_outrank": 0.3383458646616541,
+        "location_role_correct_recall_at_20": 0.0,
+        "maximum_family_recall_at_20": 1.0,
+        "mean_reciprocal_rank": 0.0388488637286287,
+        "minimum_family_recall_at_20": 0.0,
+        "no_relevant_candidate": 0.0,
+        "positive_claim_scope": "CANDIDATE_RANKING_ONLY",
+        "repository_family_macro_recall_at_20": 0.44651196103710067,
+        "target_indexability": 1.0,
+        "unsafe_non_abstention": 0,
+        "valid_attempt_completion": 1.0,
+        "wrong_location_role_top_one": 0.0049504950495049506,
+        "zero_recall_family_count": 4
+      },
+      "all_gates_passed": false,
+      "confidence_intervals": {
+        "file_recall_at_10": {
+          "lower": 0.06501073544988206,
+          "rate": 0.09900990099009901,
+          "successes": 20,
+          "total": 202,
+          "upper": 0.14797579832164484
+        },
+        "file_recall_at_20": {
+          "lower": 0.11875487138217275,
+          "rate": 0.16336633663366337,
+          "successes": 33,
+          "total": 202,
+          "upper": 0.22054246561120786
+        },
+        "file_recall_at_5": {
+          "lower": 0.02361461136913033,
+          "rate": 0.04455445544554455,
+          "successes": 9,
+          "total": 202,
+          "upper": 0.08249355044544339
+        },
+        "hard_negative_outrank": {
+          "lower": 0.2634792851261977,
+          "rate": 0.3383458646616541,
+          "successes": 45,
+          "total": 133,
+          "upper": 0.42228846120904334
+        },
+        "location_role_recall_at_20": {
+          "lower": 0.0,
+          "rate": 0.0,
+          "successes": 0,
+          "total": 202,
+          "upper": 0.01866222112252115
+        },
+        "no_relevant_candidate": {
+          "lower": 0.0,
+          "rate": 0.0,
+          "successes": 0,
+          "total": 202,
+          "upper": 0.01866222112252115
+        },
+        "target_indexable": {
+          "lower": 0.981337778877479,
+          "rate": 1.0,
+          "successes": 202,
+          "total": 202,
+          "upper": 1.0
+        },
+        "valid_attempt": {
+          "lower": 0.981337778877479,
+          "rate": 1.0,
+          "successes": 202,
+          "total": 202,
+          "upper": 1.0
+        },
+        "wrong_location_role_top_one": {
+          "lower": 0.0008744191123899563,
+          "rate": 0.0049504950495049506,
+          "successes": 1,
+          "total": 202,
+          "upper": 0.027504017642581476
+        }
+      },
+      "gate_results": {
+        "false_supported_disposition": true,
+        "false_vulnerability_safe_control": true,
+        "file_recall_at_10": false,
+        "file_recall_at_20": false,
+        "file_recall_at_5": false,
+        "hard_negative_outrank": false,
+        "location_role_correct_recall_at_20": false,
+        "mean_reciprocal_rank": false,
+        "minimum_family_recall_at_20": false,
+        "no_relevant_candidate": true,
+        "repository_family_macro_recall_at_20": false,
+        "target_indexability": true,
+        "unsafe_non_abstention": true,
+        "valid_attempt_completion": true,
+        "wrong_location_role_top_one": true,
+        "zero_recall_family_count": false
+      }
+    },
+    "sparse": {
+      "aggregate": {
+        "false_supported_disposition": 0,
+        "false_vulnerability_safe_control": 0,
+        "family_count": 10,
+        "file_recall_at_10": 0.7673267326732673,
+        "file_recall_at_20": 0.8663366336633663,
+        "file_recall_at_5": 0.6435643564356436,
+        "group_count": 202,
+        "hard_negative_denominator": 133,
+        "hard_negative_outrank": 0.21052631578947367,
+        "location_role_correct_recall_at_20": 0.5594059405940595,
+        "maximum_family_recall_at_20": 1.0,
+        "mean_reciprocal_rank": 0.508828217655018,
+        "minimum_family_recall_at_20": 0.8547486033519553,
+        "no_relevant_candidate": 0.0,
+        "positive_claim_scope": "CANDIDATE_RANKING_ONLY",
+        "repository_family_macro_recall_at_20": 0.9777825526428879,
+        "target_indexability": 1.0,
+        "unsafe_non_abstention": 0,
+        "valid_attempt_completion": 1.0,
+        "wrong_location_role_top_one": 0.2524752475247525,
+        "zero_recall_family_count": 0
+      },
+      "all_gates_passed": false,
+      "confidence_intervals": {
+        "file_recall_at_10": {
+          "lower": 0.704400137102974,
+          "rate": 0.7673267326732673,
+          "successes": 155,
+          "total": 202,
+          "upper": 0.8202755070493415
+        },
+        "file_recall_at_20": {
+          "lower": 0.8125129816743875,
+          "rate": 0.8663366336633663,
+          "successes": 175,
+          "total": 202,
+          "upper": 0.9064869751269338
+        },
+        "file_recall_at_5": {
+          "lower": 0.5754016046532103,
+          "rate": 0.6435643564356436,
+          "successes": 130,
+          "total": 202,
+          "upper": 0.7063686486878481
+        },
+        "hard_negative_outrank": {
+          "lower": 0.1498644610795496,
+          "rate": 0.21052631578947367,
+          "successes": 28,
+          "total": 133,
+          "upper": 0.28744057305564974
+        },
+        "location_role_recall_at_20": {
+          "lower": 0.4904671812158951,
+          "rate": 0.5594059405940595,
+          "successes": 113,
+          "total": 202,
+          "upper": 0.6261274063735083
+        },
+        "no_relevant_candidate": {
+          "lower": 0.0,
+          "rate": 0.0,
+          "successes": 0,
+          "total": 202,
+          "upper": 0.01866222112252115
+        },
+        "target_indexable": {
+          "lower": 0.981337778877479,
+          "rate": 1.0,
+          "successes": 202,
+          "total": 202,
+          "upper": 1.0
+        },
+        "valid_attempt": {
+          "lower": 0.981337778877479,
+          "rate": 1.0,
+          "successes": 202,
+          "total": 202,
+          "upper": 1.0
+        },
+        "wrong_location_role_top_one": {
+          "lower": 0.19756741010848905,
+          "rate": 0.2524752475247525,
+          "successes": 51,
+          "total": 202,
+          "upper": 0.3166218082689966
+        }
+      },
+      "gate_results": {
+        "false_supported_disposition": true,
+        "false_vulnerability_safe_control": true,
+        "file_recall_at_10": true,
+        "file_recall_at_20": true,
+        "file_recall_at_5": false,
+        "hard_negative_outrank": false,
+        "location_role_correct_recall_at_20": false,
+        "mean_reciprocal_rank": true,
+        "minimum_family_recall_at_20": true,
+        "no_relevant_candidate": true,
+        "repository_family_macro_recall_at_20": true,
+        "target_indexability": true,
+        "unsafe_non_abstention": true,
+        "valid_attempt_completion": true,
+        "wrong_location_role_top_one": false,
+        "zero_recall_family_count": true
+      }
+    },
+    "v0.1.2": {
+      "aggregate": {
+        "false_supported_disposition": 0,
+        "false_vulnerability_safe_control": 0,
+        "family_count": 10,
+        "file_recall_at_10": 0.15841584158415842,
+        "file_recall_at_20": 0.18316831683168316,
+        "file_recall_at_5": 0.12376237623762376,
+        "group_count": 202,
+        "hard_negative_denominator": 26,
+        "hard_negative_outrank": 0.11538461538461539,
+        "location_role_correct_recall_at_20": 0.06435643564356436,
+        "maximum_family_recall_at_20": 1.0,
+        "mean_reciprocal_rank": 0.08914189635805526,
+        "minimum_family_recall_at_20": 0.0782122905027933,
+        "no_relevant_candidate": 0.7871287128712872,
+        "positive_claim_scope": "CANDIDATE_RANKING_ONLY",
+        "repository_family_macro_recall_at_20": 0.9078212290502794,
+        "target_indexability": 0.21287128712871287,
+        "unsafe_non_abstention": 0,
+        "valid_attempt_completion": 0.21782178217821782,
+        "wrong_location_role_top_one": 0.04455445544554455,
+        "zero_recall_family_count": 0
+      },
+      "all_gates_passed": false,
+      "completed_attempts": 44,
+      "confidence_intervals": {
+        "file_recall_at_10": {
+          "lower": 0.11450448640002667,
+          "rate": 0.15841584158415842,
+          "successes": 32,
+          "total": 202,
+          "upper": 0.21507663496090365
+        },
+        "file_recall_at_20": {
+          "lower": 0.13591006145392803,
+          "rate": 0.18316831683168316,
+          "successes": 37,
+          "total": 202,
+          "upper": 0.24225213806925372
+        },
+        "file_recall_at_5": {
+          "lower": 0.08525217169663715,
+          "rate": 0.12376237623762376,
+          "successes": 25,
+          "total": 202,
+          "upper": 0.17631544023714116
+        },
+        "hard_negative_outrank": {
+          "lower": 0.04003244623610615,
+          "rate": 0.11538461538461539,
+          "successes": 3,
+          "total": 26,
+          "upper": 0.2897590321171364
+        },
+        "location_role_recall_at_20": {
+          "lower": 0.037992485043253935,
+          "rate": 0.06435643564356436,
+          "successes": 13,
+          "total": 202,
+          "upper": 0.10698053930112096
+        },
+        "no_relevant_candidate": {
+          "lower": 0.7255946289005601,
+          "rate": 0.7871287128712872,
+          "successes": 159,
+          "total": 202,
+          "upper": 0.8379458777815565
+        },
+        "target_indexable": {
+          "lower": 0.16205412221844354,
+          "rate": 0.21287128712871287,
+          "successes": 43,
+          "total": 202,
+          "upper": 0.2744053710994399
+        },
+        "valid_attempt": {
+          "lower": 0.16645468484469994,
+          "rate": 0.21782178217821782,
+          "successes": 44,
+          "total": 202,
+          "upper": 0.2797210241056338
+        },
+        "wrong_location_role_top_one": {
+          "lower": 0.02361461136913033,
+          "rate": 0.04455445544554455,
+          "successes": 9,
+          "total": 202,
+          "upper": 0.08249355044544339
+        }
+      },
+      "gate_results": {
+        "false_supported_disposition": true,
+        "false_vulnerability_safe_control": true,
+        "file_recall_at_10": false,
+        "file_recall_at_20": false,
+        "file_recall_at_5": false,
+        "hard_negative_outrank": true,
+        "location_role_correct_recall_at_20": false,
+        "mean_reciprocal_rank": false,
+        "minimum_family_recall_at_20": false,
+        "no_relevant_candidate": false,
+        "repository_family_macro_recall_at_20": true,
+        "target_indexability": false,
+        "unsafe_non_abstention": true,
+        "valid_attempt_completion": false,
+        "wrong_location_role_top_one": true,
+        "zero_recall_family_count": true
+      },
+      "unsupported_attempts": 158
+    }
+  },
+  "consumed_runs": 1,
+  "family_count": 10,
+  "group_count": 202,
+  "matched_safe_control_count": 202,
+  "maximum_runs": 1,
+  "passed": false,
+  "protected_holdback_opened": false,
+  "python_network_denial_enforced": true,
+  "remaining_runs": 0,
+  "schema_version": "lumi-trace-v0.4-public-qualification-summary-v1",
+  "selected_candidate_kind": "DETERMINISTIC",
+  "selected_result": {
+    "aggregate": {
+      "false_supported_disposition": 0,
+      "false_vulnerability_safe_control": 0,
+      "family_count": 10,
+      "file_recall_at_10": 0.7673267326732673,
+      "file_recall_at_20": 0.8663366336633663,
+      "file_recall_at_5": 0.6435643564356436,
+      "group_count": 202,
+      "hard_negative_denominator": 133,
+      "hard_negative_outrank": 0.21052631578947367,
+      "location_role_correct_recall_at_20": 0.5594059405940595,
+      "maximum_family_recall_at_20": 1.0,
+      "mean_reciprocal_rank": 0.508828217655018,
+      "minimum_family_recall_at_20": 0.8547486033519553,
+      "no_relevant_candidate": 0.0,
+      "positive_claim_scope": "CANDIDATE_RANKING_ONLY",
+      "repository_family_macro_recall_at_20": 0.9777825526428879,
+      "target_indexability": 1.0,
+      "unsafe_non_abstention": 0,
+      "valid_attempt_completion": 1.0,
+      "wrong_location_role_top_one": 0.2524752475247525,
+      "zero_recall_family_count": 0
+    },
+    "all_gates_passed": false,
+    "confidence_intervals": {
+      "file_recall_at_10": {
+        "lower": 0.704400137102974,
+        "rate": 0.7673267326732673,
+        "successes": 155,
+        "total": 202,
+        "upper": 0.8202755070493415
+      },
+      "file_recall_at_20": {
+        "lower": 0.8125129816743875,
+        "rate": 0.8663366336633663,
+        "successes": 175,
+        "total": 202,
+        "upper": 0.9064869751269338
+      },
+      "file_recall_at_5": {
+        "lower": 0.5754016046532103,
+        "rate": 0.6435643564356436,
+        "successes": 130,
+        "total": 202,
+        "upper": 0.7063686486878481
+      },
+      "hard_negative_outrank": {
+        "lower": 0.1498644610795496,
+        "rate": 0.21052631578947367,
+        "successes": 28,
+        "total": 133,
+        "upper": 0.28744057305564974
+      },
+      "location_role_recall_at_20": {
+        "lower": 0.4904671812158951,
+        "rate": 0.5594059405940595,
+        "successes": 113,
+        "total": 202,
+        "upper": 0.6261274063735083
+      },
+      "no_relevant_candidate": {
+        "lower": 0.0,
+        "rate": 0.0,
+        "successes": 0,
+        "total": 202,
+        "upper": 0.01866222112252115
+      },
+      "target_indexable": {
+        "lower": 0.981337778877479,
+        "rate": 1.0,
+        "successes": 202,
+        "total": 202,
+        "upper": 1.0
+      },
+      "valid_attempt": {
+        "lower": 0.981337778877479,
+        "rate": 1.0,
+        "successes": 202,
+        "total": 202,
+        "upper": 1.0
+      },
+      "wrong_location_role_top_one": {
+        "lower": 0.19756741010848905,
+        "rate": 0.2524752475247525,
+        "successes": 51,
+        "total": 202,
+        "upper": 0.3166218082689966
+      }
+    },
+    "gate_results": {
+      "false_supported_disposition": true,
+      "false_vulnerability_safe_control": true,
+      "file_recall_at_10": true,
+      "file_recall_at_20": true,
+      "file_recall_at_5": false,
+      "hard_negative_outrank": false,
+      "location_role_correct_recall_at_20": false,
+      "mean_reciprocal_rank": true,
+      "minimum_family_recall_at_20": true,
+      "no_relevant_candidate": true,
+      "repository_family_macro_recall_at_20": true,
+      "target_indexability": true,
+      "unsafe_non_abstention": true,
+      "valid_attempt_completion": true,
+      "wrong_location_role_top_one": false,
+      "zero_recall_family_count": true
+    }
+  },
+  "selected_result_name": "sparse",
+  "selection_reason": "NO_MODEL_ADVANTAGE",
+  "thresholds_changed_after_opening": false,
+  "used_for_tuning": false
+}

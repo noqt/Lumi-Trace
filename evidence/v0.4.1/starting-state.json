@@ -1,0 +1,8 @@
+{
+  "historical_v0_4_rewritten": false,
+  "record_id": "v0.4.1-public-starting-state:5eca2ba16743c1cbd6c1ff276e80ec730416905585ed0926727da73f68717335",
+  "schema_version": "lumi-trace-v0.4.1-public-starting-state-v1",
+  "source_state_id": "lumi-trace-v0.4.1-source-state:3d248cfaa1e959ee49f9f0f7f7c921e32fcc2420acf23925db523b7fc8aba82b",
+  "starting_public_evidence_seal": "lumi-trace-v0.4-public-evidence:d5404d104a946046cfce4439e338c8bef9223331f93057a2c3e87e47a4553c3a",
+  "starting_revision": "c93d3c792190435cb82e28f01af532be97d9a06a"
+}

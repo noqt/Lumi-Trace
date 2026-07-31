@@ -1,0 +1,19 @@
+{
+  "case_level_labels_present": false,
+  "case_level_paths_or_locations_present": false,
+  "case_level_source_present": false,
+  "credentials_present": false,
+  "customer_data_present": false,
+  "cybergym_material_present": false,
+  "historical_lumi_evidence_added": false,
+  "model_weight_files_present": false,
+  "private_paths_present": false,
+  "protected_holdback_content_present": false,
+  "publication_decision": "NO_GO_PENDING_USER_REVIEW",
+  "repository_or_case_identifiers_present": false,
+  "review_type": "CONTROLLED_INTERNAL_RELEASE_REVIEW",
+  "schema_version": "lumi-trace-v0.4-public-boundary-review-v1",
+  "third_party_repository_contents_present": false,
+  "training_data_present": false,
+  "weight_publication_decision": "NO_GO_PENDING_USER_REVIEW"
+}

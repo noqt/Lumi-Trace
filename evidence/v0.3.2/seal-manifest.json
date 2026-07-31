@@ -1,0 +1,72 @@
+{
+  "artifacts": [
+    {
+      "path": "baseline-provenance.json",
+      "sha256": "sha256:cb4f17612dbb881d72b704200b5dcc803a6a463bb59c76899a5525cdea9e1970",
+      "size_bytes": 1362
+    },
+    {
+      "path": "capability-decision.json",
+      "sha256": "sha256:c34279e0672f7f35eb8086ca3a8b33db52f0e2f1c31a4d87305266bf44477608",
+      "size_bytes": 1943
+    },
+    {
+      "path": "capability-development-aggregate.json",
+      "sha256": "sha256:a485d6d1ebaeb87f909a05381a0696d9f31b051d12acc98c6d92ef4bbc4d37f7",
+      "size_bytes": 4690
+    },
+    {
+      "path": "closure-record.json",
+      "sha256": "sha256:f3b7fe454260d7fe7d5584d7e9961c4394958265d98949fe15ae9b8a159967f7",
+      "size_bytes": 582
+    },
+    {
+      "path": "contract-recovery.json",
+      "sha256": "sha256:fa3c437e7ee773fcabfbb0cb7c98c3858160d240669a1050c65aa9f6bcbc0170",
+      "size_bytes": 497
+    },
+    {
+      "path": "corpus-and-rights-gap.json",
+      "sha256": "sha256:18dee717ab3efd98abe380b26ec95a316ec4e1b8ba71713dff9b78b764496112",
+      "size_bytes": 361
+    },
+    {
+      "path": "first-valid-baseline-aggregate.json",
+      "sha256": "sha256:a0e220f87608e89cb6ec46e26eb850c884c5e899d9a2a4636b19435a1a5489a4",
+      "size_bytes": 4362
+    },
+    {
+      "path": "public-boundary-review.json",
+      "sha256": "sha256:03a229da3885b03e06f17273483d90dae04b1b72adf7c5de14b2bbf8c61c0b8e",
+      "size_bytes": 693
+    },
+    {
+      "path": "qualification-aggregate.json",
+      "sha256": "sha256:e9941c51aef5c1ccd7a0101212728f01ce86257918769c329ae7c6664e08f0f8",
+      "size_bytes": 5179
+    },
+    {
+      "path": "qualification-summary.json",
+      "sha256": "sha256:fb40a2cc24ec3844c718d648a2cae5a6560521e737528c80a74468f01289d907",
+      "size_bytes": 282
+    },
+    {
+      "path": "resource-summary.json",
+      "sha256": "sha256:58d3176d334b899b0d7b07b6db2b4823931b0b6ea9903907e42bdb468dae2fd4",
+      "size_bytes": 2191
+    },
+    {
+      "path": "trace-ir-boundary.json",
+      "sha256": "sha256:7fd6dd69776d87608bbc9d73f260505b2c2f6e3c54f1f87179a45dc326d58933",
+      "size_bytes": 223
+    },
+    {
+      "path": "training-readiness-decision.json",
+      "sha256": "sha256:1bdfa849eeae0631ca2675ed3d39dbbaba9d2406da99d55f49e23e1be71ba44b",
+      "size_bytes": 551
+    }
+  ],
+  "schema_version": "lumi-trace-v0.3.2-public-evidence-seal-v1",
+  "seal_id": "lumi-trace-v0.3.2-public-evidence:c2d944aa8ac9880584555c64c95063f39ef8fdc56ec7d91fffda445b41091c77",
+  "source_revision": "6b2984ce3ac4a2f36684f316986ace01685e1597"
+}
