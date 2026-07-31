@@ -1,5 +1,7 @@
 # Lumi Trace
 
+**Local vulnerability localisation and evidence for known security findings.**
+
 Lumi Trace is a local deterministic vulnerability-evidence instrument. Give it
 an existing finding and a local repository or archive; it ranks relevant
 implementation locations and writes reviewer-ready JSON and SARIF evidence.
@@ -210,3 +212,9 @@ See the standalone [privacy statement](docs/PRIVACY_AND_DATA_HANDLING.md),
 Skylark-owned source code and documentation are licensed under Apache-2.0.
 Future model weights, training data, customer evidence, protected evidence, and
 third-party repository contents are not licensed by that source-code licence.
+
+## Support
+
+Community support is best effort through GitHub Issues; there is no service
+level agreement. Report security vulnerabilities only through GitHub's private
+vulnerability-reporting flow described in [SECURITY.md](SECURITY.md).

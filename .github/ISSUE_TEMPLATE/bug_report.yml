@@ -1,0 +1,52 @@
+name: Bug report
+description: Report a reproducible Lumi Trace product defect
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report vulnerabilities, secrets, customer data, or private repository content here. Use GitHub's private vulnerability-reporting flow for security issues.
+  - type: input
+    id: version
+    attributes:
+      label: Lumi Trace version
+      description: Output from `lumi-trace version`, with sensitive data removed.
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Windows / CPython 3.11
+        - Windows / CPython 3.12
+        - Linux / CPython 3.11
+        - Linux / CPython 3.12
+        - Other or unsupported
+    validations:
+      required: true
+  - type: textarea
+    id: behaviour
+    attributes:
+      label: Observed and expected behaviour
+      description: Describe what happened and what you expected. Use synthetic or redacted material only.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Provide bounded commands and synthetic inputs where possible. Do not attach private evidence.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Disclosure check
+      options:
+        - label: I have removed credentials, customer data, private source, and protected evidence.
+          required: true
+        - label: This is not a security vulnerability report.
+          required: true
