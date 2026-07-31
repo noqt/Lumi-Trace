@@ -4,7 +4,7 @@ This file records user-visible changes to Lumi Trace.
 
 Detailed research history, internal experiment records, and release-approval notes belong in a separate research or maintainer archive rather than the product changelog.
 
-## 0.4.2 - Unreleased
+## 0.4.2 - 2026-07-31
 
 ### Added
 

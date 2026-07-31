@@ -11,7 +11,7 @@ Lumi Trace is a local command-line tool for application-security engineers, soft
 
 Lumi Trace is deterministic: the same supported inputs produce the same ranked artifacts. Its primary workflow has no hosted-inference path, requires no API key, and sends no product telemetry.
 
-> **Stable release:** [`v0.4.1`](https://github.com/noqt/Lumi-Trace/releases/tag/v0.4.1) is the current published release. The `main` branch is preparing the unreleased `v0.4.2` documentation and package-boundary maintenance update; use the documentation attached to a release when you need an exact match.
+> **Stable release:** [`v0.4.2`](https://github.com/noqt/Lumi-Trace/releases/tag/v0.4.2) is the current published release. Use the documentation attached to a release when you need an exact match.
 
 ## When Lumi Trace is useful
 
@@ -45,14 +45,14 @@ The current supported localisation profile is Python-focused. Other files may be
 
 ### From a GitHub Release
 
-Download the wheel from the [GitHub Release](https://github.com/noqt/Lumi-Trace/releases/tag/v0.4.1), then install it in a clean virtual environment.
+Download the wheel from the [GitHub Release](https://github.com/noqt/Lumi-Trace/releases/tag/v0.4.2), then install it in a clean virtual environment.
 
 Bash:
 
 ```sh
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install --no-deps ./skylark_lumi_trace-0.4.1-py3-none-any.whl
+python -m pip install --no-deps ./skylark_lumi_trace-0.4.2-py3-none-any.whl
 lumi-trace version
 ```
 
@@ -61,11 +61,11 @@ PowerShell:
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --no-deps `
-  .\skylark_lumi_trace-0.4.1-py3-none-any.whl
+  .\skylark_lumi_trace-0.4.2-py3-none-any.whl
 .\.venv\Scripts\lumi-trace.exe version
 ```
 
-Use the filename from the release you downloaded. Do not copy the `0.4.1` command against a different release.
+Use the filename from the release you downloaded. Do not copy the `0.4.2` command against a different release.
 
 ### From source
 

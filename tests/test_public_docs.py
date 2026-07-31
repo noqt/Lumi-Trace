@@ -164,11 +164,11 @@ def test_clean_source_install_runs_and_verifies_public_quickstart(
     assert json.loads(verify.stdout) == {"input": str(output), "valid": True}
 
 
-def test_release_install_example_matches_published_version(project_root: Path) -> None:
+def test_release_install_example_matches_source_version(project_root: Path) -> None:
     project = (project_root / "pyproject.toml").read_text(encoding="utf-8")
     readme = (project_root / "README.md").read_text(encoding="utf-8")
     version = re.search(r'^version = "([^"]+)"$', project, flags=re.MULTILINE)
     assert version is not None
     assert version.group(1) == "0.4.2"
-    assert "releases/tag/v0.4.1" in readme
-    assert "skylark_lumi_trace-0.4.1-py3-none-any.whl" in readme
+    assert "releases/tag/v0.4.2" in readme
+    assert "skylark_lumi_trace-0.4.2-py3-none-any.whl" in readme
