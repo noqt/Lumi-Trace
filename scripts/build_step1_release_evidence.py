@@ -65,6 +65,8 @@ PRIVATE_PATH_PARTS = {
 EVALUATOR_PATH_PATTERNS = (
     re.compile(r"(?:^|/)(?:eval|trace_eval)(?:/|$)", re.IGNORECASE),
     re.compile(r"(?:^|/)docs/build-briefs(?:/|$)", re.IGNORECASE),
+    re.compile(r"(?:^|/)docs/research(?:/|$)", re.IGNORECASE),
+    re.compile(r"(?:^|/)\.github/maintainers(?:/|$)", re.IGNORECASE),
     re.compile(
         r"(?:^|/)docs/(?:"
         r"model_card|trace_001[^/]*|trace_eval[^/]*|trace_ir[^/]*|"
@@ -229,7 +231,7 @@ def _logical_sdist_path(name: str, root: str) -> str:
     return PurePosixPath(*pure.parts[1:]).as_posix()
 
 
-def _check_member_policy(logical_name: str) -> None:
+def _check_member_policy(logical_name: str, *, allow_public_quickstart: bool = False) -> None:
     if not logical_name:
         return
     pure = _safe_member_path(logical_name)
@@ -242,7 +244,10 @@ def _check_member_policy(logical_name: str) -> None:
         raise ReleaseEvidenceError(f"model/weight artifact is forbidden: {logical_name}")
     if any(pattern.search(logical_name) for pattern in EVALUATOR_PATH_PATTERNS):
         raise ReleaseEvidenceError(f"evaluator-only content is forbidden: {logical_name}")
-    if any(pattern.search(logical_name) for pattern in SEPARATELY_LICENSED_PATH_PATTERNS):
+    public_quickstart = logical_name.casefold().startswith("examples/quickstart/")
+    if any(pattern.search(logical_name) for pattern in SEPARATELY_LICENSED_PATH_PATTERNS) and not (
+        allow_public_quickstart and public_quickstart
+    ):
         raise ReleaseEvidenceError(
             f"separately licensed review-bundle content is forbidden: {logical_name}"
         )
@@ -393,7 +398,7 @@ def _inspect_sdist(path: Path) -> ArtifactInspection:
                     continue
                 if not entry.isfile():
                     raise ReleaseEvidenceError(f"non-regular sdist member is forbidden: {name}")
-                _check_member_policy(logical_name)
+                _check_member_policy(logical_name, allow_public_quickstart=True)
                 source = archive.extractfile(entry)
                 if source is None:
                     raise ReleaseEvidenceError(f"sdist member cannot be read: {name}")

@@ -1,86 +1,86 @@
 # Contributing to Lumi Trace
 
-Lumi Trace's supported release line is a deterministic, customer-local,
-fail-closed product. Contributions must preserve that product contract and
-must not imply that a learned checkpoint is packaged, qualified, or used by
-the primary workflow.
+Thank you for helping improve Lumi Trace.
 
-## Scope
+Lumi Trace is a local, deterministic, fail-closed security-review tool. Contributions should preserve its clear product boundary: existing findings in, ranked source locations and verifiable evidence out.
 
-Good contributions improve finding import, immutable repository identity,
-deterministic indexing and ranking, bounded Docker reproduction, evidence
-classification, schema validation, documentation, or focused synthetic tests.
+## Good contribution areas
 
-Do not contribute:
+Useful contributions include:
 
-- model training, downloaded weights, learned adapters, or hosted inference;
-- repair generation or task-specific repair rules;
-- customer or third-party repository contents;
-- historical Lumi evidence, `CKPT-003`, rejected V2.7 adapters, or protected
-  holdback material;
-- CyberGym tasks or derived task evidence;
-- credentials, private manifests, or runtime evidence from customer systems; or
-- dependencies that require an API key or conflict with local-only operation.
+- manual and SARIF input handling;
+- safe repository and archive materialisation;
+- deterministic indexing and ranking;
+- evidence readability and SARIF interoperability;
+- bounded local reproduction;
+- verification and tamper detection;
+- error messages and documentation;
+- cross-platform support for CPython 3.11 and 3.12; and
+- synthetic tests for supported and fail-closed behavior.
 
-## Development Setup
+Open an issue before beginning a large architectural change.
 
-Python 3.11 or newer is required. The runtime itself has no third-party Python
-dependencies. Development tools are pinned in the `dev` optional extra.
+## Do not submit
+
+Do not include:
+
+- credentials or secrets;
+- customer or private repository content;
+- real customer findings or generated evidence;
+- third-party code or datasets without documented redistribution rights;
+- model weights, training data, or hosted-service dependencies;
+- automatic execution of commands found in SARIF or repository content;
+- host-execution fallback for reproduction; or
+- claims of security performance that are not supported by published evidence.
+
+Use synthetic, Skylark-authored fixtures wherever possible.
+
+## Development setup
 
 ```sh
-python -m venv .venv
+python3 -m venv .venv
+. .venv/bin/activate
 python -m pip install -e ".[dev]"
-python -m pytest
+python -m pytest -q -m "not docker"
 python -m ruff check .
+python -m ruff format --check .
 python -m build
 ```
 
-Docker tests are optional and must run Lumi Trace against an explicitly
-approved image already present locally. The runtime must never pull an image.
-An explicitly network-enabled CI preparation step may preload a pinned test
-image before the network-denied test begins; acquisition and reproduction must
-remain separate phases.
+Docker tests are optional. They require a local Linux-container engine and a deliberately preloaded immutable test image. Acquisition and network-denied execution must remain separate.
 
-## Change Requirements
+## Design requirements
 
-- Keep behavior deterministic: integer scoring, explicit ordering, canonical
-  JSON, and stable identities must not depend on locale, wall-clock time,
-  filesystem enumeration order, network state, or a hosted service.
-- Reject ambiguous or unsafe input rather than guessing.
-- Preserve the clean-room snapshot boundary; do not index or execute directly
-  from a mutating source repository.
-- Keep reproduction steps as argv arrays. Do not add implicit shell parsing,
-  SARIF instruction execution, image pulling, or host fallback.
-- Add focused tests for success, abstention, malformed input, and boundary
-  failure behavior.
-- Update schemas and documentation whenever a public contract changes.
-- Keep fixtures synthetic and Skylark-authored, or record their permissive
-  licence and provenance explicitly.
-- Do not add source snippets to SARIF export.
+Contributions must:
 
-## Pull Request Checklist
+- keep supported output deterministic;
+- use explicit, stable ordering and canonical identities;
+- reject unsafe or ambiguous input instead of guessing;
+- preserve the clean-room repository snapshot boundary;
+- keep reproduction commands as argument arrays;
+- never pull images during reproduction;
+- never upload findings, repositories, or evidence;
+- preserve bounded resource use and fail-closed classifications;
+- update schemas and documentation when a public contract changes; and
+- add focused success, abstention, malformed-input, and boundary-failure tests.
+
+## Pull request checklist
 
 Before requesting review, confirm that:
 
-- tests and formatting checks pass;
-- licence, secret, and dependency checks pass;
-- new output is deterministic across repeated runs;
-- no protected or customer material is present;
+- relevant tests pass;
+- lint and formatting checks pass;
+- licence, dependency, secret, and public-boundary checks pass;
+- new or changed output is deterministic across repeated runs;
 - security and privacy effects are described;
-- schema and compatibility effects are described; and
-- the change does not claim that a checkpoint or trained model exists.
+- schema and compatibility effects are documented;
+- no sensitive or third-party material is included; and
+- user-facing behavior and release notes are updated.
 
-Small, reviewable commits are preferred. Do not commit generated customer or
-third-party evidence, local ad hoc Docker receipts, virtual environments, build
-outputs, or repository snapshots. The sole exception is a versioned release
-seal generated from the repository's licensed synthetic fixture, after public-
-boundary checks, with every artifact covered by its seal manifest.
+Small, reviewable changes are preferred.
 
-## Licensing Contributions
+## Licensing
 
-By contributing Skylark-owned work to this source repository, you agree that it
-may be distributed under Apache-2.0. You must have the right to submit every
-included file. Third-party material must retain its original licence and
-required attribution and must be recorded in `THIRD_PARTY_NOTICES.md`.
+By contributing work to this repository, you agree that it may be distributed under Apache-2.0 and confirm that you have the right to submit it.
 
-This source-code licence does not license future weights or training data.
+Third-party material must retain its licence and required attribution and must be recorded in `THIRD_PARTY_NOTICES.md`.

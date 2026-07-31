@@ -1,8 +1,8 @@
-# Lumi Trace Runtime Threat Model
+# Lumi Trace runtime threat model
 
-Step 1 retains the V0.1 clean-room and optional-reproduction controls while
-using a Python-only, label-blind deterministic localizer for its primary
-ranking path. Ranking reads repository code as data and does not execute it.
+Lumi Trace uses a clean-room snapshot, deterministic Python-focused
+localisation, and optional restricted reproduction. Localisation reads
+repository code as data and does not execute it.
 
 ## Scope and Security Goal
 
@@ -12,18 +12,16 @@ collect useful evidence without allowing untrusted repository or plan content
 to escape the declared local boundary, acquire network access, mutate the
 source snapshot, or create an unjustified `CONFIRMED` result.
 
-V0.1 assumes the operator is authorised to inspect the finding and repository
+Lumi Trace assumes the operator is authorised to inspect the finding and repository
 and to run the explicit reproduction plan.
 
 ## Assets
 
-- customer repository source and immutable archives;
+- authorised repository source and immutable archives;
 - vulnerability findings, paths, symbols, and fingerprints;
 - reproduction instructions and process output;
 - host files, credentials, network, and Docker engine;
-- evidence integrity, provenance, and classification; and
-- protected Lumi, customer, and holdback material that must never enter the
-  project repository.
+- evidence integrity, provenance, and classification.
 
 ## Trust Boundaries
 
@@ -34,9 +32,7 @@ and to run the explicit reproduction plan.
 3. **Container boundary:** an approved local image and plan execute under the
    local Linux container engine.
 4. **Output boundary:** reports leave the temporary workspace and remain
-   sensitive local customer evidence.
-5. **Release boundary:** project source must not absorb runtime repositories,
-   receipts, historical evidence, customer evidence, or holdbacks.
+   sensitive local evidence.
 
 The host OS, Python runtime, Docker-compatible daemon, local image store, and
 operator-selected output directory are trusted dependencies. Repository
@@ -44,7 +40,7 @@ content, archives, findings, and plan steps are not.
 
 ## Threats and Controls
 
-| Threat | V0.1 control |
+| Threat | Current control |
 | --- | --- |
 | Archive traversal or host overwrite | Canonical relative paths; rejection of absolute and parent paths, links, special members, encrypted ZIP members, oversized members, and case/Unicode collisions; extraction only into a temporary root. The current deterministic profile additionally requires printable-ASCII repository paths. |
 | Source mutation or time-of-check/time-of-use drift | Stable manifests before and after directory copying; re-hash of the materialised snapshot; integrity failure on mismatch. |
@@ -62,7 +58,7 @@ content, archives, findings, and plan steps are not.
 | Remote daemon or daemon-side persistence | Only local Unix-socket/local-machine named-pipe endpoints qualify. Healthchecks and log persistence are disabled, volume declarations are rejected, and forced cleanup includes anonymous volumes. |
 | False confirmation | `CONFIRMED` requires a qualified sandbox, network and immutability attestations, completed steps, and every explicit exit-code/substring witness. Any missing attestation fails closed. |
 | Secret or source disclosure in SARIF | SARIF export omits source snippets and uses repository-relative locations. |
-| Sensitive local-output disclosure | Outputs are never uploaded, previews are opt-in and bounded, documentation warns that paths, symbols, tokens, hashes, metadata, and previews remain customer data. |
+| Sensitive local-output disclosure | Outputs are never uploaded, previews are opt-in and bounded, documentation warns that paths, symbols, tokens, hashes, metadata, and previews remain sensitive user data. |
 | Evidence tampering | Canonical SHA-256 identities and an artifact manifest bind the repository, index, candidates, receipts, bundle, and package. |
 
 ## Reproduction Witness Semantics
@@ -106,7 +102,7 @@ evidence local and access-controlled.
 
 ## Out of Scope
 
-V0.1 does not provide multi-tenant isolation, malware analysis, virtual-machine
+Lumi Trace does not provide multi-tenant isolation, malware analysis, virtual-machine
 isolation, exploit containment guarantees, hosted execution, repair generation,
 or automatic vulnerability discovery. It must not be used to process material
 the operator is not authorised to inspect or execute.

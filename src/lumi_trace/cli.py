@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Command line interface for Lumi Trace V0.1."""
+"""Command line interface for Lumi Trace."""
 
 from __future__ import annotations
 
@@ -105,18 +105,22 @@ def _write_trace_summary(result: dict[str, object]) -> None:
         else "Top ranked locations (no implementation-role candidate emitted)"
     )
     if reproduction["requested"]:
-        reproduction_summary = (
+        confirmation_summary = (
             "attempted"
             if reproduction["attempted"]
             else "requested but not attempted; see evidence reason codes"
         )
     else:
-        reproduction_summary = "not requested; non-error abstention (NO_REPRODUCTION_PLAN)"
+        confirmation_summary = "not attempted (NO_REPRODUCTION_PLAN)"
+    localisation_summary = "complete"
+    if ranking_abstained:
+        localisation_summary += f"; abstained ({ranking_abstention['reason']})"
 
-    print("Lumi Trace deterministic evidence", file=sys.stderr)
+    print("Lumi Trace result", file=sys.stderr)
+    print(f"  Localisation: {localisation_summary}", file=sys.stderr)
     print(f"  Ranker: {candidate_set['algorithm']}", file=sys.stderr)
     print(
-        f"  Ranked: {len(candidates)} location(s); integer ordering scores are not probabilities",
+        f"  Ranked locations: {len(candidates)}; integer ordering scores are not probabilities",
         file=sys.stderr,
     )
     print(
@@ -135,9 +139,9 @@ def _write_trace_summary(result: dict[str, object]) -> None:
             f"(score {location['integer_score']})",
             file=sys.stderr,
         )
-    print(f"  Reproduction: {reproduction_summary}", file=sys.stderr)
+    print(f"  Confirmation: {confirmation_summary}", file=sys.stderr)
     print(
-        f"  Reproduction evidence: {outcome}; confidence {classification['confidence_grade']} / "
+        f"  Evidence classification: {outcome}; confidence {classification['confidence_grade']} / "
         f"{classification['confidence_basis_points']} basis points "
         "(deterministic descriptor, not probability)",
         file=sys.stderr,

@@ -1,8 +1,9 @@
-# Step 1 Reproducible Release Procedure
+# Reproducible release procedure
 
 This procedure prepares and inspects a deterministic Lumi Trace release
-candidate. It does not publish, tag, sign or merge anything. The authority gate
-in `docs/STEP_1_RELEASE_GATE.md` remains controlling.
+candidate. It does not publish, tag, sign, or merge anything. Publication
+requires a separately reviewed signed tag and approval through the protected
+`release` environment.
 
 ## Preconditions
 
@@ -154,8 +155,7 @@ The default output is the ignored directory
   hash-bound evidence manifest.
 
 The check is mechanical. It cannot determine legal ownership, recognise every
-possible customer identifier or replace the authority review. Those decisions
-remain in the authority gate.
+possible sensitive identifier, or replace maintainer review.
 
 ## Clean-install matrix
 

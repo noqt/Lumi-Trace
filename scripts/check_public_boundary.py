@@ -30,12 +30,9 @@ HOST_PATHS = (
     re.compile(r"(?i)\bF:\\Data\\"),
     re.compile(r"/var/lib/lumi/"),
 )
-DOCUMENTED_TOPOLOGY_FILES = {
-    Path("docs/build-briefs/Lumi-Trace-V0.2-Evaluation-and-Training-Readiness-Build-Brief.md"),
-    Path(
-        "docs/build-briefs/"
-        "Lumi-Trace-V0.3-Natural-Repository-and-Defensive-Evidence-Qualification-Build-Brief.md"
-    ),
+INTERNAL_PATHS_MUST_BE_ABSENT = {
+    Path("docs/STEP_1_RELEASE_GATE.md"),
+    Path("docs/build-briefs"),
 }
 
 
@@ -70,15 +67,28 @@ def main() -> int:
             # This checker necessarily contains the prohibited path signatures.
             continue
         for pattern in HOST_PATHS:
-            if relative in DOCUMENTED_TOPOLOGY_FILES and pattern.pattern == r"(?i)\bF:\\Data\\":
-                continue
             if pattern.search(text):
                 failures.append(f"absolute historical host path found: {relative}")
+    for relative in INTERNAL_PATHS_MUST_BE_ABSENT:
+        if (ROOT / relative).exists():
+            failures.append(f"internal public-boundary path must be absent: {relative}")
     fixture_license = ROOT / "tests" / "fixtures" / "demo-repository" / "LICENSE"
     if not fixture_license.is_file() or "Apache-2.0" not in fixture_license.read_text(
         encoding="utf-8"
     ):
         failures.append("synthetic fixture licence is absent or not Apache-2.0")
+    quickstart_readme = ROOT / "examples" / "quickstart" / "README.md"
+    quickstart_source = ROOT / "examples" / "quickstart" / "repository" / "src" / "archive.py"
+    if (
+        not quickstart_readme.is_file()
+        or "Apache-2.0" not in quickstart_readme.read_text(encoding="utf-8")
+        or not quickstart_source.is_file()
+        or not any(
+            "SPDX-License-Identifier: Apache-2.0" in line
+            for line in quickstart_source.read_text(encoding="utf-8").splitlines()[:5]
+        )
+    ):
+        failures.append("public quickstart provenance or Apache-2.0 marker is incomplete")
     if failures:
         print("\n".join(sorted(set(failures))), file=sys.stderr)
         return 1
