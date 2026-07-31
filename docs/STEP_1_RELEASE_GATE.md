@@ -1,67 +1,52 @@
 # Step 1 Authority and Publication Gate
 
-Status: `OPEN / PUBLICATION BLOCKED`
+Status: `RELEASE PREPARATION AUTHORISED / FINAL PUBLICATION APPROVAL PENDING`
 Applies to: Lumi Trace Step 1 deterministic productisation
 Starting commit: `5ad55ab27ae84028b0c2b2a74b622e7da54e3cc9`
 Development branch: `codex/lumi-trace-step-1-productisation`
 
 ## Gate rule
 
-Development, testing and preparation of a draft release candidate may continue
-on the dedicated productisation branch. No merge to the public default branch,
-tag, GitHub Release, PyPI upload, artefact signature, licence change or other
-publication action is authorised by this document.
+The founder has authorised completion of release preparation, including source
+changes, local release builds, GitHub workflow preparation, and evidence
+regeneration. This document does **not** authorise a merge, push, tag, GitHub
+Release, or other public publication action.
 
-Publication remains blocked until every founder decision below is completed in
-writing. A technical pass, evidence seal or clean-machine test cannot close an
-ownership or publication decision.
+Before publication, the founder must review the final prepared commit,
+reassess any relevant individual employment-contract terms once available,
+create a GitHub-verified signed tag, and explicitly approve the final GitHub
+Release workflow publication. A technical pass, evidence seal, or signed tag
+does not by itself replace that approval.
 
-## Release issue list
-
-| Area | Current state | Evidence or decision required |
-| --- | --- | --- |
-| Code and IP ownership | `OPEN` | Identify the legal owner of every Skylark-authored contribution in the candidate and record whether any work was produced on employer time, equipment or under an agreement that could affect ownership. Record any exclusion, consent or assignment needed before publication. |
-| Apache-2.0 source boundary | `PROVISIONAL` | Confirm that the declared owner may distribute the selected source and documentation under Apache-2.0. Weights, training data, private evidence, customer material and third-party repository contents remain outside that grant. |
-| Third-party source, example and output rights | `OPEN` | Approve the Step 1 public example and its item-level provenance record. Confirm licences, attribution, permitted redistribution or fetch-only handling, and the rights boundary for generated example output. |
-| Authoritative repository and approver | `OPEN` | Confirm `noqt/Lumi-Trace` as the publication repository, select the release branch or commit, and name the person authorised to approve the release. The development branch above is not automatically the release branch. |
-| Public support and security contact | `OPEN` | Confirm the maintained public support route, the owner of the privacy statement, and the security-reporting contact. GitHub private vulnerability reporting is documented but does not identify a general support owner. |
-| Distribution and signing | `OPEN` | Choose GitHub Releases only or explicitly authorise PyPI as well. Separately decide whether wheel, sdist, checksums, tag or provenance attestations require signing, and identify the signing identity and method if required. |
-
-## Six founder decisions
-
-All six decisions are presently `OPEN`.
-
-1. **Ownership and employer-time contribution — OPEN.** Confirm who owns and
-   may publish the code, including any employer-time, employer-equipment or
-   contractual exposure.
-2. **Public example and rights record — OPEN.** Approve the exact example,
-   revision, finding sources, licences, attribution and redistribution/fetch
-   treatment.
-3. **Release branch and approver — OPEN.** Name the authoritative release
-   branch or commit and the release approver.
-4. **Distribution channel — OPEN.** Choose GitHub Releases only or authorise a
-   PyPI publication path as well.
-5. **Support, security and privacy ownership — OPEN.** Confirm the public
-   support route, security contact and privacy-statement owner.
-6. **Release signing — OPEN.** State either the required signing mechanism and
-   identity or an explicit decision that this candidate will be unsigned.
-
-## Closure record
-
-The release approver must complete this table without deleting the issue
-history above.
+## Founder decision record
 
 | Decision | State | Decided by | Decision date | Evidence or rationale |
 | --- | --- | --- | --- | --- |
-| Ownership and employer-time contribution | `OPEN` | — | — | — |
-| Public example and rights record | `OPEN` | — | — | — |
-| Release branch and approver | `OPEN` | — | — | — |
-| Distribution channel | `OPEN` | — | — | — |
-| Support, security and privacy ownership | `OPEN` | — | — | — |
-| Release signing | `OPEN` | — | — | — |
+| Ownership and employer-time contribution | `RESIDUAL RISK ACCEPTED FOR PREPARATION` | Founder | 2026-07-31 | Founder reports that the project is outside their employment duties, uses personal development systems and no employer information or confidential material, and found no policy asserting blanket ownership. Some work may have occurred during paid time. The founder accepts that residual risk for release preparation and will reassess if their individual contract has broader language. This is a business risk decision, not a legal clearance or conclusion about ownership. |
+| Apache-2.0 source boundary | `CLOSED FOR PREPARATION` | Founder | 2026-07-31 | The selected deterministic product candidate contains Skylark-authored source and documentation under Apache-2.0. Weights, training data, private evidence, customer material, and third-party repository content remain excluded. |
+| Public example and rights record | `CLOSED` | Founder | 2026-07-31 | No demo, sample advisory, generated example output, or third-party repository is distributed. The prior public-example path and associated notices are removed from the release candidate. |
+| Release branch and approver | `CLOSED FOR PREPARATION` | Founder | 2026-07-31 | `noqt/Lumi-Trace` is the intended repository. The exact post-preparation commit will be recorded at final review. The founder is the sole release approver. |
+| Distribution channel | `CLOSED` | Founder | 2026-07-31 | Free, open-source GitHub Releases only. No PyPI publication. |
+| Support, security and privacy ownership | `CLOSED` | Founder | 2026-07-31 | GitHub Issues are the general support route; GitHub private vulnerability reporting is the security route; the founder owns the privacy statement. |
+| Release signing and provenance | `CLOSED FOR PREPARATION` | Founder | 2026-07-31 | Require a GitHub-verified signed tag by the founder's GitHub-linked signing identity, plus GitHub Actions/Sigstore artifact attestations and published SHA-256 checksums. The signing and publication actions remain deferred to final approval. |
 
-The publication gate may change to `CLOSED / RELEASE REVIEW AUTHORISED` only
-when all six rows are closed, any conditions are reflected in the release
-candidate, and the approver records an explicit release-review decision. Gate
-closure still does not itself perform or authorise an automated publication
-command.
+## Publication checklist
+
+1. Record the final prepared commit and release evidence seal below.
+2. Reassess the individual employment contract if it contains broader IP,
+   outside-employment, confidentiality, or conflict terms.
+3. Confirm all release checks pass for the final commit.
+4. Create and verify the signed `v0.4.1` tag as described in
+   [Release Security](RELEASE_SECURITY.md).
+5. Give explicit final approval to run the GitHub release workflow with
+   `publish=true`.
+
+## Final review record
+
+| Field | Value |
+| --- | --- |
+| Final prepared commit | `PENDING` |
+| Final release evidence seal | `PENDING` |
+| Contract reassessment | `PENDING` |
+| Signed tag verified on GitHub | `PENDING` |
+| Final publication approval | `PENDING` |

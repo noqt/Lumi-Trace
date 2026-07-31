@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "skylark-lumi-trace"
-version = "0.4.1-dev.0"
+version = "0.4.1"
 description = "Deterministic local vulnerability evidence instrument"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
@@ -43,9 +43,10 @@ lumi-trace = "lumi_trace.cli:main"
 package-dir = {"" = "src"}
 
 [tool.setuptools.data-files]
-"share/skylark-lumi-trace" = ["THIRD_PARTY_NOTICES.md"]
+"share/skylark-lumi-trace" = ["DISCLAIMER.md", "THIRD_PARTY_NOTICES.md"]
 "share/skylark-lumi-trace/docs" = [
   "docs/PRIVACY_AND_DATA_HANDLING.md",
+  "docs/RELEASE_SECURITY.md",
   "docs/REPRODUCTION.md",
   "docs/SCHEMAS.md",
   "docs/STEP_1_PRODUCT_CONTRACT.md",

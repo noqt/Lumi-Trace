@@ -1,46 +1,29 @@
-# Lumi Trace Step 1 Five-Minute Quickstart
+# Lumi Trace Quickstart
 
-This path uses the built wheel, one rights-reviewed public finding, and a
-pinned public source archive. Docker, a model, an API key, and hosted inference
-are not required.
+Lumi Trace accepts an existing finding and a local repository or supported
+archive that you are authorised to analyse. The release intentionally contains
+no public demo, sample advisory, or third-party repository. This avoids
+implying that a sample result establishes detection coverage.
 
-The release candidate is not authorised for public distribution. Use only the
-review bundle supplied by the maintainer.
+## Prepare inputs
 
-Use CPython 3.11 or 3.12 with a recursion limit of at least 1,000. Other Python
-implementations and minor versions are outside the current deterministic
-profile.
-
-## Files supplied to the tester
-
-- `skylark_lumi_trace-0.4.1.dev0-py3-none-any.whl`;
-- this quickstart;
-- `PRIVACY_AND_DATA_HANDLING.md`;
-- the `public-ghsa-8359-h9fx-j6v9` example directory, including its pinned source
-  archive.
-
-If the pinned archive is not already supplied, run `fetch_example.py` once
-while online. It acquires the archive directly from upstream, downloads only
-the pinned public revision, and rejects a hash mismatch. If the exact archive
-is already supplied, run the same command offline: it validates the existing
-bytes and reports `"downloaded": false`. Core tracing is offline after that
-acquisition or validation.
+Create a `finding.json` that conforms to `manual-finding-v1`; the required
+fields and a structural description are in [Schemas](SCHEMAS.md). Keep the
+repository or archive on your local machine. Remote repository URLs are not a
+supported input.
 
 ## Bash
 
 ```sh
-python3.12 -m venv lumi-trace-env
+python3 -m venv lumi-trace-env
 . lumi-trace-env/bin/activate
 python -m pip install --no-index --no-deps --disable-pip-version-check \
-  ./skylark_lumi_trace-0.4.1.dev0-py3-none-any.whl
-
-python ./public-ghsa-8359-h9fx-j6v9/fetch_example.py \
-  --output ./public-ghsa-8359-h9fx-j6v9
+  ./skylark_lumi_trace-0.4.1-py3-none-any.whl
 
 lumi-trace trace \
-  --finding ./public-ghsa-8359-h9fx-j6v9/finding.json \
+  --finding ./finding.json \
   --finding-format manual \
-  --repository ./public-ghsa-8359-h9fx-j6v9/datamodel-code-generator-2dbe5b5794472a4cad8e9286c942dffda7359816.zip \
+  --repository ./local-repository \
   --output ./trace-evidence
 
 lumi-trace verify ./trace-evidence
@@ -48,61 +31,29 @@ lumi-trace verify ./trace-evidence
 
 ## PowerShell
 
-These commands call the virtual environment directly. They do not require
-PowerShell script activation or an execution-policy change.
+The virtual-environment executables are called directly, so script activation
+and execution-policy changes are not required.
 
 ```powershell
 py -3.12 -m venv lumi-trace-env
 .\lumi-trace-env\Scripts\python.exe -m pip install `
   --no-index --no-deps --disable-pip-version-check `
-  .\skylark_lumi_trace-0.4.1.dev0-py3-none-any.whl
-
-.\lumi-trace-env\Scripts\python.exe `
-  .\public-ghsa-8359-h9fx-j6v9\fetch_example.py `
-  --output .\public-ghsa-8359-h9fx-j6v9
-
+  .\skylark_lumi_trace-0.4.1-py3-none-any.whl
 .\lumi-trace-env\Scripts\lumi-trace.exe trace `
-  --finding .\public-ghsa-8359-h9fx-j6v9\finding.json `
+  --finding .\finding.json `
   --finding-format manual `
-  --repository .\public-ghsa-8359-h9fx-j6v9\datamodel-code-generator-2dbe5b5794472a4cad8e9286c942dffda7359816.zip `
+  --repository .\local-repository `
   --output .\trace-evidence
-
 .\lumi-trace-env\Scripts\lumi-trace.exe verify .\trace-evidence
 ```
 
 ## Expected result
 
-The terminal summary identifies the frozen deterministic ranker, shows the
-first implementation-role locations with their true overall ranks, states that
-reproduction was not requested, reports
-`INSUFFICIENT_EVIDENCE / NO_REPRODUCTION_PLAN`, and gives the output and
-verification command.
+`trace` writes a locally verifiable evidence bundle. Without an explicit,
+qualified reproduction plan, the expected classification is
+`INSUFFICIENT_EVIDENCE / NO_REPRODUCTION_PLAN`. That is an abstention from
+confirmation, not proof that the finding is absent or remediated.
 
-The ranking should place the documented implementation area in
-`src/datamodel_code_generator/parser/jsonschema.py` near the first results.
-The exact scores and identities are pinned in the release-candidate usability
-record. This one example demonstrates the workflow only; it does not establish
-generalisation, qualification, or production readiness.
-
-`lumi-trace verify` should return JSON with `"valid": true`.
-
-## Common corrections
-
-- **Output already exists:** choose a new `--output` path. Trace never
-  overwrites evidence.
-- **Finding path cannot be read:** check the working directory and file
-  permissions.
-- **SARIF produces multiple findings:** add `--run-index` and
-  `--result-index` to select exactly one result.
-- **Archive rejected:** use the pinned archive unchanged. Lumi Trace rejects
-  unsafe paths, links, special members, collisions, oversized content, and
-  non-printable-ASCII repository paths in the current deterministic profile.
-- **Docker unavailable:** omit `--plan` and `--image`. Docker is not part of
-  this quickstart.
-
-## Data handling
-
-Keep `trace-evidence` private. It contains public-example finding text and
-repository-derived paths, symbols, tokens, locations, and hashes. Customer
-use can produce the same categories of sensitive local output. Read
-`PRIVACY_AND_DATA_HANDLING.md` before using private material.
+Read [the product contract](STEP_1_PRODUCT_CONTRACT.md),
+[privacy statement](PRIVACY_AND_DATA_HANDLING.md), and
+[disclaimer](../DISCLAIMER.md) before using output in a security decision.

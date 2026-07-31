@@ -24,7 +24,11 @@ def repository_files() -> list[Path]:
         check=True,
         capture_output=True,
     )
-    return [ROOT / item.decode("utf-8") for item in result.stdout.split(b"\0") if item]
+    return [
+        path
+        for item in result.stdout.split(b"\0")
+        if item and (path := ROOT / item.decode("utf-8")).is_file()
+    ]
 
 
 def main() -> int:

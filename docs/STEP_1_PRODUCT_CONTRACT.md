@@ -1,6 +1,6 @@
 # Lumi Trace Step 1 Product Contract
 
-Status: release-candidate contract; publication is blocked by
+Status: release-candidate contract; publication requires the final controls in
 `STEP_1_RELEASE_GATE.md`.
 
 ## Product job
@@ -141,9 +141,6 @@ Core `trace` operation makes zero external network calls and records that fact
 in the evidence. No usage telemetry is sent. Potentially sensitive finding
 text, paths, symbols, token vocabulary, source regions, repository hashes, and
 optional bounded reproduction output can appear in local output files.
-
-The public-example fetch helper is a separate acquisition utility and does use
-the network when invoked. It is not called by `trace`.
 
 See `PRIVACY_AND_DATA_HANDLING.md` for handling and retention guidance.
 

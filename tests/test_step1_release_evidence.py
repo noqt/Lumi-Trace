@@ -23,11 +23,11 @@ from scripts.normalize_step1_sdist import NormalizationError, normalize_sdist
 
 REVISION = "a" * 40
 SOURCE_DATE_EPOCH = 1_784_995_200
-PACKAGE_ROOT = "skylark_lumi_trace-0.4.1.dev0"
+PACKAGE_ROOT = "skylark_lumi_trace-0.4.1"
 METADATA = (
     b"Metadata-Version: 2.4\n"
     b"Name: skylark-lumi-trace\n"
-    b"Version: 0.4.1.dev0\n"
+    b"Version: 0.4.1\n"
     b"License-Expression: Apache-2.0\n"
     b"Requires-Python: <3.13,>=3.11\n"
     b"\n"
@@ -36,7 +36,7 @@ METADATA = (
 
 def _wheel(path: Path, extra: dict[str, bytes] | None = None) -> None:
     members = {
-        "lumi_trace/__init__.py": b'__version__ = "0.4.1-dev.0"\n',
+        "lumi_trace/__init__.py": b'__version__ = "0.4.1"\n',
         f"{PACKAGE_ROOT}.dist-info/METADATA": METADATA,
         f"{PACKAGE_ROOT}.dist-info/WHEEL": (
             b"Wheel-Version: 1.0\nGenerator: test\nRoot-Is-Purelib: true\nTag: py3-none-any\n"
@@ -58,7 +58,7 @@ def _sdist(
     members = {
         f"{PACKAGE_ROOT}/PKG-INFO": METADATA,
         f"{PACKAGE_ROOT}/LICENSE": b"Apache License\nVersion 2.0\n",
-        f"{PACKAGE_ROOT}/src/lumi_trace/__init__.py": b'__version__ = "0.4.1-dev.0"\n',
+        f"{PACKAGE_ROOT}/src/lumi_trace/__init__.py": b'__version__ = "0.4.1"\n',
     }
     members.update({f"{PACKAGE_ROOT}/{name}": payload for name, payload in (extra or {}).items()})
     with tarfile.open(path, "w:gz") as archive:
@@ -184,17 +184,14 @@ def test_rejects_local_host_paths_in_payloads(tmp_path: Path) -> None:
         inspect_release_artifacts(wheel, sdist)
 
 
-def test_rejects_separately_licensed_example_in_package(tmp_path: Path) -> None:
+def test_rejects_example_content_in_package(tmp_path: Path) -> None:
     wheel, sdist = _pair(tmp_path)
     _wheel(
         wheel,
-        {
-            "share/skylark-lumi-trace/examples/"
-            "public-ghsa-8359-h9fx-j6v9/finding.json": b'{"title":"adapted"}\n'
-        },
+        {"share/skylark-lumi-trace/examples/finding.json": b'{"title":"sample"}\n'},
     )
 
-    with pytest.raises(ReleaseEvidenceError, match="separately licensed"):
+    with pytest.raises(ReleaseEvidenceError, match="forbidden"):
         inspect_release_artifacts(wheel, sdist)
 
 
@@ -311,7 +308,7 @@ def test_project_distributions_have_a_minimal_product_boundary(
     assert any(name.endswith("docs/STEP_1_QUICKSTART.md") for name in all_names)
     assert any(name.endswith("docs/STEP_1_RELEASE_GATE.md") for name in all_names)
     assert any(name.endswith("docs/STEP_1_REPRODUCIBLE_RELEASE.md") for name in all_names)
-    assert not any("examples/public-ghsa-8359-h9fx-j6v9" in name for name in all_names)
+    assert not any("examples/" in name for name in all_names)
     assert any(name.endswith("schemas/evidence-bundle-v1.json") for name in all_names)
     assert any(name.endswith("build_step1_release_evidence.py") for name in all_names)
 

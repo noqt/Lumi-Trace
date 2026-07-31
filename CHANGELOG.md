@@ -8,8 +8,8 @@
   locations, candidate-truncation abstention, and cross-bound JSON/SARIF
   ranking metadata without promoting or packaging a learned checkpoint.
 - Added manual/SARIF and directory/archive product-contract tests, actionable
-  input-error guidance, an installed-wheel quickstart, a public-example rights
-  record, and a standalone privacy/data-handling statement.
+  input-error guidance, an installed-wheel quickstart, and a standalone
+  privacy/data-handling statement.
 - Narrowed release artifacts to the product boundary and added reproducible
   wheel build plus bounded canonical sdist normalization, inventory, checksum,
   SPDX SBOM, clean-install, and independent usability evidence controls.
@@ -29,11 +29,12 @@
   successful current runs require printable-ASCII repository paths. CPython
   3.11 and 3.12 artifacts are compared byte-for-byte before a release candidate
   can pass.
-- Kept publication blocked pending the six written founder decisions in the
-  Step 1 release gate. No merge, tag, release, signing, PyPI upload, training,
-  qualification, or holdback access is part of this work.
+- Prepared the free GitHub Release path: removed the public example and its
+  third-party advisory material, added scope and liability guidance, and added
+  a GitHub-verified-tag/Sigstore-attestation release procedure. Final public
+  publication still requires explicit founder approval.
 
-## 0.4.1-dev.0 - Integrity remediation and qualification recovery
+## 0.4.1 - Integrity remediation and qualification recovery
 
 - Recorded the V0.4 ground-truth target-access defect, preserved the historical
   seal, and invalidated all contaminated candidate, feature, model-selection,

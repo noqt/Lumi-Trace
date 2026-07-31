@@ -2,9 +2,8 @@
 
 ## Supported Version
 
-Lumi Trace V0.1.0 is the initial public source release. Security fixes target
-the `main` branch. The latest V0.1 patch release is supported; earlier V0.1
-patches may be superseded by a security fix.
+The latest GitHub Release is the supported version. Security fixes target the
+`main` branch; earlier releases may be superseded by a security fix.
 
 ## Reporting a Vulnerability
 

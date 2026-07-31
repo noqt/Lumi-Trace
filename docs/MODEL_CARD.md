@@ -12,7 +12,7 @@ qualification and is not authorised for customer or public use.
 | Inventory identity | `skylark.lumi.trace` |
 | Model status | `PRIVATE_DEVELOPMENT_CANDIDATE_NOT_QUALIFIED` |
 | Product runtime | `lumi-trace-runtime-v0.4.1-pre-release.8` |
-| Product package | `0.4.1-dev.0` |
+| Product package | `0.4.1` |
 | Checkpoint | Private governed canonical JSON; not packaged or published |
 | Active learned parameters | 10,455 |
 | Skylark-trained parameters | 10,455 |

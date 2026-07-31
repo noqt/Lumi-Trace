@@ -12,9 +12,8 @@ in `docs/STEP_1_RELEASE_GATE.md` remains controlling.
   `pyproject.toml`; CPython 3.11 and 3.12, each with a recursion limit of at
   least 1,000, are both required for clean-install validation.
 - Keep all generated material under the ignored `out/` directory.
-- Acquire the approved public example separately before disabling network
-  access. Core execution after acquisition must not require a package index,
-  model, API key, Docker or network.
+- Use an owned synthetic fixture for release validation. Core execution must
+  not require a package index, model, API key, Docker or network.
 - Use only repositories whose relative paths are printable ASCII;
   non-printable-ASCII repository paths are outside the current deterministic
   profile and must fail closed.
@@ -52,14 +51,14 @@ $env:PIP_DISABLE_PIP_VERSION_CHECK = "1"
 python -m build --no-isolation --wheel --outdir out/step1-build-a $sourceA
 python -m build --no-isolation --sdist --outdir out/step1-raw-a $sourceA
 python (Join-Path $sourceA "scripts\normalize_step1_sdist.py") `
-  --input out/step1-raw-a/skylark_lumi_trace-0.4.1.dev0.tar.gz `
-  --output out/step1-build-a/skylark_lumi_trace-0.4.1.dev0.tar.gz
+  --input out/step1-raw-a/skylark_lumi_trace-0.4.1.tar.gz `
+  --output out/step1-build-a/skylark_lumi_trace-0.4.1.tar.gz
 
 python -m build --no-isolation --wheel --outdir out/step1-build-b $sourceB
 python -m build --no-isolation --sdist --outdir out/step1-raw-b $sourceB
 python (Join-Path $sourceB "scripts\normalize_step1_sdist.py") `
-  --input out/step1-raw-b/skylark_lumi_trace-0.4.1.dev0.tar.gz `
-  --output out/step1-build-b/skylark_lumi_trace-0.4.1.dev0.tar.gz
+  --input out/step1-raw-b/skylark_lumi_trace-0.4.1.tar.gz `
+  --output out/step1-build-b/skylark_lumi_trace-0.4.1.tar.gz
 python -m twine check out/step1-build-a/*
 python -m twine check out/step1-build-b/*
 ```
@@ -90,14 +89,14 @@ export PIP_DISABLE_PIP_VERSION_CHECK=1
 python -m build --no-isolation --wheel --outdir out/step1-build-a "$SOURCE_A"
 python -m build --no-isolation --sdist --outdir out/step1-raw-a "$SOURCE_A"
 python "$SOURCE_A/scripts/normalize_step1_sdist.py" \
-  --input out/step1-raw-a/skylark_lumi_trace-0.4.1.dev0.tar.gz \
-  --output out/step1-build-a/skylark_lumi_trace-0.4.1.dev0.tar.gz
+  --input out/step1-raw-a/skylark_lumi_trace-0.4.1.tar.gz \
+  --output out/step1-build-a/skylark_lumi_trace-0.4.1.tar.gz
 
 python -m build --no-isolation --wheel --outdir out/step1-build-b "$SOURCE_B"
 python -m build --no-isolation --sdist --outdir out/step1-raw-b "$SOURCE_B"
 python "$SOURCE_B/scripts/normalize_step1_sdist.py" \
-  --input out/step1-raw-b/skylark_lumi_trace-0.4.1.dev0.tar.gz \
-  --output out/step1-build-b/skylark_lumi_trace-0.4.1.dev0.tar.gz
+  --input out/step1-raw-b/skylark_lumi_trace-0.4.1.tar.gz \
+  --output out/step1-build-b/skylark_lumi_trace-0.4.1.tar.gz
 python -m twine check out/step1-build-a/*
 python -m twine check out/step1-build-b/*
 ```
@@ -155,8 +154,8 @@ The default output is the ignored directory
   hash-bound evidence manifest.
 
 The check is mechanical. It cannot determine legal ownership, recognise every
-possible customer identifier or replace review of example rights. Those
-decisions remain in the authority gate.
+possible customer identifier or replace the authority review. Those decisions
+remain in the authority gate.
 
 ## Clean-install matrix
 
@@ -176,9 +175,10 @@ CLEAN_ENV_LUMI_TRACE trace \
 CLEAN_ENV_LUMI_TRACE verify CLEAN_OUTPUT
 ```
 
-Repeat the primary command with the approved SARIF input. Run from a directory
-that contains only the candidate release, approved example and quickstart—not
-the source checkout, its virtual environment, test fixtures or evaluator.
+Repeat the primary command with an owned synthetic SARIF fixture. Run from a
+directory that contains only the candidate release and its required local test
+inputs—not the source checkout, its virtual environment, test fixtures or
+evaluator.
 Record start/end time, commands, stdout/stderr, output hashes, errors and
 whether founder intervention was required.
 

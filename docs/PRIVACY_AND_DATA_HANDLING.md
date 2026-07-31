@@ -7,10 +7,8 @@ finding or repository, call hosted inference, require an API key, send product
 telemetry, or fetch a model or container image. The Python runtime package has
 no third-party runtime dependency.
 
-The optional public-example fetch helper is separate from the product runtime.
-It connects only when the user explicitly invokes it to acquire the pinned
-public example. Optional Docker reproduction uses only an immutable image that
-the user has already placed in a local engine; Lumi Trace never pulls an image.
+Optional Docker reproduction uses only an immutable image that the user has
+already placed in a local engine; Lumi Trace never pulls an image.
 
 This boundary does not claim that Python, the operating system, Docker, or
 other software outside Lumi Trace has no network-capable functionality.
@@ -70,6 +68,7 @@ README, or repository file are never promoted into a plan.
 
 ## Questions and incidents
 
-The public support/security contact and privacy-statement owner remain release
-gates. Until they are confirmed in writing, this release candidate must not be
-published. See `STEP_1_RELEASE_GATE.md`.
+General support is through GitHub Issues. Report security vulnerabilities only
+through GitHub's private vulnerability-reporting flow. The founder owns this
+privacy statement; see `STEP_1_RELEASE_GATE.md` for the final publication
+controls.

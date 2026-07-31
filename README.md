@@ -11,12 +11,13 @@ no API-key requirement, and no packaged model weights. It does not discover
 vulnerabilities, generate repairs or exploits, or execute instructions found in
 SARIF or repository content.
 
-## Step 1 release boundary
+## Release boundary
 
-This branch is an unreleased `0.4.1-dev.0` release candidate. Public
-publication remains blocked until the written ownership, example, approver,
-distribution, contact/privacy, and signing decisions in
-[the Step 1 release gate](docs/STEP_1_RELEASE_GATE.md) are closed.
+This is the `0.4.1` deterministic release candidate. Release preparation is
+complete only when the checks in [the Step 1 release gate](docs/STEP_1_RELEASE_GATE.md)
+and [release security guide](docs/RELEASE_SECURITY.md) have been followed. A
+release is made only from an approved, GitHub-verified signed tag through the
+manual GitHub Releases workflow. Lumi Trace is not published to PyPI.
 
 The primary `trace` path uses the frozen deterministic
 `role-aware-sparse-v0.4.1.3` ranker. The private learned-route work remains
@@ -34,7 +35,7 @@ repository paths only. Extracted symbols are lexical landmarks, not proof that
 a file imports or compiles. No broader language-support claim is made.
 
 Read the [product contract](docs/STEP_1_PRODUCT_CONTRACT.md),
-[five-minute quickstart](docs/STEP_1_QUICKSTART.md), and
+[quickstart](docs/STEP_1_QUICKSTART.md), [disclaimer](DISCLAIMER.md), and
 [privacy/data-handling statement](docs/PRIVACY_AND_DATA_HANDLING.md) first.
 V0.4/V0.4.1 integrity and programme history remain in the source repository
 but are deliberately excluded from Step 1 release artifacts.
@@ -67,21 +68,24 @@ instructions found in SARIF.
 
 ## Quickstart
 
-Install the supplied candidate wheel in a clean environment:
+Install the supplied wheel in a clean environment, then run it only against a
+finding and repository or archive you are authorised to analyse. Lumi Trace
+does not include a public demo, sample advisory, or third-party repository.
+
+Save a valid `manual-finding-v1` document as `finding.json` (see
+[Schemas](docs/SCHEMAS.md)), and replace `./local-repository` below with your
+local repository directory or supported archive.
 
 ```sh
 python3 -m venv lumi-trace-env
 . lumi-trace-env/bin/activate
 python -m pip install --no-index --no-deps --disable-pip-version-check \
-  ./skylark_lumi_trace-0.4.1.dev0-py3-none-any.whl
-
-python ./public-ghsa-8359-h9fx-j6v9/fetch_example.py \
-  --output ./public-ghsa-8359-h9fx-j6v9
+  ./skylark_lumi_trace-0.4.1-py3-none-any.whl
 
 lumi-trace trace \
-  --finding ./public-ghsa-8359-h9fx-j6v9/finding.json \
+  --finding ./finding.json \
   --finding-format manual \
-  --repository ./public-ghsa-8359-h9fx-j6v9/datamodel-code-generator-2dbe5b5794472a4cad8e9286c942dffda7359816.zip \
+  --repository ./local-repository \
   --output ./trace-evidence
 
 lumi-trace verify ./trace-evidence
@@ -96,22 +100,17 @@ and execution-policy changes are not required.
 py -3.12 -m venv lumi-trace-env
 .\lumi-trace-env\Scripts\python.exe -m pip install `
   --no-index --no-deps --disable-pip-version-check `
-  .\skylark_lumi_trace-0.4.1.dev0-py3-none-any.whl
-.\lumi-trace-env\Scripts\python.exe `
-  .\public-ghsa-8359-h9fx-j6v9\fetch_example.py `
-  --output .\public-ghsa-8359-h9fx-j6v9
+  .\skylark_lumi_trace-0.4.1-py3-none-any.whl
 .\lumi-trace-env\Scripts\lumi-trace.exe trace `
-  --finding .\public-ghsa-8359-h9fx-j6v9\finding.json `
+  --finding .\finding.json `
   --finding-format manual `
-  --repository .\public-ghsa-8359-h9fx-j6v9\datamodel-code-generator-2dbe5b5794472a4cad8e9286c942dffda7359816.zip `
+  --repository .\local-repository `
   --output .\trace-evidence
 .\lumi-trace-env\Scripts\lumi-trace.exe verify .\trace-evidence
 ```
 
-The example fetch command downloads the pinned public archive when it is
-absent, or validates already supplied bytes without network access. See the
-[complete quickstart](docs/STEP_1_QUICKSTART.md) for Bash, PowerShell, expected
-output, provenance, and common corrections.
+See the [complete quickstart](docs/STEP_1_QUICKSTART.md) for Bash, PowerShell,
+input requirements, expected output, and common corrections.
 
 The quickstart intentionally omits reproduction. It succeeds with
 `INSUFFICIENT_EVIDENCE / NO_REPRODUCTION_PLAN`: an explicit abstention from
@@ -202,6 +201,7 @@ exception never applies to customer or third-party-derived output.
 
 See the standalone [privacy statement](docs/PRIVACY_AND_DATA_HANDLING.md),
 [product contract](docs/STEP_1_PRODUCT_CONTRACT.md),
+[disclaimer](DISCLAIMER.md),
 [Threat Model](docs/THREAT_MODEL.md), [Schemas](docs/SCHEMAS.md), and
 [Reproduction](docs/REPRODUCTION.md).
 

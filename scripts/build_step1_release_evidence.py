@@ -83,12 +83,7 @@ EVALUATOR_PATH_PATTERNS = (
 )
 SEPARATELY_LICENSED_PATH_PATTERNS = (
     re.compile(
-        r"(?:^|/)examples/public-ghsa-8359-h9fx-j6v9(?:/|$)",
-        re.IGNORECASE,
-    ),
-    re.compile(
-        r"(?:^|/)share/skylark-lumi-trace/examples/"
-        r"public-ghsa-8359-h9fx-j6v9(?:/|$)",
+        r"(?:^|/)examples(?:/|$)",
         re.IGNORECASE,
     ),
 )
