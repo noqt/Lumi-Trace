@@ -22,11 +22,12 @@ contract must not be silently reinterpreted.
   inventory, exported ranking, source-visible role classes, telemetry,
   abstention, ranking identity, and raw-output seal.
 
-Step 1 uses runtime identity `lumi-trace-runtime-v0.4.1-pre-release.11`,
+The V0.5 product retains runtime identity `lumi-trace-runtime-v0.4.1-pre-release.11`,
 candidate algorithm `label-blind-python-role-candidates-v0.4.1.7`, repository
 index `deterministic-lexical-index-v4`, Python symbol extractor
-`python-lexical-v1`, and deterministic ranker
-`role-aware-sparse-v0.4.1.3`. Historical `.8` raw output remains verifiable.
+`python-lexical-v1`, and uses deterministic ranker
+`role-aware-sparse-v0.5.0.2`. The V0.4.2 ranker
+`role-aware-sparse-v0.4.1.3` and historical `.8` raw output remain verifiable.
 Governed V0.4.1 reconstruction scripts explicitly pin `.8` and its historical
 decision rule, and its execution is fail-closed outside CPython 3.12.
 
@@ -42,7 +43,7 @@ grammar-projection bounds: 16,384 characters, 512 non-whitespace work units,
 3.11 or 3.12 with a recursion limit of at least 1,000.
 
 `candidate-set-v1` and `evidence-bundle-v1` retain their strict legacy profile
-and add a distinguishable Step 1 profile keyed by the deterministic algorithm.
+and add distinguishable deterministic product profiles keyed by their algorithms.
 Legacy documents remain valid. New product documents additionally bind the
 candidate algorithm, ranker, role, ranking identity, confidence descriptor,
 and fail-closed abstention, including `CANDIDATE_GENERATION_TRUNCATED` when a

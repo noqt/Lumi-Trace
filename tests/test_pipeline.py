@@ -28,7 +28,7 @@ def test_pipeline_emits_complete_package_without_reproduction(
         implementation_revision="fixture-revision",
     )
     assert result["bundle"]["classification"]["outcome"] == "INSUFFICIENT_EVIDENCE"
-    assert result["candidate_set"]["algorithm"] == "role-aware-sparse-v0.4.1.3"
+    assert result["candidate_set"]["algorithm"] == "role-aware-sparse-v0.5.0.2"
     assert (
         result["candidate_set"]["candidate_algorithm"]
         == "label-blind-python-role-candidates-v0.4.1.7"
@@ -69,6 +69,44 @@ def test_pipeline_emits_complete_package_without_reproduction(
     )
     with pytest.raises(IntegrityError, match="ranking summary"):
         verify_evidence_bundle(mismatched_profile)
+
+
+def test_v04_product_artifacts_remain_verifiable_after_v05_default_switch(
+    tmp_path: Path, fixture_repository: Path, manual_finding_path: Path
+) -> None:
+    result = trace_repository(
+        finding_path=manual_finding_path,
+        finding_format="manual",
+        repository_source=fixture_repository,
+        output_directory=tmp_path / "evidence",
+        top_k=8,
+        implementation_revision="fixture-revision",
+    )
+    legacy_ranker = "role-aware-sparse-v0.4.1.3"
+    legacy_candidates = deepcopy(result["candidate_set"])
+    legacy_candidates["algorithm"] = legacy_ranker
+    ranking_identity = {
+        "algorithm": legacy_ranker,
+        "candidate_algorithm": legacy_candidates["candidate_algorithm"],
+        "finding_id": legacy_candidates["finding_id"],
+        "index_id": legacy_candidates["index_id"],
+        "candidate_ids": [item["candidate_id"] for item in legacy_candidates["candidates"]],
+        "abstention": legacy_candidates["abstention"],
+    }
+    legacy_candidates["ranking_id"] = stable_id("ranking", ranking_identity)
+    legacy_candidates["candidate_set_id"] = stable_id(
+        "candidate-set", legacy_candidates, omit_keys=("candidate_set_id",)
+    )
+    verify_candidate_set(legacy_candidates)
+
+    legacy_bundle = deepcopy(result["bundle"])
+    legacy_bundle["ranking"]["ranker"] = legacy_ranker
+    legacy_bundle["ranking"]["ranking_id"] = legacy_candidates["ranking_id"]
+    legacy_bundle["provenance"]["candidate_set_id"] = legacy_candidates["candidate_set_id"]
+    legacy_bundle["bundle_id"] = stable_id(
+        "evidence-bundle", legacy_bundle, omit_keys=("bundle_id",)
+    )
+    verify_evidence_bundle(legacy_bundle)
 
 
 def test_pipeline_is_byte_deterministic_without_reproduction(
@@ -149,10 +187,10 @@ def test_python_minor_versions_share_one_frozen_lexical_profile(tmp_path: Path) 
         "index:3a133f8622267b3763668b07f18e4d244531e17fc867aeac1d97cac095ed8e07"
     )
     assert result["candidate_set"]["ranking_id"] == (
-        "ranking:6b3581706831f07abe03b1241602fd8f145c9a550b1c73246c909e516ae0091b"
+        "ranking:09e5026dc8bedff635e447456b5ae3a45ffd0bfffeeb84635267d695bad9d580"
     )
     assert result["candidate_set"]["candidate_set_id"] == (
-        "candidate-set:b5afffc91a422d044c1b3f16a4f6a5887701f86a7fdda745f8c54105249583cd"
+        "candidate-set:88d259f7fe97fd8beae2c086f971015bda1da1f3e979f9f7d992b1e3d5a8b5ad"
     )
 
 
@@ -328,7 +366,7 @@ def test_product_verifiers_reject_abstention_with_emitted_candidates(
 def test_source_revision_does_not_inherit_an_unrelated_parent_repository(tmp_path: Path) -> None:
     package_like_directory = tmp_path / "site-packages"
     package_like_directory.mkdir()
-    assert source_revision(package_like_directory) == "release:0.4.2"
+    assert source_revision(package_like_directory) == "release:0.5.0"
 
 
 def test_source_revision_marks_a_dirty_checkout_as_uncommitted(tmp_path: Path) -> None:

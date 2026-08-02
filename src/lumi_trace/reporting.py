@@ -26,7 +26,7 @@ from .localization import (
 )
 from .ranking import (
     PRODUCT_CANDIDATE_ALGORITHM,
-    PRODUCT_RANKING_ALGORITHM,
+    PRODUCT_RANKING_ALGORITHMS,
     PRODUCT_ROLES,
     RANKING_ALGORITHM,
     verify_ranked_candidates,
@@ -235,7 +235,7 @@ def build_evidence_bundle(
             reproduction["sandbox_qualified"] = bool(sandbox.get("qualified"))
 
     ranking = None
-    if candidate_set.get("algorithm") == PRODUCT_RANKING_ALGORITHM:
+    if candidate_set.get("algorithm") in PRODUCT_RANKING_ALGORITHMS:
         roles = sorted(
             {
                 str(candidate["role"])
@@ -452,7 +452,7 @@ def verify_evidence_bundle(bundle: dict[str, object]) -> None:
             {str(candidate["role"]) for candidate in candidates if isinstance(candidate, dict)}
         )
         if (
-            ranking.get("ranker") != PRODUCT_RANKING_ALGORITHM
+            ranking.get("ranker") not in PRODUCT_RANKING_ALGORITHMS
             or ranking.get("candidate_algorithm") not in _INDEX_BY_PRODUCT_CANDIDATE_ALGORITHM
             or _INDEX_BY_PRODUCT_CANDIDATE_ALGORITHM.get(str(ranking.get("candidate_algorithm")))
             != index.get("algorithm")
@@ -479,7 +479,7 @@ def verify_evidence_bundle(bundle: dict[str, object]) -> None:
         ):
             raise IntegrityError("evidence bundle ranking summary is inconsistent")
         ranking_identity = {
-            "algorithm": PRODUCT_RANKING_ALGORITHM,
+            "algorithm": ranking["ranker"],
             "candidate_algorithm": ranking["candidate_algorithm"],
             "finding_id": finding["finding_id"],
             "index_id": index["index_id"],

@@ -175,6 +175,13 @@ def test_product_schemas_bind_the_fixed_python_extractor_to_the_current_profile(
     candidate_validator.validate(candidates)
     bundle_validator.validate(bundle)
 
+    legacy_candidates = deepcopy(candidates)
+    legacy_candidates["algorithm"] = "role-aware-sparse-v0.4.1.3"
+    candidate_validator.validate(legacy_candidates)
+    legacy_bundle = deepcopy(bundle)
+    legacy_bundle["ranking"]["ranker"] = "role-aware-sparse-v0.4.1.3"
+    bundle_validator.validate(legacy_bundle)
+
     mismatched_index = deepcopy(index)
     mismatched_index["files"][0]["symbols"][0]["extractor"] = "python-ast-v1"
     assert list(index_validator.iter_errors(mismatched_index))

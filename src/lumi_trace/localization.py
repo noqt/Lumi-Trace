@@ -55,7 +55,8 @@ STEP1_CANDIDATE_ALGORITHM = "label-blind-python-role-candidates-v0.4.1.7"
 CANDIDATE_ALGORITHM = STEP1_CANDIDATE_ALGORITHM
 V041_EVIDENCE_DEFAULT_RANKER = "role-aware-sparse-v0.4.1.1"
 STEP1_DEFAULT_RANKER = BASE_RANKER
-DEFAULT_RANKER = STEP1_DEFAULT_RANKER
+V05_DEFAULT_RANKER = "role-aware-sparse-v0.5.0.2"
+DEFAULT_RANKER = V05_DEFAULT_RANKER
 V041_EVIDENCE_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.8"
 STEP1_DEFECTIVE_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.9"
 STEP1_AST_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.10"
@@ -399,6 +400,28 @@ _RANKER_PROFILES: dict[str, dict[str, int]] = {
         "generated": -4400,
         "vendor": -5200,
         "path_depth": 45,
+    },
+    # V0.5 development candidate.  The historical V0.4 profiles above remain
+    # unchanged so the released wheel can be replayed as a true comparator.
+    # These additions use only the candidate's local source and the supplied
+    # finding: they do not use case labels, fixed revisions, or network data.
+    "role-aware-sparse-v0.5.0.2": {
+        "bm25": 1250,
+        "path": 1050,
+        "basename": 1550,
+        "symbol": 2200,
+        "content": 375,
+        "description": 275,
+        "dangerous": 700,
+        "symbol_candidate": 750,
+        "implementation": 1300,
+        "wrapper": -900,
+        "test": -4400,
+        "fixture": -5000,
+        "generated": -4400,
+        "vendor": -5200,
+        "path_depth": 45,
+        "role_precision_divisor": 2,
     },
 }
 
@@ -1102,6 +1125,15 @@ def _rank(
             "REPORTED_PATH": 100_000 if features["reported_path"] else 0,
             "REPORTED_SYMBOL": 80_000 if features["reported_symbol"] else 0,
         }
+        if "role_precision_divisor" in profile:
+            role_precision_base = max(0, sum(components.values()))
+            components["ROLE_PRECISION"] = (
+                -(role_precision_base // profile["role_precision_divisor"])
+                if candidate["role"] in {"test", "fixture", "generated", "vendor"}
+                and not features["reported_path"]
+                and not features["reported_symbol"]
+                else 0
+            )
         score = sum(components.values())
         ranked.append(
             {

@@ -169,6 +169,6 @@ def test_release_install_example_matches_source_version(project_root: Path) -> N
     readme = (project_root / "README.md").read_text(encoding="utf-8")
     version = re.search(r'^version = "([^"]+)"$', project, flags=re.MULTILINE)
     assert version is not None
-    assert version.group(1) == "0.4.2"
-    assert "releases/tag/v0.4.2" in readme
-    assert "skylark_lumi_trace-0.4.2-py3-none-any.whl" in readme
+    release_version = version.group(1)
+    assert f"releases/tag/v{release_version}" in readme
+    assert f"skylark_lumi_trace-{release_version}-py3-none-any.whl" in readme

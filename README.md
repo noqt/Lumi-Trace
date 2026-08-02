@@ -11,7 +11,7 @@ Lumi Trace is a local command-line tool for application-security engineers, soft
 
 Lumi Trace is deterministic: the same supported inputs produce the same ranked artifacts. Its primary workflow has no hosted-inference path, requires no API key, and sends no product telemetry.
 
-> **Stable release:** [`v0.4.2`](https://github.com/noqt/Lumi-Trace/releases/tag/v0.4.2) is the current published release. Use the documentation attached to a release when you need an exact match.
+> **Stable release:** [`v0.5.0`](https://github.com/noqt/Lumi-Trace/releases/tag/v0.5.0) is the current release. Use the documentation attached to a release when you need an exact match.
 
 ## When Lumi Trace is useful
 
@@ -32,6 +32,12 @@ Lumi Trace is **not** a vulnerability scanner. It does not discover new vulnerab
 - **Fail-closed.** Unsupported or ambiguous inputs are rejected or reported as abstentions rather than guessed through.
 - **Optional restricted reproduction.** A user-authored plan can run in a preloaded, network-denied Linux container. Docker is not required for localisation.
 
+### What changed in V0.5
+
+V0.5 reduces test, fixture, generated, and vendor decoys unless the supplied finding names that path or symbol. Strong source signals can still outweigh the demotion in ranking. The adjustment is deterministic, visible in each candidate's score reasons, and never excludes a path.
+
+In a one-shot, label-blind confirmation comparison with 11 scored, reviewed public Python vulnerability-fix cases, V0.5 ranked the first correct implementation file higher in 8 cases and unchanged in 3 versus V0.4.2; none ranked lower. Median rank moved from 67 to 60, while aggregate wrong-role top-five entries fell from 18 to 1. These are bounded known-finding localisation results, not discovery accuracy or general security coverage.
+
 ## Requirements
 
 - CPython 3.11 or 3.12.
@@ -45,14 +51,14 @@ The current supported localisation profile is Python-focused. Other files may be
 
 ### From a GitHub Release
 
-Download the wheel from the [GitHub Release](https://github.com/noqt/Lumi-Trace/releases/tag/v0.4.2), then install it in a clean virtual environment.
+Download the wheel from the [GitHub Release](https://github.com/noqt/Lumi-Trace/releases/tag/v0.5.0), then install it in a clean virtual environment.
 
 Bash:
 
 ```sh
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install --no-deps ./skylark_lumi_trace-0.4.2-py3-none-any.whl
+python -m pip install --no-deps ./skylark_lumi_trace-0.5.0-py3-none-any.whl
 lumi-trace version
 ```
 
@@ -61,11 +67,11 @@ PowerShell:
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --no-deps `
-  .\skylark_lumi_trace-0.4.2-py3-none-any.whl
+  .\skylark_lumi_trace-0.5.0-py3-none-any.whl
 .\.venv\Scripts\lumi-trace.exe version
 ```
 
-Use the filename from the release you downloaded. Do not copy the `0.4.2` command against a different release.
+Use the filename from the release you downloaded. Do not copy the `0.5.0` command against a different release.
 
 ### From source
 

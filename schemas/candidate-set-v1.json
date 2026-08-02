@@ -23,7 +23,8 @@
       "enum": [
         "deterministic-candidate-ranking-v1",
         "deterministic-candidate-ranking-v2",
-        "role-aware-sparse-v0.4.1.3"
+        "role-aware-sparse-v0.4.1.3",
+        "role-aware-sparse-v0.5.0.2"
       ]
     },
     "candidate_algorithm": {
@@ -83,7 +84,10 @@
       "if": {
         "properties": {
           "algorithm": {
-            "const": "role-aware-sparse-v0.4.1.3"
+            "enum": [
+              "role-aware-sparse-v0.4.1.3",
+              "role-aware-sparse-v0.5.0.2"
+            ]
           }
         },
         "required": [

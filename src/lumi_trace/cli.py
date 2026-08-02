@@ -249,7 +249,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     localize = commands.add_parser(
         "localize",
-        help="run the label-blind role-aware V0.4.1 pre-release localizer",
+        help="run the local label-blind role-aware localizer",
     )
     localize.add_argument("--finding", type=_path, required=True)
     localize.add_argument("--repository", type=_path, required=True)
@@ -261,6 +261,7 @@ def build_parser() -> argparse.ArgumentParser:
             "role-aware-sparse-v0.4.1.2",
             "role-aware-sparse-v0.4.1.3",
             "structured-role-sparse-v0.4.1.4",
+            "role-aware-sparse-v0.5.0.2",
             LEARNED_RANKER,
         ),
         default=DEFAULT_RANKER,
@@ -578,7 +579,7 @@ def dispatch(args: argparse.Namespace) -> None:
             name="Lumi Trace",
             version=__version__,
             inventory_id="skylark.lumi.trace",
-            model_status="DEVELOPMENT_RUNTIME_NO_PACKAGED_WEIGHTS",
+            model_status="DETERMINISTIC_RUNTIME_NO_PACKAGED_WEIGHTS",
             checkpoint=None,
             current_weights=0,
         )
