@@ -119,8 +119,11 @@ even though it does not store complete source files.
 
 `ranking.py` creates `candidate-set-v1` using transparent integer scores. Exact
 reported paths, symbols, and overlapping source regions receive the strongest
-weights, followed by path, identifier, symbol, and message-token matches. Test
-paths receive a deterministic penalty unless directly reported.
+weights, followed by path, identifier, symbol, and message-token matches.
+Unreported test, fixture, generated, and vendor candidates receive a visible,
+scale-aware `ROLE_PRECISION` demotion. Exact reported paths and symbols are
+exempt, strong source signals can outweigh the demotion in ranking, and no
+candidate is excluded by this rule.
 
 Candidates are sorted by score and explicit stable tie-breakers before `top_k`
 selection. The current profile admits at most two candidates from any one path, preventing

@@ -20,13 +20,18 @@ from .localization import (
     NO_SIGNAL_ABSTENTION,
     RUNTIME_IDENTITY,
     STEP1_AST_CANDIDATE_ALGORITHM,
+    STEP1_DEFAULT_RANKER,
     V041_EVIDENCE_CANDIDATE_ALGORITHM,
     verify_raw_localization,
 )
 from .localization import DEFAULT_RANKER as PRODUCT_RANKING_ALGORITHM
 
 RANKING_ALGORITHM = "deterministic-candidate-ranking-v2"
-SUPPORTED_RANKING_ALGORITHMS = frozenset({RANKING_ALGORITHM, PRODUCT_RANKING_ALGORITHM})
+LEGACY_PRODUCT_RANKING_ALGORITHM = STEP1_DEFAULT_RANKER
+PRODUCT_RANKING_ALGORITHMS = frozenset(
+    {LEGACY_PRODUCT_RANKING_ALGORITHM, PRODUCT_RANKING_ALGORITHM}
+)
+SUPPORTED_RANKING_ALGORITHMS = frozenset({RANKING_ALGORITHM, *PRODUCT_RANKING_ALGORITHMS})
 SCORE_REASON_MATCH_LIMIT = 20
 MAX_CANDIDATES_PER_PATH = 2
 PRODUCT_ROLES = frozenset({"implementation", "wrapper", "test", "fixture", "generated", "vendor"})
@@ -613,7 +618,7 @@ def verify_candidate_set(candidate_set: dict[str, object]) -> None:
     }
     algorithm = candidate_set.get("algorithm")
     expected_fields = (
-        base_fields | product_fields if algorithm == PRODUCT_RANKING_ALGORITHM else base_fields
+        base_fields | product_fields if algorithm in PRODUCT_RANKING_ALGORITHMS else base_fields
     )
     if set(candidate_set) != expected_fields or algorithm not in SUPPORTED_RANKING_ALGORITHMS:
         raise IntegrityError("candidate set fields or algorithm are invalid")
@@ -630,7 +635,7 @@ def verify_candidate_set(candidate_set: dict[str, object]) -> None:
     candidates = candidate_set.get("candidates")
     if not isinstance(candidates, list) or len(candidates) > candidate_set["top_k"]:
         raise IntegrityError("candidate set candidates are invalid")
-    require_role = algorithm == PRODUCT_RANKING_ALGORITHM
+    require_role = algorithm in PRODUCT_RANKING_ALGORITHMS
     expected_symbol_extractor = (
         _EXTRACTOR_BY_PRODUCT_CANDIDATE_ALGORITHM.get(str(candidate_set.get("candidate_algorithm")))
         if require_role
@@ -673,7 +678,7 @@ def verify_candidate_set(candidate_set: dict[str, object]) -> None:
             if guided_score <= 0:
                 raise IntegrityError("product candidate set has no positive finding-guided signal")
         ranking_identity = {
-            "algorithm": PRODUCT_RANKING_ALGORITHM,
+            "algorithm": algorithm,
             "candidate_algorithm": candidate_set["candidate_algorithm"],
             "finding_id": candidate_set["finding_id"],
             "index_id": candidate_set["index_id"],

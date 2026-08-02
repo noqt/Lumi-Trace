@@ -15,7 +15,7 @@ def test_version_reports_zero_weights(capsys) -> None:
     assert main(["version"]) == 0
     output = json.loads(capsys.readouterr().out)
     assert output["inventory_id"] == "skylark.lumi.trace"
-    assert output["model_status"] == "DEVELOPMENT_RUNTIME_NO_PACKAGED_WEIGHTS"
+    assert output["model_status"] == "DETERMINISTIC_RUNTIME_NO_PACKAGED_WEIGHTS"
     assert output["checkpoint"] is None
     assert output["current_weights"] == 0
 
@@ -64,7 +64,7 @@ def test_cli_import_and_trace_without_provider_or_api_key(
     assert summary["ranking_abstained"] is True
     assert summary["ranking_abstention_reason"] == "NO_POSITIVE_FINDING_GUIDED_SIGNAL"
     assert summary["reason_codes"] == ["NO_REPRODUCTION_PLAN"]
-    assert summary["ranking_algorithm"] == "role-aware-sparse-v0.4.1.3"
+    assert summary["ranking_algorithm"] == "role-aware-sparse-v0.5.0.2"
     assert summary["candidate_algorithm"] == "label-blind-python-role-candidates-v0.4.1.7"
     assert summary["reproduction_requested"] is False
     assert summary["reproduction_abstained"] is True
@@ -126,7 +126,7 @@ def test_cli_traces_sarif_against_safe_archive_end_to_end(
         == 0
     )
     summary = json.loads(capsys.readouterr().out)
-    assert summary["ranking_algorithm"] == "role-aware-sparse-v0.4.1.3"
+    assert summary["ranking_algorithm"] == "role-aware-sparse-v0.5.0.2"
     assert summary["ranking_abstained"] is False
     assert summary["top_ranked_locations"][0]["path"] == "src/archive.py"
     assert summary["top_implementation_locations"][0]["path"] == "src/archive.py"

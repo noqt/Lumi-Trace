@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Isolated CLI for the V0.4.1 label-blind inference builder."""
+"""Isolated CLI for the label-blind product inference builder."""
 
 from __future__ import annotations
 

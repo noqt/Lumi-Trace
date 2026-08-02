@@ -4,7 +4,7 @@ This guide takes you from a clean environment to a verified evidence package. Th
 
 ## 1. Choose a release or source checkout
 
-For repeatable use, prefer the current [`v0.4.2` GitHub Release](https://github.com/noqt/Lumi-Trace/releases/tag/v0.4.2).
+For repeatable use, prefer the current [`v0.5.0` GitHub Release](https://github.com/noqt/Lumi-Trace/releases/tag/v0.5.0).
 
 A release installation uses the wheel attached to that release. A source installation uses the code currently checked out. The synthetic walkthrough is included in the source repository and source archive, not in the wheel.
 
@@ -30,7 +30,7 @@ py -3.12 -m venv .venv
 From a downloaded wheel:
 
 ```sh
-python -m pip install --no-deps ./skylark_lumi_trace-0.4.2-py3-none-any.whl
+python -m pip install --no-deps ./skylark_lumi_trace-0.5.0-py3-none-any.whl
 ```
 
 From a source checkout:

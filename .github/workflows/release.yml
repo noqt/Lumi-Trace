@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "Existing GitHub-verified signed tag to build (for example v0.4.2)"
+        description: "Existing GitHub-verified signed tag to build (for example v0.5.0)"
         required: true
         type: string
       publish:

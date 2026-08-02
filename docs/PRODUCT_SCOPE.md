@@ -120,6 +120,7 @@ Verification detects tampering or inconsistency in the package. It does not inde
 ## Known limitations
 
 - Ranking can miss relevant code or prioritise unrelated code.
+- Unreported vulnerable code under test, fixture, generated, or vendor paths may be ranked lower by the current role-precision rule; supplied exact locations are exempt and strong source signals can outweigh the demotion in ranking.
 - A known location included in a finding can strongly influence results.
 - Lexical symbols are review landmarks, not compiler guarantees.
 - Unsupported or ambiguous Python syntax may remain a file candidate without symbol-level detail.
