@@ -64,7 +64,7 @@ def test_cli_import_and_trace_without_provider_or_api_key(
     assert summary["ranking_abstained"] is True
     assert summary["ranking_abstention_reason"] == "NO_POSITIVE_FINDING_GUIDED_SIGNAL"
     assert summary["reason_codes"] == ["NO_REPRODUCTION_PLAN"]
-    assert summary["ranking_algorithm"] == "role-aware-sparse-v0.5.0.2"
+    assert summary["ranking_algorithm"] == "role-aware-sparse-v0.6.0.1"
     assert summary["candidate_algorithm"] == "label-blind-python-role-candidates-v0.4.1.7"
     assert summary["reproduction_requested"] is False
     assert summary["reproduction_abstained"] is True
@@ -126,7 +126,7 @@ def test_cli_traces_sarif_against_safe_archive_end_to_end(
         == 0
     )
     summary = json.loads(capsys.readouterr().out)
-    assert summary["ranking_algorithm"] == "role-aware-sparse-v0.5.0.2"
+    assert summary["ranking_algorithm"] == "role-aware-sparse-v0.6.0.1"
     assert summary["ranking_abstained"] is False
     assert summary["top_ranked_locations"][0]["path"] == "src/archive.py"
     assert summary["top_implementation_locations"][0]["path"] == "src/archive.py"
@@ -184,9 +184,9 @@ def test_trace_summary_foregrounds_implementation_candidates_at_true_rank(
 
     captured = capsys.readouterr()
     summary = json.loads(captured.out)
-    assert [item["rank"] for item in summary["top_ranked_locations"]] == [1, 2, 3]
+    assert [item["rank"] for item in summary["top_ranked_locations"]] == [1, 2, 3, 4, 8]
     assert [item["rank"] for item in summary["top_implementation_locations"]] == [4, 8, 11]
-    assert "Top implementation locations (true overall rank)" in captured.err
+    assert "Top implementation paths (true shortlist rank)" in captured.err
     assert "    4. src/alpha.py::alpha" in captured.err
     assert "    1. tests/test_alpha.py::test_alpha" not in captured.err
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "skylark-lumi-trace"
-version = "0.5.0"
+version = "0.6.1"
 description = "Local vulnerability localisation and evidence for known security findings"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"

@@ -91,18 +91,18 @@ def _write_trace_summary(result: dict[str, object]) -> None:
         }
 
     top_ranked_locations = [
-        summarize_location(candidate) for candidate in candidates[:3] if isinstance(candidate, dict)
+        summarize_location(candidate) for candidate in candidates[:5] if isinstance(candidate, dict)
     ]
     top_implementation_locations = [
         summarize_location(candidate)
         for candidate in candidates
         if isinstance(candidate, dict) and candidate.get("role") == "implementation"
-    ][:3]
+    ][:5]
     displayed_locations = top_implementation_locations or top_ranked_locations
     displayed_location_label = (
-        "Top implementation locations (true overall rank)"
+        "Top implementation paths (true shortlist rank)"
         if top_implementation_locations
-        else "Top ranked locations (no implementation-role candidate emitted)"
+        else "Top ranked paths (no implementation-role candidate emitted)"
     )
     if reproduction["requested"]:
         confirmation_summary = (
@@ -120,7 +120,7 @@ def _write_trace_summary(result: dict[str, object]) -> None:
     print(f"  Localisation: {localisation_summary}", file=sys.stderr)
     print(f"  Ranker: {candidate_set['algorithm']}", file=sys.stderr)
     print(
-        f"  Ranked locations: {len(candidates)}; integer ordering scores are not probabilities",
+        f"  Unique review paths: {len(candidates)}; integer ordering scores are not probabilities",
         file=sys.stderr,
     )
     print(
@@ -262,6 +262,7 @@ def build_parser() -> argparse.ArgumentParser:
             "role-aware-sparse-v0.4.1.3",
             "structured-role-sparse-v0.4.1.4",
             "role-aware-sparse-v0.5.0.2",
+            "role-aware-sparse-v0.6.0.1",
             LEARNED_RANKER,
         ),
         default=DEFAULT_RANKER,
@@ -291,7 +292,12 @@ def build_parser() -> argparse.ArgumentParser:
     trace.add_argument("--output", "-o", type=_path, required=True)
     trace.add_argument("--plan", type=_path)
     trace.add_argument("--image")
-    trace.add_argument("--top-k", type=int, default=20)
+    trace.add_argument(
+        "--top-k",
+        type=int,
+        default=10,
+        help="number of unique repository paths to emit (default: 10)",
+    )
     trace.add_argument("--run-index", type=int)
     trace.add_argument("--result-index", type=int)
 

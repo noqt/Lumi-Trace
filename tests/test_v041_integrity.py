@@ -91,7 +91,7 @@ def test_product_default_freezes_the_reviewed_deterministic_runtime(
     manual_finding_path: Path,
 ) -> None:
     request = _request(fixture_repository, manual_finding_path)
-    assert request["configuration"]["ranker"] == "role-aware-sparse-v0.5.0.2"
+    assert request["configuration"]["ranker"] == "role-aware-sparse-v0.6.0.1"
     assert request["configuration"]["runtime_identity"] == RUNTIME_IDENTITY
     assert request["configuration"]["candidate_algorithm"] == CANDIDATE_ALGORITHM
     assert RUNTIME_IDENTITY == "lumi-trace-runtime-v0.4.1-pre-release.11"
@@ -492,6 +492,7 @@ def test_information_flow_manifest_has_no_forbidden_output_path() -> None:
         "role-aware-sparse-v0.4.1.3",
         "structured-role-sparse-v0.4.1.4",
         "role-aware-sparse-v0.5.0.2",
+        "role-aware-sparse-v0.6.0.1",
     ],
 )
 def test_product_runtime_localizer_is_bounded_and_replayable(

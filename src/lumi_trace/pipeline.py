@@ -111,7 +111,7 @@ def trace_repository(
     output_directory: Path,
     reproduction_plan_path: Path | None = None,
     image: str | None = None,
-    top_k: int = 20,
+    top_k: int = 10,
     run_index: int | None = None,
     result_index: int | None = None,
     implementation_revision: str | None = None,
@@ -140,11 +140,16 @@ def trace_repository(
         if workspace.root is None or workspace.identity is None:
             raise RuntimeError("repository workspace did not materialise")
         index = build_repository_index(workspace.root, workspace.identity)
+        # The public V0.6 result contains unique paths, so the localizer must
+        # retain enough ranked anchors to fill the requested shortlist even
+        # when early results share a path.  This remains a bounded local-only
+        # intermediate and is not packaged as a separate artifact.
+        raw_top_k = max(1_000, top_k)
         request = construct_inference_request(
             finding=finding,
             repository_artifact_sha256=canonical_sha256(workspace.identity["manifest_id"]),
             source_kind="directory",
-            top_k=top_k,
+            top_k=raw_top_k,
             maximum_candidates=STEP1_MAXIMUM_CANDIDATES,
             measure_peak_memory=False,
         )

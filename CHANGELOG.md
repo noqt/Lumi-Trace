@@ -4,6 +4,28 @@ This file records user-visible changes to Lumi Trace.
 
 Detailed research history, internal experiment records, and release-approval notes belong in a separate research or maintainer archive rather than the product changelog.
 
+## 0.6.1 - Unreleased
+
+### Changed
+
+- Projected the deterministic raw ranking to one source anchor per repository path, so the default result is a ten-path actionable reviewer shortlist.
+- Preserved V0.5 local scoring, raw-output verification, and historical V0.5 replay while assigning the V0.6 projection its own ranker identity.
+
+### Governance
+
+- Replaced a structurally mismatched zero-regression role comparator with a reviewer-dominance control: each full top-five shortlist must retain at least three implementation paths, and non-implementation paths may occupy no more than 20% of top-five positions across the reviewed set.
+- This changes no ranker score, candidate order, product input, or fresh-case result. Roles and score reasons remain visible to reviewers.
+
+### Validation
+
+- On 12 fresh reviewed public Python vulnerability-fix cases, an accepted target path appeared in the first ten unique paths in 11 cases (91.7%), with median first accepted target-path rank 1.
+- Every full top-five shortlist retained at least three implementation paths; non-implementation paths occupied 3 of 60 delivered top-five positions.
+- These results describe the reviewed cases only and do not establish population accuracy or vulnerability-discovery capability.
+
+### Limitations
+
+- The shortlist is a deterministic aid for reviewing a supplied finding. It remains neither vulnerability discovery nor a safety verdict.
+
 ## 0.5.0 - 2026-08-01
 
 ### Changed
