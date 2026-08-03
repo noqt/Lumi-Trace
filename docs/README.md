@@ -5,6 +5,7 @@
 - [Getting started](GETTING_STARTED.md): install, run the synthetic walkthrough, and trace your own finding.
 - [Product scope and limitations](PRODUCT_SCOPE.md): what the result means and what Lumi Trace does not claim.
 - [Inputs and outputs](INPUTS_AND_OUTPUTS.md): manual JSON, SARIF, repositories, evidence files, and verification.
+- [GitHub Actions integration](GITHUB_ACTIONS.md): bounded SARIF triage in a GitHub job, outputs, policies, and evidence retention.
 - [Optional local reproduction](REPRODUCTION.md): explicit plans, container requirements, controls, and residual risk.
 - [Privacy and data handling](PRIVACY.md): local processing and evidence sensitivity.
 - [Runtime threat model](THREAT_MODEL.md): detailed trust boundaries and controls.

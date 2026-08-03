@@ -58,6 +58,33 @@ jobs:
       - run: python -m build
       - run: python -m twine check dist/*
 
+  action-integration:
+    name: GitHub Action integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: lumi
+        uses: ./
+        with:
+          sarif: tests/data/finding.sarif
+          repository: tests/fixtures/localization-repository
+          output: .lumi-trace-action-evidence
+          upload-artifact: true
+          artifact-name: lumi-trace-action-evidence
+      - name: Assert composite-action outputs
+        shell: bash
+        env:
+          STATUS: ${{ steps.lumi.outputs.status }}
+          EXIT_CODE: ${{ steps.lumi.outputs.exit-code }}
+          EVIDENCE_PATH: ${{ steps.lumi.outputs.evidence-path }}
+          ARTIFACT_ID: ${{ steps.lumi.outputs.artifact-id }}
+        run: |
+          set -euo pipefail
+          test "$STATUS" = complete
+          test "$EXIT_CODE" = 0
+          test "$EVIDENCE_PATH" = .lumi-trace-action-evidence
+          test -n "$ARTIFACT_ID"
+
   trace-eval:
     name: Trace-Eval ${{ matrix.python }} / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}

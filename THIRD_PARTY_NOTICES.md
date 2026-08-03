@@ -42,6 +42,18 @@ locally preloaded immutable Linux-container image are optional external
 prerequisites for reproduction; Lumi Trace does not redistribute them or pull
 images.
 
+## GitHub Actions integration
+
+The optional first-party GitHub Action references these GitHub-maintained
+workflow actions by immutable commit SHA. They execute in the consumer's GitHub
+workflow and are not included in the Lumi Trace Python wheel or source archive.
+
+| Action | Immutable revision | Purpose | Upstream licence |
+| --- | --- | --- | --- |
+| `actions/checkout` | `3d3c42e5aac5ba805825da76410c181273ba90b1` (`v7.0.1`) | Consumer workflow checkout in the documented integration | MIT |
+| `actions/setup-python` | `a309ff8b426b58ec0e2a45f0f869d46889d02405` (`v6.2.0`) | Select CPython 3.12 for the composite action | MIT |
+| `actions/upload-artifact` | `043fb46d1a93c77aae656e7c1c64a875d1fc6a0a` (`v7.0.1`) | Optional verified evidence-artifact retention | MIT |
+
 ## Historical private material
 
 Historical evaluation and development records may refer to upstream advisory

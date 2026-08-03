@@ -30,7 +30,7 @@ py -3.12 -m venv .venv
 From a downloaded wheel:
 
 ```sh
-python -m pip install --no-deps ./skylark_lumi_trace-0.7.1-py3-none-any.whl
+python -m pip install --no-deps ./skylark_lumi_trace-0.8.0-py3-none-any.whl
 ```
 
 From a source checkout:

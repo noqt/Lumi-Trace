@@ -1,0 +1,114 @@
+name: Lumi Trace
+description: Prioritise known SARIF findings into a deterministic, verified reviewer queue.
+author: Skylark.AI
+
+inputs:
+  sarif:
+    description: Local SARIF 2.1.0 file inside GITHUB_WORKSPACE.
+    required: true
+  repository:
+    description: Local repository directory or supported archive inside GITHUB_WORKSPACE.
+    required: false
+    default: .
+  output:
+    description: New output directory inside GITHUB_WORKSPACE.
+    required: false
+    default: .lumi-trace
+  top-k:
+    description: Unique repository paths to retain per completed finding.
+    required: false
+    default: "10"
+  max-findings:
+    description: Maximum SARIF results to triage, up to 1000.
+    required: false
+    default: "100"
+  fail-on-partial:
+    description: Fail after retaining a verified partial package when any SARIF result is invalid.
+    required: false
+    default: "true"
+  fail-on-severity:
+    description: Fail on scanner-supplied critical, high, medium, or low severity and above; none disables it.
+    required: false
+    default: none
+  upload-artifact:
+    description: Upload the verified evidence package as a GitHub artifact.
+    required: false
+    default: "false"
+  artifact-name:
+    description: Artifact name when upload-artifact is true.
+    required: false
+    default: lumi-trace-evidence
+
+outputs:
+  status:
+    description: complete, partial-success, partial-failed, policy-failed, or a bounded error status.
+    value: ${{ steps.triage.outputs.status }}
+  exit-code:
+    description: Final Lumi Trace action exit code.
+    value: ${{ steps.triage.outputs.exit-code }}
+  selected-results:
+    description: Number of selected SARIF results in a verified package.
+    value: ${{ steps.triage.outputs.selected-results }}
+  completed-localizations:
+    description: Number of completed localizations in a verified package.
+    value: ${{ steps.triage.outputs.completed-localizations }}
+  result-local-errors:
+    description: Number of result-local errors in a verified package.
+    value: ${{ steps.triage.outputs.result-local-errors }}
+  unique-review-paths:
+    description: Number of unique reviewer paths in a verified package.
+    value: ${{ steps.triage.outputs.unique-review-paths }}
+  evidence-path:
+    description: Workspace-relative path of a verified evidence package.
+    value: ${{ steps.triage.outputs.evidence-path }}
+  artifact-id:
+    description: GitHub artifact identifier when upload-artifact is true.
+    value: ${{ steps.upload.outputs.artifact-id }}
+  artifact-digest:
+    description: GitHub artifact digest when upload-artifact is true.
+    value: ${{ steps.upload.outputs.artifact-digest }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      with:
+        python-version: "3.12"
+    - id: triage
+      name: Triage SARIF locally
+      shell: bash
+      env:
+        LUMI_TRACE_ACTION_SARIF: ${{ inputs.sarif }}
+        LUMI_TRACE_ACTION_REPOSITORY: ${{ inputs.repository }}
+        LUMI_TRACE_ACTION_OUTPUT: ${{ inputs.output }}
+        LUMI_TRACE_ACTION_TOP_K: ${{ inputs.top-k }}
+        LUMI_TRACE_ACTION_MAX_FINDINGS: ${{ inputs.max-findings }}
+        LUMI_TRACE_ACTION_FAIL_ON_PARTIAL: ${{ inputs.fail-on-partial }}
+        LUMI_TRACE_ACTION_FAIL_ON_SEVERITY: ${{ inputs.fail-on-severity }}
+        LUMI_TRACE_ACTION_ARTIFACT_NAME: ${{ inputs.artifact-name }}
+      run: python "$GITHUB_ACTION_PATH/tools/github_action.py"
+    - id: upload
+      name: Upload verified evidence
+      if: ${{ always() && inputs.upload-artifact == 'true' && steps.triage.outputs.package-ready == 'true' }}
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: ${{ steps.triage.outputs.artifact-name }}
+        # Composite actions execute from GITHUB_ACTION_PATH; the package itself
+        # is deliberately constrained to the caller's workspace.
+        path: ${{ github.workspace }}/${{ steps.triage.outputs.evidence-path }}
+        if-no-files-found: error
+        # The safe default evidence directory is dot-prefixed. Its contents are
+        # verified before this step and are intentionally included on request.
+        include-hidden-files: true
+    - name: Apply CI policy
+      if: ${{ always() }}
+      shell: bash
+      env:
+        LUMI_TRACE_ACTION_EXIT_CODE: ${{ steps.triage.outputs.exit-code }}
+      run: |
+        case "$LUMI_TRACE_ACTION_EXIT_CODE" in
+          0) exit 0 ;;
+          1|2|5) exit "$LUMI_TRACE_ACTION_EXIT_CODE" ;;
+          *) echo "Lumi Trace did not provide a valid final exit code" >&2; exit 2 ;;
+        esac

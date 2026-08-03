@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "skylark-lumi-trace"
-version = "0.7.1"
+version = "0.8.0"
 description = "Local vulnerability localisation and evidence for known security findings"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
@@ -61,6 +61,7 @@ package-dir = {"" = "src"}
 ]
 "share/skylark-lumi-trace/docs" = [
   "docs/ARCHITECTURE.md",
+  "docs/GITHUB_ACTIONS.md",
   "docs/GETTING_STARTED.md",
   "docs/INPUTS_AND_OUTPUTS.md",
   "docs/PRIVACY.md",
