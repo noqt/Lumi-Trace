@@ -60,6 +60,7 @@ content, archives, findings, and plan steps are not.
 | Secret or source disclosure in SARIF | SARIF export omits source snippets and uses repository-relative locations. |
 | Sensitive local-output disclosure | Outputs are never uploaded, previews are opt-in and bounded, documentation warns that paths, symbols, tokens, hashes, metadata, and previews remain sensitive user data. |
 | Evidence tampering | Canonical SHA-256 identities and an artifact manifest bind the repository, index, candidates, receipts, bundle, and package. |
+| Batch result collision or misleading aggregation | Stable result keys include the source run/result position; raw SARIF strings never form output paths. A queue path occurs once, retains every candidate contribution, and orders only by supplied severity, finding count, shortlist rank, and canonical path. Query-specific scores are never summed or presented as probability. |
 
 ## Reproduction Witness Semantics
 

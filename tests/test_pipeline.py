@@ -363,7 +363,7 @@ def test_product_verifiers_reject_abstention_with_emitted_candidates(
 def test_source_revision_does_not_inherit_an_unrelated_parent_repository(tmp_path: Path) -> None:
     package_like_directory = tmp_path / "site-packages"
     package_like_directory.mkdir()
-    assert source_revision(package_like_directory) == "release:0.6.1"
+    assert source_revision(package_like_directory) == "release:0.7.1"
 
 
 def test_source_revision_marks_a_dirty_checkout_as_uncommitted(tmp_path: Path) -> None:

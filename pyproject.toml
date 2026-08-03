@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "skylark-lumi-trace"
-version = "0.6.1"
+version = "0.7.1"
 description = "Local vulnerability localisation and evidence for known security findings"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
@@ -74,6 +74,7 @@ package-dir = {"" = "src"}
 ]
 "share/skylark-lumi-trace/schemas" = [
   "schemas/candidate-set-v1.json",
+  "schemas/batch-triage-package-v1.json",
   "schemas/evidence-bundle-v1.json",
   "schemas/evidence-package-manifest-v1.json",
   "schemas/localization-inference-request-v0.4.1.json",

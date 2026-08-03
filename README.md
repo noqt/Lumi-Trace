@@ -11,7 +11,7 @@ Lumi Trace is a local command-line tool for application-security engineers, soft
 
 Lumi Trace is deterministic: the same supported inputs produce the same ranked artifacts. Its primary workflow has no hosted-inference path, requires no API key, and sends no product telemetry.
 
-> **Current release candidate:** [`v0.6.1`](https://github.com/noqt/Lumi-Trace/releases/tag/v0.6.1) adds an actionable, unique-path shortlist. Use the documentation attached to a release when you need an exact match.
+> **Current release candidate:** `v0.7.1` adds local multi-result SARIF triage. Published artifacts are listed on [GitHub Releases](https://github.com/noqt/Lumi-Trace/releases). Use the documentation attached to a release when you need an exact match.
 
 ## When Lumi Trace is useful
 
@@ -32,9 +32,9 @@ Lumi Trace is **not** a vulnerability scanner. It does not discover new vulnerab
 - **Fail-closed.** Unsupported or ambiguous inputs are rejected or reported as abstentions rather than guessed through.
 - **Optional restricted reproduction.** A user-authored plan can run in a preloaded, network-denied Linux container. Docker is not required for localisation.
 
-### What changed in V0.6.1
+### What changed in V0.7.1
 
-V0.6 keeps the V0.5 deterministic score and role-aware ranking intact, then projects its raw ranked anchors into one representative per repository path. The default output is ten unique review paths rather than repeated symbols from the same file. Each emitted path retains the score reasons and source location of its highest-ranked anchor.
+V0.7.1 includes V0.6.1's unique-path projection: it keeps the V0.5 deterministic score and role-aware ranking intact, then projects raw ranked anchors into one representative per repository path. The default output is ten unique review paths rather than repeated symbols from the same file. Each emitted path retains the score reasons and source location of its highest-ranked anchor.
 
 This is a presentation and review-flow change, not a new vulnerability-detection model or a claim of discovery accuracy. V0.5 evidence remains verifiable under its original ranker identity.
 
@@ -53,14 +53,14 @@ The current supported localisation profile is Python-focused. Other files may be
 
 ### From a GitHub Release
 
-Download the wheel from the [GitHub Release](https://github.com/noqt/Lumi-Trace/releases/tag/v0.6.1), then install it in a clean virtual environment.
+Download the wheel for the version you want from [GitHub Releases](https://github.com/noqt/Lumi-Trace/releases), then install it in a clean virtual environment.
 
 Bash:
 
 ```sh
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install --no-deps ./skylark_lumi_trace-0.6.1-py3-none-any.whl
+python -m pip install --no-deps ./skylark_lumi_trace-0.7.1-py3-none-any.whl
 lumi-trace version
 ```
 
@@ -69,11 +69,11 @@ PowerShell:
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --no-deps `
-  .\skylark_lumi_trace-0.6.1-py3-none-any.whl
+  .\skylark_lumi_trace-0.7.1-py3-none-any.whl
 .\.venv\Scripts\lumi-trace.exe version
 ```
 
-Use the filename from the release you downloaded. Do not copy the `0.6.1` command against a different release.
+Use the filename from the release you downloaded. Do not copy the `0.7.1` command against a different release.
 
 ### From source
 
@@ -153,7 +153,18 @@ lumi-trace trace \
   --output out/my-trace
 ```
 
-Lumi Trace also accepts a selected SARIF 2.1.0 result and an already-normalized finding. See [Inputs and outputs](docs/INPUTS_AND_OUTPUTS.md).
+Lumi Trace also accepts a selected SARIF 2.1.0 result and an already-normalized finding. For an entire bounded SARIF report, use batch triage:
+
+```sh
+lumi-trace triage \
+  --sarif findings.sarif \
+  --repository /path/to/local/repository \
+  --output out/triage
+```
+
+Batch triage creates a per-result shortlist and one unique-path review queue. Queue order is review priority, not probability, exploitability, or a repository safety verdict. A malformed individual result is retained as an error record while valid results complete; that verified partial-success outcome exits with code `5`.
+
+See [Inputs and outputs](docs/INPUTS_AND_OUTPUTS.md).
 
 ## What gets written
 

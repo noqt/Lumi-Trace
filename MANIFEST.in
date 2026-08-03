@@ -28,6 +28,7 @@ include docs/reference/SCHEMA_COMPATIBILITY.md
 include examples/quickstart/README.md
 include examples/quickstart/finding.json
 include examples/quickstart/repository/src/archive.py
+include schemas/batch-triage-package-v1.json
 include schemas/candidate-set-v1.json
 include schemas/evidence-bundle-v1.json
 include schemas/evidence-package-manifest-v1.json

@@ -63,6 +63,7 @@ complete raw-output seal.
 | Schema | Purpose |
 | --- | --- |
 | `schemas/manual-finding-v1.json` | Strict human-authored finding input accepted by `import-manual`. |
+| `schemas/batch-triage-package-v1.json` | Exact artifact manifest for a multi-result local SARIF triage package. Runtime verification additionally checks every batch artifact, reference, queue entry, and SARIF projection. |
 | `schemas/normalized-finding-v1.json` | Normalized manual or SARIF finding, including input hash, rule, severity, safe relative locations, keywords, and fingerprints. |
 | `schemas/normalized-finding-collection-v1.json` | Manifest emitted when SARIF import writes multiple normalized findings. |
 | `schemas/repository-index-v1.json` | Immutable repository identity plus deterministic file, token, exclusion, and symbol index. |
@@ -119,6 +120,7 @@ The runtime also emits:
 
 - `normalized-finding-collection-v1` when SARIF import writes more than one
   normalized finding;
+- `batch-triage-package-v1` for a local multi-result SARIF package. Its published schema describes the manifest; the runtime verifies the strict typed root, per-result, queue, error, and SARIF artifacts bound by that manifest; and
 - `evidence-package-manifest-v1` for artifact names, hashes, sizes, and package
   identity; and
 - SARIF 2.1.0 as a compatibility projection of an evidence bundle.

@@ -4,7 +4,26 @@ This file records user-visible changes to Lumi Trace.
 
 Detailed research history, internal experiment records, and release-approval notes belong in a separate research or maintainer archive rather than the product changelog.
 
-## 0.6.1 - Unreleased
+## 0.7.1 - Unreleased
+
+### Added
+
+- Added `lumi-trace triage` for one bounded local SARIF 2.1.0 report and one local repository snapshot.
+- Emits a deterministic per-result V0.6.1-equivalent unique-path shortlist, a consolidated unique-path review queue, combined SARIF, and a hash-bound batch package.
+- Supports verified partial success: malformed individual results are retained as bounded local error records while valid results remain usable. Partial success exits with code `5`.
+
+### Limitations
+
+- Batch queue order is review priority only. It is not a vulnerability verdict, risk probability, exploitability estimate, or repository safety result.
+- Batch triage neither discovers findings nor executes repository code, and does not run optional reproduction across SARIF results.
+
+### Validation
+
+- Exact standalone-versus-batch parity passed for all 30 admitted findings across pinned Flask, Requests, and HTTPX workloads generated with Bandit 1.9.4.
+- Every admitted batch and standalone evidence package verified; no result was lost, rejected, or silently truncated.
+- These results validate workflow parity and package integrity, not vulnerability-discovery accuracy or repository safety.
+
+## 0.6.1 - Included in 0.7.1; not separately released
 
 ### Changed
 

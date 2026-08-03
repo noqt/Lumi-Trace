@@ -26,6 +26,8 @@ Depending on the command, Lumi Trace reads:
 
 Repository code is treated as data during localisation and is not imported or executed. Execution occurs only through an explicit reproduction plan.
 
+Batch triage reads every selected result in one local SARIF report and writes a combined queue plus per-result artifacts. It performs no product network request and does not execute repository code or SARIF content.
+
 ## Data Lumi Trace writes
 
 An evidence package can contain sensitive material, including:

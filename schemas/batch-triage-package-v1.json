@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/noqt/Lumi-Trace/schemas/batch-triage-package-v1.json",
+  "title": "Lumi Trace batch triage package manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "artifact_type", "artifacts", "package_id"],
+  "properties": {
+    "schema_version": {"const": "batch-triage-package-v1"},
+    "artifact_type": {"const": "manifest"},
+    "package_id": {"type": "string", "pattern": "^triage-package:[0-9a-f]{64}$"},
+    "artifacts": {
+      "type": "array",
+      "minItems": 5,
+      "items": {"$ref": "#/$defs/artifact"}
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "role", "sha256", "size_bytes"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9._-]*)(?:/[A-Za-z0-9][A-Za-z0-9._-]*){0,2}$"
+        },
+        "role": {"type": "string", "minLength": 1, "maxLength": 64},
+        "sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "size_bytes": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}
