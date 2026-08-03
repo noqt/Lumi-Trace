@@ -30,7 +30,7 @@ py -3.12 -m venv .venv
 From a downloaded wheel:
 
 ```sh
-python -m pip install --no-deps ./skylark_lumi_trace-0.8.0-py3-none-any.whl
+python -m pip install --no-deps ./skylark_lumi_trace-0.8.1-py3-none-any.whl
 ```
 
 From a source checkout:
@@ -50,6 +50,17 @@ Confirm the installation:
 ```sh
 lumi-trace version
 ```
+
+Before installation, you can verify a downloaded wheel and source archive by
+keeping them with the release `SHA256SUMS` file in one directory and running:
+
+```sh
+sha256sum -c SHA256SUMS
+```
+
+See the README for the PowerShell equivalent. A matching checksum confirms the
+download matches that release's published hash; it does not guarantee security
+or fitness for a particular use.
 
 ## 4. Run the synthetic walkthrough
 

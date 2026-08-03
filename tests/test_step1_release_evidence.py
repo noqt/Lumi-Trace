@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import re
@@ -111,6 +112,36 @@ def test_builds_hash_bound_spdx_release_evidence(tmp_path: Path) -> None:
     }
     assert all(item["licenseDeclared"] == "Apache-2.0" for item in sbom["packages"])
     assert "C:\\" not in (output / "environment.json").read_text(encoding="utf-8")
+
+
+def test_release_checksums_are_flat_download_compatible(
+    tmp_path: Path,
+    project_root: Path,
+) -> None:
+    wheel, sdist = _pair(tmp_path)
+    output = tmp_path / "evidence"
+    build_release_evidence(
+        wheel=wheel,
+        sdist=sdist,
+        output=output,
+        source_revision=REVISION,
+        source_date_epoch=SOURCE_DATE_EPOCH,
+    )
+
+    entries = {}
+    for line in (output / "SHA256SUMS").read_text(encoding="ascii").splitlines():
+        digest, filename = line.split("  ", maxsplit=1)
+        entries[filename] = digest
+
+    assert set(entries) == {wheel.name, sdist.name}
+    assert all(Path(filename).name == filename for filename in entries)
+    assert all("/" not in filename and "\\" not in filename for filename in entries)
+    for artifact in (wheel, sdist):
+        assert entries[artifact.name] == hashlib.sha256(artifact.read_bytes()).hexdigest()
+
+    workflow = (project_root / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    assert "cp out/release-evidence/SHA256SUMS dist/SHA256SUMS" in workflow
+    assert "cd dist\n            sha256sum -c SHA256SUMS" in workflow
 
 
 def test_sdist_normalization_removes_build_and_checkout_timestamps(tmp_path: Path) -> None:

@@ -89,7 +89,11 @@ jobs:
           cp out/release-evidence/manifest.json dist/release-evidence-manifest.json
           cp out/release-evidence/sbom.spdx.json dist/release-sbom.spdx.json
           cp out/release-evidence/summary.json dist/release-evidence-summary.json
-          sha256sum dist/*.whl dist/*.tar.gz > dist/SHA256SUMS
+          cp out/release-evidence/SHA256SUMS dist/SHA256SUMS
+          (
+            cd dist
+            sha256sum -c SHA256SUMS
+          )
       - name: Attest release artifacts
         uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4
         with:

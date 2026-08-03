@@ -11,8 +11,9 @@ Lumi Trace is a local command-line tool for application-security engineers, soft
 
 Lumi Trace is deterministic: the same supported inputs produce the same ranked artifacts. Its primary workflow has no hosted-inference path, requires no API key, and sends no product telemetry.
 
-> **V0.8.0 (unreleased candidate)** adds a first-party GitHub Actions wrapper
-> around local batch SARIF triage. Published artifacts are listed on [GitHub
+> **V0.8.1** retains the first-party GitHub Actions wrapper around local batch
+> SARIF triage and makes the published checksum file directly verifiable from a
+> flat GitHub Release download. Published artifacts are listed on [GitHub
 > Releases](https://github.com/noqt/Lumi-Trace/releases). Use the documentation
 > attached to a release when you need an exact match.
 
@@ -63,7 +64,7 @@ Bash:
 ```sh
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install --no-deps ./skylark_lumi_trace-0.8.0-py3-none-any.whl
+python -m pip install --no-deps ./skylark_lumi_trace-0.8.1-py3-none-any.whl
 lumi-trace version
 ```
 
@@ -72,11 +73,35 @@ PowerShell:
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --no-deps `
-  .\skylark_lumi_trace-0.8.0-py3-none-any.whl
+  .\skylark_lumi_trace-0.8.1-py3-none-any.whl
 .\.venv\Scripts\lumi-trace.exe version
 ```
 
-Use the filename from the release you downloaded. Do not copy the `0.8.0` command against a different release.
+Use the filename from the release you downloaded. Do not copy the `0.8.1` command against a different release.
+
+### Verify a downloaded release
+
+Keep the wheel, source archive, and `SHA256SUMS` from the same GitHub Release
+in one directory. On Bash-compatible systems, verify both package files before
+installing:
+
+```sh
+sha256sum -c SHA256SUMS
+```
+
+In PowerShell, run this from the same flat directory:
+
+```powershell
+Get-Content .\SHA256SUMS | ForEach-Object {
+  $expected, $filename = $_ -split '\s{2}', 2
+  $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $filename).Hash.ToLowerInvariant()
+  if ($actual -ne $expected) { throw "Checksum mismatch: $filename" }
+}
+```
+
+No output means both package hashes matched. A checksum match establishes that
+the downloaded package matches the release record; it is not a security or
+fitness guarantee.
 
 ### From source
 

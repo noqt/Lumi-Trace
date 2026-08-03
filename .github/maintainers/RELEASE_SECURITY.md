@@ -31,8 +31,10 @@ checksums, and evidence files. It never uploads to PyPI.
 
 ## What users can verify
 
-Users can confirm that the release tag is verified in GitHub, compare the
-published SHA-256 checksum with their downloaded wheel or source archive, and
-use GitHub's artifact-attestation verification for the release files. These
-controls establish release provenance; they do not make a security or fitness
-guarantee about the software.
+Users can confirm that the release tag is verified in GitHub, download the
+wheel, source archive, and `SHA256SUMS` into one directory, and run
+`sha256sum -c SHA256SUMS`. PowerShell users can compare the same filenames with
+`Get-FileHash -Algorithm SHA256`. Users can also use GitHub's
+artifact-attestation verification for the release files. These controls
+establish release provenance; they do not make a security or fitness guarantee
+about the software.

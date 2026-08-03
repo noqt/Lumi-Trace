@@ -4,7 +4,16 @@ This file records user-visible changes to Lumi Trace.
 
 Detailed research history, internal experiment records, and release-approval notes belong in a separate research or maintainer archive rather than the product changelog.
 
-## 0.8.0 - Unreleased
+## 0.8.1 - 2026-08-03
+
+### Fixed
+
+- Release `SHA256SUMS` now records package basenames, so a wheel, source
+  distribution, and checksum file downloaded from the same GitHub Release can
+  be verified directly with `sha256sum -c SHA256SUMS`.
+- Documented the direct Bash and PowerShell release-verification paths.
+
+## 0.8.0 - 2026-08-03
 
 ### Added
 
