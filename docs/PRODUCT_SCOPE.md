@@ -6,6 +6,8 @@ Lumi Trace helps an authorised reviewer investigate an **existing** security fin
 
 Its primary job is to produce a transparent, deterministic shortlist of files and symbols for human review. It also writes a hash-bound evidence package that can be verified later or exported to SARIF.
 
+For one bounded multi-result SARIF report, `lumi-trace triage` produces the same per-finding shortlists and a consolidated unique-path reviewer queue. The queue is a practical work order only: it is not a probability, exploitability measure, vulnerability verdict, or statement that the repository is safe.
+
 ## Intended users
 
 Lumi Trace is designed for:
@@ -55,10 +57,13 @@ The current product accepts:
 - one `manual-finding-v1` JSON object;
 - one `normalized-finding-v1` JSON object;
 - one explicitly selected SARIF 2.1.0 result;
+- one local multi-result SARIF 2.1.0 report through `triage`, capped at 100 results by default and 1,000 results absolutely;
 - one local repository directory, safe ZIP archive, or supported TAR-family archive; and
 - optionally, one `reproduction-plan-v1` and one immutable local image reference.
 
 Remote repository URLs and remote SARIF artifact locations are not accepted.
+
+Batch triage materialises and indexes the local repository once. It does not run optional reproduction for each result. A malformed individual SARIF result may be recorded as a bounded local error while valid results remain available; the resulting verified partial-success package exits with code `5`.
 
 Unsafe archive paths, links, special files, path collisions, encrypted ZIP members, unsupported archive extensions, and inputs above documented limits fail closed.
 

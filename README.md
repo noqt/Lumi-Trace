@@ -11,7 +11,7 @@ Lumi Trace is a local command-line tool for application-security engineers, soft
 
 Lumi Trace is deterministic: the same supported inputs produce the same ranked artifacts. Its primary workflow has no hosted-inference path, requires no API key, and sends no product telemetry.
 
-> **Stable release:** [`v0.5.0`](https://github.com/noqt/Lumi-Trace/releases/tag/v0.5.0) is the current release. Use the documentation attached to a release when you need an exact match.
+> **Current release candidate:** `v0.7.1` adds local multi-result SARIF triage. Published artifacts are listed on [GitHub Releases](https://github.com/noqt/Lumi-Trace/releases). Use the documentation attached to a release when you need an exact match.
 
 ## When Lumi Trace is useful
 
@@ -32,11 +32,13 @@ Lumi Trace is **not** a vulnerability scanner. It does not discover new vulnerab
 - **Fail-closed.** Unsupported or ambiguous inputs are rejected or reported as abstentions rather than guessed through.
 - **Optional restricted reproduction.** A user-authored plan can run in a preloaded, network-denied Linux container. Docker is not required for localisation.
 
-### What changed in V0.5
+### What changed in V0.7.1
 
-V0.5 reduces test, fixture, generated, and vendor decoys unless the supplied finding names that path or symbol. Strong source signals can still outweigh the demotion in ranking. The adjustment is deterministic, visible in each candidate's score reasons, and never excludes a path.
+V0.7.1 includes V0.6.1's unique-path projection: it keeps the V0.5 deterministic score and role-aware ranking intact, then projects raw ranked anchors into one representative per repository path. The default output is ten unique review paths rather than repeated symbols from the same file. Each emitted path retains the score reasons and source location of its highest-ranked anchor.
 
-In a one-shot, label-blind confirmation comparison with 11 scored, reviewed public Python vulnerability-fix cases, V0.5 ranked the first correct implementation file higher in 8 cases and unchanged in 3 versus V0.4.2; none ranked lower. Median rank moved from 67 to 60, while aggregate wrong-role top-five entries fell from 18 to 1. These are bounded known-finding localisation results, not discovery accuracy or general security coverage.
+This is a presentation and review-flow change, not a new vulnerability-detection model or a claim of discovery accuracy. V0.5 evidence remains verifiable under its original ranker identity.
+
+On a frozen, label-blind public confirmation set of 12 reviewed Python vulnerability-fix cases, an accepted target path appeared in the V0.6 shortlist’s first ten unique paths in 11 cases (91.7%); median first accepted target-path rank was 1. These are bounded known-finding localisation results, not vulnerability-discovery accuracy or general security coverage.
 
 ## Requirements
 
@@ -51,14 +53,14 @@ The current supported localisation profile is Python-focused. Other files may be
 
 ### From a GitHub Release
 
-Download the wheel from the [GitHub Release](https://github.com/noqt/Lumi-Trace/releases/tag/v0.5.0), then install it in a clean virtual environment.
+Download the wheel for the version you want from [GitHub Releases](https://github.com/noqt/Lumi-Trace/releases), then install it in a clean virtual environment.
 
 Bash:
 
 ```sh
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install --no-deps ./skylark_lumi_trace-0.5.0-py3-none-any.whl
+python -m pip install --no-deps ./skylark_lumi_trace-0.7.1-py3-none-any.whl
 lumi-trace version
 ```
 
@@ -67,11 +69,11 @@ PowerShell:
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --no-deps `
-  .\skylark_lumi_trace-0.5.0-py3-none-any.whl
+  .\skylark_lumi_trace-0.7.1-py3-none-any.whl
 .\.venv\Scripts\lumi-trace.exe version
 ```
 
-Use the filename from the release you downloaded. Do not copy the `0.5.0` command against a different release.
+Use the filename from the release you downloaded. Do not copy the `0.7.1` command against a different release.
 
 ### From source
 
@@ -151,7 +153,18 @@ lumi-trace trace \
   --output out/my-trace
 ```
 
-Lumi Trace also accepts a selected SARIF 2.1.0 result and an already-normalized finding. See [Inputs and outputs](docs/INPUTS_AND_OUTPUTS.md).
+Lumi Trace also accepts a selected SARIF 2.1.0 result and an already-normalized finding. For an entire bounded SARIF report, use batch triage:
+
+```sh
+lumi-trace triage \
+  --sarif findings.sarif \
+  --repository /path/to/local/repository \
+  --output out/triage
+```
+
+Batch triage creates a per-result shortlist and one unique-path review queue. Queue order is review priority, not probability, exploitability, or a repository safety verdict. A malformed individual result is retained as an error record while valid results complete; that verified partial-success outcome exits with code `5`.
+
+See [Inputs and outputs](docs/INPUTS_AND_OUTPUTS.md).
 
 ## What gets written
 

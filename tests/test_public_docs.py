@@ -164,11 +164,14 @@ def test_clean_source_install_runs_and_verifies_public_quickstart(
     assert json.loads(verify.stdout) == {"input": str(output), "valid": True}
 
 
-def test_release_install_example_matches_source_version(project_root: Path) -> None:
+def test_release_install_example_matches_source_version_without_an_unpublished_tag(
+    project_root: Path,
+) -> None:
     project = (project_root / "pyproject.toml").read_text(encoding="utf-8")
     readme = (project_root / "README.md").read_text(encoding="utf-8")
     version = re.search(r'^version = "([^"]+)"$', project, flags=re.MULTILINE)
     assert version is not None
     release_version = version.group(1)
-    assert f"releases/tag/v{release_version}" in readme
+    assert "https://github.com/noqt/Lumi-Trace/releases" in readme
+    assert f"releases/tag/v{release_version}" not in readme
     assert f"skylark_lumi_trace-{release_version}-py3-none-any.whl" in readme

@@ -43,6 +43,12 @@ from .sandbox import (
     validate_reproduction_plan,
     verify_reproduction_receipt,
 )
+from .triage import (
+    DEFAULT_MAX_FINDINGS,
+    TRIAGE_PACKAGE_SCHEMA,
+    triage_sarif,
+    verify_triage_package,
+)
 
 
 def _path(value: str) -> Path:
@@ -91,18 +97,18 @@ def _write_trace_summary(result: dict[str, object]) -> None:
         }
 
     top_ranked_locations = [
-        summarize_location(candidate) for candidate in candidates[:3] if isinstance(candidate, dict)
+        summarize_location(candidate) for candidate in candidates[:5] if isinstance(candidate, dict)
     ]
     top_implementation_locations = [
         summarize_location(candidate)
         for candidate in candidates
         if isinstance(candidate, dict) and candidate.get("role") == "implementation"
-    ][:3]
+    ][:5]
     displayed_locations = top_implementation_locations or top_ranked_locations
     displayed_location_label = (
-        "Top implementation locations (true overall rank)"
+        "Top implementation paths (true shortlist rank)"
         if top_implementation_locations
-        else "Top ranked locations (no implementation-role candidate emitted)"
+        else "Top ranked paths (no implementation-role candidate emitted)"
     )
     if reproduction["requested"]:
         confirmation_summary = (
@@ -120,7 +126,7 @@ def _write_trace_summary(result: dict[str, object]) -> None:
     print(f"  Localisation: {localisation_summary}", file=sys.stderr)
     print(f"  Ranker: {candidate_set['algorithm']}", file=sys.stderr)
     print(
-        f"  Ranked locations: {len(candidates)}; integer ordering scores are not probabilities",
+        f"  Unique review paths: {len(candidates)}; integer ordering scores are not probabilities",
         file=sys.stderr,
     )
     print(
@@ -169,6 +175,55 @@ def _write_trace_summary(result: dict[str, object]) -> None:
         reproduction_requested=reproduction["requested"],
         reproduction_attempted=reproduction["attempted"],
         reproduction_abstained=reproduction_abstained,
+        output=str(output),
+    )
+
+
+def _write_triage_summary(result: dict[str, object]) -> None:
+    """Write bounded batch facts for people and stable facts for automation."""
+
+    summary = result["summary"]
+    queue = result["review_queue"]
+    output = Path(result["output_directory"])
+    if not isinstance(summary, dict) or not isinstance(queue, list):
+        raise RuntimeError("triage result is missing its summary or review queue")
+    print("Lumi Trace batch result", file=sys.stderr)
+    print(
+        "  Findings: "
+        f"{summary['selected_results']} selected; "
+        f"{summary['completed_localizations']} completed; "
+        f"{summary['result_local_errors']} error",
+        file=sys.stderr,
+    )
+    print(f"  Localisation abstentions: {summary['localization_abstentions']}", file=sys.stderr)
+    print(f"  Unique review paths: {summary['unique_review_paths']}", file=sys.stderr)
+    if queue:
+        print("  Top review paths:", file=sys.stderr)
+    for item in queue[:10]:
+        if not isinstance(item, dict):
+            raise RuntimeError("triage review queue entry is malformed")
+        print(
+            f"    {item['queue_rank']}. {item['path']} - {item['highest_severity']} - "
+            f"{item['finding_count']} findings - best rank {item['best_shortlist_rank']}",
+            file=sys.stderr,
+        )
+    print("  Queue order: review priority, not probability or exploitability", file=sys.stderr)
+    print(f"  Package: {output}", file=sys.stderr)
+    print(f'  Verification: lumi-trace verify "{output}"', file=sys.stderr)
+    print(
+        f"  Exit: {summary['exit_status']} ({summary['exit_code']})",
+        file=sys.stderr,
+    )
+    _write_summary(
+        command="triage",
+        selected_results=summary["selected_results"],
+        completed_localizations=summary["completed_localizations"],
+        localization_abstentions=summary["localization_abstentions"],
+        result_local_errors=summary["result_local_errors"],
+        unique_review_paths=summary["unique_review_paths"],
+        exit_status=summary["exit_status"],
+        exit_code=summary["exit_code"],
+        queue_order_is_not_probability=True,
         output=str(output),
     )
 
@@ -262,6 +317,7 @@ def build_parser() -> argparse.ArgumentParser:
             "role-aware-sparse-v0.4.1.3",
             "structured-role-sparse-v0.4.1.4",
             "role-aware-sparse-v0.5.0.2",
+            "role-aware-sparse-v0.6.0.1",
             LEARNED_RANKER,
         ),
         default=DEFAULT_RANKER,
@@ -291,9 +347,34 @@ def build_parser() -> argparse.ArgumentParser:
     trace.add_argument("--output", "-o", type=_path, required=True)
     trace.add_argument("--plan", type=_path)
     trace.add_argument("--image")
-    trace.add_argument("--top-k", type=int, default=20)
+    trace.add_argument(
+        "--top-k",
+        type=int,
+        default=10,
+        help="number of unique repository paths to emit (default: 10)",
+    )
     trace.add_argument("--run-index", type=int)
     trace.add_argument("--result-index", type=int)
+
+    triage = commands.add_parser(
+        "triage",
+        help="triage every result in one local SARIF 2.1.0 report",
+    )
+    triage.add_argument("--sarif", type=_path, required=True)
+    triage.add_argument("--repository", type=_path, required=True)
+    triage.add_argument("--output", "-o", type=_path, required=True)
+    triage.add_argument(
+        "--top-k",
+        type=int,
+        default=10,
+        help="unique paths per completed finding (default: 10)",
+    )
+    triage.add_argument(
+        "--max-findings",
+        type=int,
+        default=DEFAULT_MAX_FINDINGS,
+        help=f"maximum SARIF results to triage (default: {DEFAULT_MAX_FINDINGS})",
+    )
 
     export = commands.add_parser("export-sarif", help="export an evidence bundle as SARIF 2.1.0")
     export.add_argument("bundle", type=_path)
@@ -375,6 +456,9 @@ def _verify_package(path: Path) -> None:
     if manifest_path.is_symlink() or not manifest_path.is_file():
         raise InputError("evidence package manifest is missing or unsafe")
     manifest = load_json(manifest_path)
+    if isinstance(manifest, dict) and manifest.get("schema_version") == TRIAGE_PACKAGE_SCHEMA:
+        verify_triage_package(path)
+        return
     if (
         not isinstance(manifest, dict)
         or set(manifest) != {"schema_version", "artifacts", "manifest_id"}
@@ -573,7 +657,7 @@ def _verify_package(path: Path) -> None:
         raise InputError("evidence SARIF does not match the evidence bundle")
 
 
-def dispatch(args: argparse.Namespace) -> None:
+def dispatch(args: argparse.Namespace) -> int | None:
     if args.command == "version":
         _write_summary(
             name="Lumi Trace",
@@ -663,6 +747,16 @@ def dispatch(args: argparse.Namespace) -> None:
             result_index=args.result_index,
         )
         _write_trace_summary(result)
+    elif args.command == "triage":
+        result = triage_sarif(
+            sarif_path=args.sarif,
+            repository_source=args.repository,
+            output_directory=args.output,
+            top_k=args.top_k,
+            max_findings=args.max_findings,
+        )
+        _write_triage_summary(result)
+        return int(result["exit_code"])
     elif args.command == "export-sarif":
         bundle = load_bundle(args.bundle)
         sarif = export_sarif(bundle)
@@ -682,11 +776,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
-        dispatch(args)
+        result = dispatch(args)
     except (LumiTraceError, ValueError, OSError) as exc:
         print(f"lumi-trace: {exc}", file=sys.stderr)
         hint = _actionable_hint(exc)
         if hint:
             print(f"hint: {hint}", file=sys.stderr)
         return getattr(exc, "exit_code", 2)
-    return 0
+    return 0 if result is None else result

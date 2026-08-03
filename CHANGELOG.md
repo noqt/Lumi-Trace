@@ -4,6 +4,47 @@ This file records user-visible changes to Lumi Trace.
 
 Detailed research history, internal experiment records, and release-approval notes belong in a separate research or maintainer archive rather than the product changelog.
 
+## 0.7.1 - Unreleased
+
+### Added
+
+- Added `lumi-trace triage` for one bounded local SARIF 2.1.0 report and one local repository snapshot.
+- Emits a deterministic per-result V0.6.1-equivalent unique-path shortlist, a consolidated unique-path review queue, combined SARIF, and a hash-bound batch package.
+- Supports verified partial success: malformed individual results are retained as bounded local error records while valid results remain usable. Partial success exits with code `5`.
+
+### Limitations
+
+- Batch queue order is review priority only. It is not a vulnerability verdict, risk probability, exploitability estimate, or repository safety result.
+- Batch triage neither discovers findings nor executes repository code, and does not run optional reproduction across SARIF results.
+
+### Validation
+
+- Exact standalone-versus-batch parity passed for all 30 admitted findings across pinned Flask, Requests, and HTTPX workloads generated with Bandit 1.9.4.
+- Every admitted batch and standalone evidence package verified; no result was lost, rejected, or silently truncated.
+- These results validate workflow parity and package integrity, not vulnerability-discovery accuracy or repository safety.
+
+## 0.6.1 - Included in 0.7.1; not separately released
+
+### Changed
+
+- Projected the deterministic raw ranking to one source anchor per repository path, so the default result is a ten-path actionable reviewer shortlist.
+- Preserved V0.5 local scoring, raw-output verification, and historical V0.5 replay while assigning the V0.6 projection its own ranker identity.
+
+### Governance
+
+- Replaced a structurally mismatched zero-regression role comparator with a reviewer-dominance control: each full top-five shortlist must retain at least three implementation paths, and non-implementation paths may occupy no more than 20% of top-five positions across the reviewed set.
+- This changes no ranker score, candidate order, product input, or fresh-case result. Roles and score reasons remain visible to reviewers.
+
+### Validation
+
+- On 12 fresh reviewed public Python vulnerability-fix cases, an accepted target path appeared in the first ten unique paths in 11 cases (91.7%), with median first accepted target-path rank 1.
+- Every full top-five shortlist retained at least three implementation paths; non-implementation paths occupied 3 of 60 delivered top-five positions.
+- These results describe the reviewed cases only and do not establish population accuracy or vulnerability-discovery capability.
+
+### Limitations
+
+- The shortlist is a deterministic aid for reviewing a supplied finding. It remains neither vulnerability discovery nor a safety verdict.
+
 ## 0.5.0 - 2026-08-01
 
 ### Changed

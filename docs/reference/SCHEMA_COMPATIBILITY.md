@@ -22,11 +22,14 @@ contract must not be silently reinterpreted.
   inventory, exported ranking, source-visible role classes, telemetry,
   abstention, ranking identity, and raw-output seal.
 
-The V0.5 product retains runtime identity `lumi-trace-runtime-v0.4.1-pre-release.11`,
+The V0.6.1 product retains runtime identity `lumi-trace-runtime-v0.4.1-pre-release.11`,
 candidate algorithm `label-blind-python-role-candidates-v0.4.1.7`, repository
 index `deterministic-lexical-index-v4`, Python symbol extractor
 `python-lexical-v1`, and uses deterministic ranker
-`role-aware-sparse-v0.5.0.2`. The V0.4.2 ranker
+`role-aware-sparse-v0.6.0.1`. The V0.6.1 package retains that ranker identity because its
+local scoring and unique-path projection are unchanged. Its local scoring constants are the V0.5 profile;
+V0.6 changes only the public projection so each candidate path is unique. The V0.5
+ranker `role-aware-sparse-v0.5.0.2` and the V0.4.2 ranker
 `role-aware-sparse-v0.4.1.3` and historical `.8` raw output remain verifiable.
 Governed V0.4.1 reconstruction scripts explicitly pin `.8` and its historical
 decision rule, and its execution is fail-closed outside CPython 3.12.
@@ -60,6 +63,7 @@ complete raw-output seal.
 | Schema | Purpose |
 | --- | --- |
 | `schemas/manual-finding-v1.json` | Strict human-authored finding input accepted by `import-manual`. |
+| `schemas/batch-triage-package-v1.json` | Exact artifact manifest for a multi-result local SARIF triage package. Runtime verification additionally checks every batch artifact, reference, queue entry, and SARIF projection. |
 | `schemas/normalized-finding-v1.json` | Normalized manual or SARIF finding, including input hash, rule, severity, safe relative locations, keywords, and fingerprints. |
 | `schemas/normalized-finding-collection-v1.json` | Manifest emitted when SARIF import writes multiple normalized findings. |
 | `schemas/repository-index-v1.json` | Immutable repository identity plus deterministic file, token, exclusion, and symbol index. |
@@ -116,6 +120,7 @@ The runtime also emits:
 
 - `normalized-finding-collection-v1` when SARIF import writes more than one
   normalized finding;
+- `batch-triage-package-v1` for a local multi-result SARIF package. Its published schema describes the manifest; the runtime verifies the strict typed root, per-result, queue, error, and SARIF artifacts bound by that manifest; and
 - `evidence-package-manifest-v1` for artifact names, hashes, sizes, and package
   identity; and
 - SARIF 2.1.0 as a compatibility projection of an evidence bundle.

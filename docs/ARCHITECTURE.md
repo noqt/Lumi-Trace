@@ -45,7 +45,7 @@ locations, source regions, symbols, fingerprints, and input provenance into
 
 Remote artifact URIs fail closed. Absolute finding locations are accepted only
 when the supplied repository allows them to be reduced to safe relative paths.
-A full pipeline run requires exactly one selected SARIF result.
+A full `trace` pipeline run requires exactly one selected SARIF result. `triage.py` is the bounded batch composition: it normalises all selected report results, materialises and indexes the repository once, calls the unchanged product localisation projection for each valid result, then aggregates only the already-emitted candidate paths. It does not compare or sum scores from separate findings.
 
 ### Clean-Room Repository Workspace
 
@@ -172,10 +172,11 @@ codes, but no source snippets.
 
 ### CLI and Packaging
 
-`cli.py` exposes import, index, rank, reproduce, full trace, export, validation,
+`cli.py` exposes import, index, rank, reproduce, full trace, batch triage, export, validation,
 and verification commands. `pipeline.py` writes the normalized finding,
 repository index, candidates, evidence bundle, SARIF report, optional
 normalized reproduction plan and receipt, and a manifest of artifact hashes.
+`triage.py` writes one shared index, per-result candidates and bundles, a unique-path review queue, combined SARIF, bounded result-local errors, and a manifest that binds the aggregate package. `verify` recomputes queue and SARIF projections from the per-result evidence.
 
 ## Deterministic Identities
 

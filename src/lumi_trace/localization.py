@@ -56,7 +56,8 @@ CANDIDATE_ALGORITHM = STEP1_CANDIDATE_ALGORITHM
 V041_EVIDENCE_DEFAULT_RANKER = "role-aware-sparse-v0.4.1.1"
 STEP1_DEFAULT_RANKER = BASE_RANKER
 V05_DEFAULT_RANKER = "role-aware-sparse-v0.5.0.2"
-DEFAULT_RANKER = V05_DEFAULT_RANKER
+V06_DEFAULT_RANKER = "role-aware-sparse-v0.6.0.1"
+DEFAULT_RANKER = V06_DEFAULT_RANKER
 V041_EVIDENCE_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.8"
 STEP1_DEFECTIVE_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.9"
 STEP1_AST_RUNTIME_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.10"
@@ -406,6 +407,27 @@ _RANKER_PROFILES: dict[str, dict[str, int]] = {
     # These additions use only the candidate's local source and the supplied
     # finding: they do not use case labels, fixed revisions, or network data.
     "role-aware-sparse-v0.5.0.2": {
+        "bm25": 1250,
+        "path": 1050,
+        "basename": 1550,
+        "symbol": 2200,
+        "content": 375,
+        "description": 275,
+        "dangerous": 700,
+        "symbol_candidate": 750,
+        "implementation": 1300,
+        "wrapper": -900,
+        "test": -4400,
+        "fixture": -5000,
+        "generated": -4400,
+        "vendor": -5200,
+        "path_depth": 45,
+        "role_precision_divisor": 2,
+    },
+    # V0.6 preserves V0.5's label-blind local scoring exactly.  Its product
+    # change is a versioned unique-path projection of this raw ranking, which
+    # keeps V0.5 evidence and replay semantics available unchanged.
+    "role-aware-sparse-v0.6.0.1": {
         "bm25": 1250,
         "path": 1050,
         "basename": 1550,

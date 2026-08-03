@@ -50,6 +50,21 @@ A `trace` run operates on exactly one result. When a SARIF document contains sev
 
 Remote artifact locations and unresolved URI bases are rejected. No SARIF field is interpreted as a command or reproduction plan.
 
+### Batch SARIF triage
+
+Use `triage` when one local SARIF 2.1.0 report contains several results for the same local repository:
+
+```sh
+lumi-trace triage \
+  --sarif findings.sarif \
+  --repository ./local-repository \
+  --output ./triage-evidence
+```
+
+`--top-k` defaults to ten unique paths per completed finding. `--max-findings` defaults to 100 and may not exceed 1,000. The command fails before repository localisation if its selected result count or requested aggregate contribution bound is too large; it never silently truncates results.
+
+Malformed individual results are recorded as `NORMALIZATION_FAILED` or `LOCALIZATION_FAILED` error artifacts. Valid results still complete and the package verifies, but the command exits with code `5` for that partial-success state. Exit `0` means every selected result completed. Queue order is a deterministic review priority, not probability or exploitability.
+
 ## Normalized finding input
 
 `normalized-finding-v1` is the canonical internal representation produced by the manual and SARIF importers. It can be supplied directly with:
@@ -92,6 +107,8 @@ A complete trace writes a new directory. Existing directories are not overwritte
 | `manifest.json` | Exact artifact membership, sizes, SHA-256 hashes, and package identity. |
 | `reproduction-plan.json` | Canonical supplied plan, when reproduction was requested. |
 | `reproduction-receipt.json` | Sandbox attestations, bounded step results, and witness matches, when reproduction was requested. |
+
+A batch triage package instead contains one shared `repository-index.json`, `normalized-findings.json`, `review-queue.json`, `triage-summary.json`, `triage.sarif`, per-result candidate and evidence artifacts under `findings/`, any result-local errors under `errors/`, and a manifest binding every file.
 
 SARIF output omits source snippets. It can still contain finding text, paths, symbols, and source regions.
 

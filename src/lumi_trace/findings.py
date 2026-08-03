@@ -18,6 +18,7 @@ _CWE = re.compile(r"(?i)\bCWE[-_ ]?(\d+)\b")
 _FINDING_ID = re.compile(r"^[A-Za-z0-9._:-]+$")
 _SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
 _KEYWORD = re.compile(r"^[a-z][a-z0-9]{1,63}$")
+_MAX_SARIF_MESSAGE_CHARS = 16_384
 
 
 def _require_fields(
@@ -424,14 +425,8 @@ def _validate_sarif_uri_bases(run: dict[str, Any]) -> None:
         raise UnsupportedError('SARIF %SRCROOT% must use the canonical local mapping {"uri":"./"}')
 
 
-def import_sarif(
-    path: Path,
-    *,
-    run_index: int | None = None,
-    result_index: int | None = None,
-    repository_root: Path | None = None,
-) -> list[dict[str, object]]:
-    """Import selected or all SARIF 2.1.0 results as separate findings."""
+def _load_sarif_document(path: Path) -> tuple[list[object], str]:
+    """Load and validate the document-level SARIF boundary once."""
 
     document = load_json(path, max_bytes=64 * 1024 * 1024, max_items=1_000_000)
     if not isinstance(document, dict) or document.get("version") != "2.1.0":
@@ -441,118 +436,213 @@ def import_sarif(
         raise InputError("SARIF input has no runs")
     if len(runs) > 256:
         raise InputError("SARIF input exceeds run limit of 256")
+    return runs, sha256_file(path)
+
+
+def _sarif_run_context(
+    run: object,
+) -> tuple[dict[str, Any], dict[str, dict[str, Any]], list[object]]:
+    """Validate a run and return its rule lookup and result collection."""
+
+    if not isinstance(run, dict):
+        raise InputError("SARIF run must be an object")
+    _validate_sarif_uri_bases(run)
+    tool = run.get("tool")
+    if not isinstance(tool, dict):
+        raise InputError("SARIF run.tool must be an object")
+    driver = tool.get("driver")
+    if not isinstance(driver, dict):
+        raise InputError("SARIF run.tool.driver must be an object")
+    rules_value = driver.get("rules")
+    if rules_value is not None and not isinstance(rules_value, list):
+        raise InputError("SARIF driver.rules must be an array")
+    rules = rules_value or []
+    if len(rules) > 10_000:
+        raise InputError("SARIF run exceeds rule limit of 10000")
+    rule_by_id = {
+        item.get("id"): item
+        for item in rules
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
+    }
+    results = run.get("results")
+    if results is None:
+        results = []
+    elif not isinstance(results, list):
+        raise InputError("SARIF run.results must be an array")
+    if len(results) > 10_000:
+        raise InputError("SARIF run exceeds result limit of 10000")
+    return driver, rule_by_id, results
+
+
+def _normalize_sarif_result(
+    result: object,
+    *,
+    driver: dict[str, Any],
+    rule_by_id: dict[str, dict[str, Any]],
+    input_sha256: str,
+    run_index: int,
+    result_index: int,
+    repository_root: Path | None,
+) -> dict[str, object]:
+    """Normalize one already-selected SARIF result without reading the document again."""
+
+    if not isinstance(result, dict):
+        raise InputError("SARIF result must be an object")
+    rule_id = str(result.get("ruleId") or "unknown")
+    rule = rule_by_id.get(rule_id, {})
+    message = _message_text(result.get("message")) or rule_id
+    short = _message_text(rule.get("shortDescription")) or rule_id
+    if len(message) > _MAX_SARIF_MESSAGE_CHARS or len(short) > _MAX_SARIF_MESSAGE_CHARS:
+        raise InputError(
+            f"SARIF result message exceeds character limit of {_MAX_SARIF_MESSAGE_CHARS}"
+        )
+    rule_properties = rule.get("properties")
+    if rule_properties is not None and not isinstance(rule_properties, dict):
+        raise InputError("SARIF rule.properties must be an object")
+    tags_raw = (rule_properties or {}).get("tags", [])
+    tags = tags_raw if isinstance(tags_raw, list) else []
+    cwes = _cwes([*map(str, tags), rule_id, message])
+    locations: list[dict[str, object]] = []
+    result_locations = result.get("locations", [])
+    if not isinstance(result_locations, list):
+        raise InputError("SARIF result.locations must be an array")
+    if len(result_locations) > 1_000:
+        raise InputError("SARIF result exceeds location limit of 1000")
+    for item in result_locations:
+        if not isinstance(item, dict):
+            raise InputError("SARIF result location must be an object")
+        normalized = _sarif_location(item, repository_root)
+        if normalized:
+            locations.append(normalized)
+    locations.sort(
+        key=lambda item: (
+            str(item["path"]),
+            int(item["region"]["start_line"]),  # type: ignore[index]
+            str(item.get("symbol", "")),
+        )
+    )
+    fingerprints_raw = result.get("fingerprints") or {}
+    fingerprints = (
+        {
+            str(key): str(value)
+            for key, value in fingerprints_raw.items()
+            if isinstance(key, str) and isinstance(value, str)
+        }
+        if isinstance(fingerprints_raw, dict)
+        else {}
+    )
+    payload: dict[str, object] = {
+        "schema_version": NORMALIZED_FINDING_VERSION,
+        "source": {
+            "kind": "SARIF",
+            "input_sha256": input_sha256,
+            "tool_name": str(driver.get("name") or "unknown"),
+            "tool_version": str(
+                driver.get("semanticVersion") or driver.get("version") or "unknown"
+            ),
+            "sarif_run_index": run_index,
+            "sarif_result_index": result_index,
+        },
+        "rule": {
+            "id": rule_id,
+            "name": str(rule.get("name") or rule_id),
+            "cwes": cwes,
+            "tags": sorted(set(str(item) for item in tags if isinstance(item, str))),
+        },
+        "message": {"title": short, "text": message},
+        "severity": _security_severity(rule, result.get("level")),
+        "locations": locations,
+        "keywords": [],
+        "fingerprints": dict(sorted(fingerprints.items())),
+    }
+    supplied = result.get("guid")
+    supplied_id = f"sarif:{supplied}" if isinstance(supplied, str) else None
+    return _finalize_finding(payload, supplied_id)
+
+
+def import_sarif(
+    path: Path,
+    *,
+    run_index: int | None = None,
+    result_index: int | None = None,
+    repository_root: Path | None = None,
+) -> list[dict[str, object]]:
+    """Import selected or all SARIF 2.1.0 results as separate findings."""
+
+    runs, input_sha256 = _load_sarif_document(path)
     run_indexes = [run_index] if run_index is not None else list(range(len(runs)))
-    input_sha256 = sha256_file(path)
     findings: list[dict[str, object]] = []
 
     for selected_run in run_indexes:
         if selected_run is None or selected_run < 0 or selected_run >= len(runs):
             raise InputError("SARIF run index is out of range")
-        run = runs[selected_run]
-        if not isinstance(run, dict):
-            raise InputError("SARIF run must be an object")
-        _validate_sarif_uri_bases(run)
-        tool = run.get("tool")
-        if not isinstance(tool, dict):
-            raise InputError("SARIF run.tool must be an object")
-        driver = tool.get("driver")
-        if not isinstance(driver, dict):
-            raise InputError("SARIF run.tool.driver must be an object")
-        rules_value = driver.get("rules")
-        if rules_value is not None and not isinstance(rules_value, list):
-            raise InputError("SARIF driver.rules must be an array")
-        rules = rules_value or []
-        if len(rules) > 10_000:
-            raise InputError("SARIF run exceeds rule limit of 10000")
-        rule_by_id = {
-            item.get("id"): item
-            for item in rules
-            if isinstance(item, dict) and isinstance(item.get("id"), str)
-        }
-        results = run.get("results")
-        if results is None:
-            results = []
-        elif not isinstance(results, list):
-            raise InputError("SARIF run.results must be an array")
-        if len(results) > 10_000:
-            raise InputError("SARIF run exceeds result limit of 10000")
+        driver, rule_by_id, results = _sarif_run_context(runs[selected_run])
         selected_results = [result_index] if result_index is not None else list(range(len(results)))
 
         for selected_result in selected_results:
             if selected_result is None or selected_result < 0 or selected_result >= len(results):
                 raise InputError("SARIF result index is out of range")
-            result = results[selected_result]
-            if not isinstance(result, dict):
-                raise InputError("SARIF result must be an object")
-            rule_id = str(result.get("ruleId") or "unknown")
-            rule = rule_by_id.get(rule_id, {})
-            if not isinstance(rule, dict):
-                rule = {}
-            message = _message_text(result.get("message")) or rule_id
-            short = _message_text(rule.get("shortDescription")) or rule_id
-            rule_properties = rule.get("properties")
-            if rule_properties is not None and not isinstance(rule_properties, dict):
-                raise InputError("SARIF rule.properties must be an object")
-            tags_raw = (rule_properties or {}).get("tags", [])
-            tags = tags_raw if isinstance(tags_raw, list) else []
-            cwes = _cwes([*map(str, tags), rule_id, message])
-            locations: list[dict[str, object]] = []
-            result_locations = result.get("locations", [])
-            if not isinstance(result_locations, list):
-                raise InputError("SARIF result.locations must be an array")
-            if len(result_locations) > 1_000:
-                raise InputError("SARIF result exceeds location limit of 1000")
-            for item in result_locations:
-                if not isinstance(item, dict):
-                    raise InputError("SARIF result location must be an object")
-                normalized = _sarif_location(item, repository_root)
-                if normalized:
-                    locations.append(normalized)
-            locations.sort(
-                key=lambda item: (
-                    str(item["path"]),
-                    int(item["region"]["start_line"]),  # type: ignore[index]
-                    str(item.get("symbol", "")),
+            findings.append(
+                _normalize_sarif_result(
+                    results[selected_result],
+                    driver=driver,
+                    rule_by_id=rule_by_id,
+                    input_sha256=input_sha256,
+                    run_index=selected_run,
+                    result_index=selected_result,
+                    repository_root=repository_root,
                 )
             )
-            fingerprints_raw = result.get("fingerprints") or {}
-            fingerprints = (
-                {
-                    str(key): str(value)
-                    for key, value in fingerprints_raw.items()
-                    if isinstance(key, str) and isinstance(value, str)
-                }
-                if isinstance(fingerprints_raw, dict)
-                else {}
-            )
-            payload: dict[str, object] = {
-                "schema_version": NORMALIZED_FINDING_VERSION,
-                "source": {
-                    "kind": "SARIF",
-                    "input_sha256": input_sha256,
-                    "tool_name": str(driver.get("name") or "unknown"),
-                    "tool_version": str(
-                        driver.get("semanticVersion") or driver.get("version") or "unknown"
-                    ),
-                    "sarif_run_index": selected_run,
-                    "sarif_result_index": selected_result,
-                },
-                "rule": {
-                    "id": rule_id,
-                    "name": str(rule.get("name") or rule_id),
-                    "cwes": cwes,
-                    "tags": sorted(set(str(item) for item in tags if isinstance(item, str))),
-                },
-                "message": {"title": short, "text": message},
-                "severity": _security_severity(rule, result.get("level")),
-                "locations": locations,
-                "keywords": [],
-                "fingerprints": dict(sorted(fingerprints.items())),
-            }
-            supplied = result.get("guid")
-            supplied_id = f"sarif:{supplied}" if isinstance(supplied, str) else None
-            findings.append(_finalize_finding(payload, supplied_id))
     return findings
+
+
+def import_sarif_batch(
+    path: Path, *, repository_root: Path | None = None, max_findings: int = 100
+) -> list[dict[str, object]]:
+    """Normalize every SARIF result, preserving result-local errors for batch triage."""
+
+    if (
+        not isinstance(max_findings, int)
+        or isinstance(max_findings, bool)
+        or not 1 <= max_findings <= 1000
+    ):
+        raise InputError("max_findings must be between 1 and 1000")
+    runs, input_sha256 = _load_sarif_document(path)
+    contexts: list[tuple[dict[str, Any], dict[str, dict[str, Any]], list[object]]] = []
+    selected_count = 0
+    for run in runs:
+        context = _sarif_run_context(run)
+        contexts.append(context)
+        selected_count += len(context[2])
+    if selected_count == 0:
+        raise InputError("SARIF input contains no results")
+    if selected_count > max_findings:
+        raise InputError(
+            "SARIF selection contains "
+            f"{selected_count} results, exceeding --max-findings {max_findings}"
+        )
+
+    items: list[dict[str, object]] = []
+    for run_index, (driver, rule_by_id, results) in enumerate(contexts):
+        for result_index, result in enumerate(results):
+            source = {"sarif_run_index": run_index, "sarif_result_index": result_index}
+            try:
+                finding = _normalize_sarif_result(
+                    result,
+                    driver=driver,
+                    rule_by_id=rule_by_id,
+                    input_sha256=input_sha256,
+                    run_index=run_index,
+                    result_index=result_index,
+                    repository_root=repository_root,
+                )
+            except (InputError, UnsupportedError, ValueError, TypeError):
+                items.append(
+                    {"source": source, "finding": None, "error_code": "NORMALIZATION_FAILED"}
+                )
+            else:
+                items.append({"source": source, "finding": finding, "error_code": None})
+    return items
 
 
 def validate_normalized_finding(value: Any) -> None:

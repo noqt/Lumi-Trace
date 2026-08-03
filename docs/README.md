@@ -17,6 +17,8 @@
 - [`../CHANGELOG.md`](../CHANGELOG.md): user-visible changes by release.
 - [`../DISCLAIMER.md`](../DISCLAIMER.md): product scope and warranty notice.
 
+Release-specific assurance summaries are kept with the source repository and release material. They are not part of the installed documentation package.
+
 ## Machine-readable contracts
 
 Published JSON Schemas are under [`../schemas/`](../schemas/).

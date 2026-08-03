@@ -22,14 +22,15 @@ from .localization import (
     STEP1_AST_CANDIDATE_ALGORITHM,
     STEP1_DEFAULT_RANKER,
     V041_EVIDENCE_CANDIDATE_ALGORITHM,
+    V05_DEFAULT_RANKER,
+    V06_DEFAULT_RANKER,
     verify_raw_localization,
 )
-from .localization import DEFAULT_RANKER as PRODUCT_RANKING_ALGORITHM
 
 RANKING_ALGORITHM = "deterministic-candidate-ranking-v2"
 LEGACY_PRODUCT_RANKING_ALGORITHM = STEP1_DEFAULT_RANKER
 PRODUCT_RANKING_ALGORITHMS = frozenset(
-    {LEGACY_PRODUCT_RANKING_ALGORITHM, PRODUCT_RANKING_ALGORITHM}
+    {LEGACY_PRODUCT_RANKING_ALGORITHM, V05_DEFAULT_RANKER, V06_DEFAULT_RANKER}
 )
 SUPPORTED_RANKING_ALGORITHMS = frozenset({RANKING_ALGORITHM, *PRODUCT_RANKING_ALGORITHMS})
 SCORE_REASON_MATCH_LIMIT = 20
@@ -380,7 +381,7 @@ def project_localization_candidates(
     repository = verified.get("repository")
     if (
         verified.get("runtime_identity") != RUNTIME_IDENTITY
-        or verified.get("ranker") != PRODUCT_RANKING_ALGORITHM
+        or verified.get("ranker") not in {V05_DEFAULT_RANKER, V06_DEFAULT_RANKER}
         or verified.get("candidate_algorithm") != PRODUCT_CANDIDATE_ALGORITHM
         or index.get("algorithm") != INDEX_ALGORITHM
         or verified.get("model_artifact_id") is not None
@@ -399,10 +400,15 @@ def project_localization_candidates(
         "reason": raw_abstention["reason"],
     }
     projected: list[dict[str, object]] = []
+    unique_path_projection = verified["ranker"] == V06_DEFAULT_RANKER
     if not abstention["abstained"]:
-        for raw_candidate in verified["candidates"][:top_k]:
+        selected_paths: set[str] = set()
+        for raw_candidate in verified["candidates"]:
             if not isinstance(raw_candidate, dict):
                 raise IntegrityError("product localization candidate is invalid")
+            path = str(raw_candidate["path"])
+            if unique_path_projection and path in selected_paths:
+                continue
             role = str(raw_candidate["role"])
             components = raw_candidate["score_components"]
             if role not in PRODUCT_ROLES or not isinstance(components, dict):
@@ -429,7 +435,7 @@ def project_localization_candidates(
                 }
             candidate = _candidate(
                 kind=str(raw_candidate["kind"]),
-                path=str(raw_candidate["path"]),
+                path=path,
                 region={
                     "start_line": int(raw_region["start_line"]),
                     "start_column": 1,
@@ -442,6 +448,9 @@ def project_localization_candidates(
             )
             candidate["role"] = role
             projected.append(candidate)
+            selected_paths.add(path)
+            if len(projected) == top_k:
+                break
         for rank, candidate in enumerate(projected, start=1):
             candidate["rank"] = rank
 
@@ -449,7 +458,7 @@ def project_localization_candidates(
         "ABSTAINED" if abstention["abstained"] else "FINDING_GUIDED_SIGNAL_PRESENT"
     )
     ranking_identity = {
-        "algorithm": PRODUCT_RANKING_ALGORITHM,
+        "algorithm": verified["ranker"],
         "candidate_algorithm": PRODUCT_CANDIDATE_ALGORITHM,
         "finding_id": finding["finding_id"],
         "index_id": index["index_id"],
@@ -458,7 +467,7 @@ def project_localization_candidates(
     }
     result: dict[str, object] = {
         "schema_version": "candidate-set-v1",
-        "algorithm": PRODUCT_RANKING_ALGORITHM,
+        "algorithm": verified["ranker"],
         "candidate_algorithm": PRODUCT_CANDIDATE_ALGORITHM,
         "ranking_id": stable_id("ranking", ranking_identity),
         "finding_id": finding["finding_id"],
@@ -669,6 +678,10 @@ def verify_candidate_set(candidate_set: dict[str, object]) -> None:
         ):
             raise IntegrityError("product candidate set abstention or confidence is invalid")
         if candidates:
+            if algorithm == V06_DEFAULT_RANKER and len(
+                {str(candidate["path"]) for candidate in candidates}
+            ) != len(candidates):
+                raise IntegrityError("V0.6 product candidate paths must be unique")
             first_reasons = candidates[0]["score_reasons"]
             guided_score = sum(
                 reason["points"]

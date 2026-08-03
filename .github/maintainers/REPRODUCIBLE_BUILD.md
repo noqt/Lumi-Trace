@@ -52,14 +52,14 @@ $env:PIP_DISABLE_PIP_VERSION_CHECK = "1"
 python -m build --no-isolation --wheel --outdir out/step1-build-a $sourceA
 python -m build --no-isolation --sdist --outdir out/step1-raw-a $sourceA
 python (Join-Path $sourceA "scripts\normalize_step1_sdist.py") `
-  --input out/step1-raw-a/skylark_lumi_trace-0.5.0.tar.gz `
-  --output out/step1-build-a/skylark_lumi_trace-0.5.0.tar.gz
+  --input out/step1-raw-a/skylark_lumi_trace-0.6.1.tar.gz `
+  --output out/step1-build-a/skylark_lumi_trace-0.6.1.tar.gz
 
 python -m build --no-isolation --wheel --outdir out/step1-build-b $sourceB
 python -m build --no-isolation --sdist --outdir out/step1-raw-b $sourceB
 python (Join-Path $sourceB "scripts\normalize_step1_sdist.py") `
-  --input out/step1-raw-b/skylark_lumi_trace-0.5.0.tar.gz `
-  --output out/step1-build-b/skylark_lumi_trace-0.5.0.tar.gz
+  --input out/step1-raw-b/skylark_lumi_trace-0.6.1.tar.gz `
+  --output out/step1-build-b/skylark_lumi_trace-0.6.1.tar.gz
 python -m twine check out/step1-build-a/*
 python -m twine check out/step1-build-b/*
 ```
@@ -90,14 +90,14 @@ export PIP_DISABLE_PIP_VERSION_CHECK=1
 python -m build --no-isolation --wheel --outdir out/step1-build-a "$SOURCE_A"
 python -m build --no-isolation --sdist --outdir out/step1-raw-a "$SOURCE_A"
 python "$SOURCE_A/scripts/normalize_step1_sdist.py" \
-  --input out/step1-raw-a/skylark_lumi_trace-0.5.0.tar.gz \
-  --output out/step1-build-a/skylark_lumi_trace-0.5.0.tar.gz
+  --input out/step1-raw-a/skylark_lumi_trace-0.6.1.tar.gz \
+  --output out/step1-build-a/skylark_lumi_trace-0.6.1.tar.gz
 
 python -m build --no-isolation --wheel --outdir out/step1-build-b "$SOURCE_B"
 python -m build --no-isolation --sdist --outdir out/step1-raw-b "$SOURCE_B"
 python "$SOURCE_B/scripts/normalize_step1_sdist.py" \
-  --input out/step1-raw-b/skylark_lumi_trace-0.5.0.tar.gz \
-  --output out/step1-build-b/skylark_lumi_trace-0.5.0.tar.gz
+  --input out/step1-raw-b/skylark_lumi_trace-0.6.1.tar.gz \
+  --output out/step1-build-b/skylark_lumi_trace-0.6.1.tar.gz
 python -m twine check out/step1-build-a/*
 python -m twine check out/step1-build-b/*
 ```
