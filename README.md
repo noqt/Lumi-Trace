@@ -11,7 +11,10 @@ Lumi Trace is a local command-line tool for application-security engineers, soft
 
 Lumi Trace is deterministic: the same supported inputs produce the same ranked artifacts. Its primary workflow has no hosted-inference path, requires no API key, and sends no product telemetry.
 
-> **V0.7.1** adds local multi-result SARIF triage. Published artifacts are listed on [GitHub Releases](https://github.com/noqt/Lumi-Trace/releases). Use the documentation attached to a release when you need an exact match.
+> **V0.8.0 (unreleased candidate)** adds a first-party GitHub Actions wrapper
+> around local batch SARIF triage. Published artifacts are listed on [GitHub
+> Releases](https://github.com/noqt/Lumi-Trace/releases). Use the documentation
+> attached to a release when you need an exact match.
 
 ## When Lumi Trace is useful
 
@@ -60,7 +63,7 @@ Bash:
 ```sh
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install --no-deps ./skylark_lumi_trace-0.7.1-py3-none-any.whl
+python -m pip install --no-deps ./skylark_lumi_trace-0.8.0-py3-none-any.whl
 lumi-trace version
 ```
 
@@ -69,11 +72,11 @@ PowerShell:
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --no-deps `
-  .\skylark_lumi_trace-0.7.1-py3-none-any.whl
+  .\skylark_lumi_trace-0.8.0-py3-none-any.whl
 .\.venv\Scripts\lumi-trace.exe version
 ```
 
-Use the filename from the release you downloaded. Do not copy the `0.7.1` command against a different release.
+Use the filename from the release you downloaded. Do not copy the `0.8.0` command against a different release.
 
 ### From source
 
@@ -166,6 +169,17 @@ Batch triage creates a per-result shortlist and one unique-path review queue. Qu
 
 See [Inputs and outputs](docs/INPUTS_AND_OUTPUTS.md).
 
+## GitHub Actions
+
+If your existing CI scanner writes a local SARIF 2.1.0 file, Lumi Trace V0.8
+can run the same batch triage workflow inside a GitHub Actions job. It presents a
+bounded reviewer summary and can retain a verified evidence package only when
+you explicitly enable artifact upload. It does not scan, upload source by
+itself, post PR comments, or make a vulnerability verdict.
+
+See [GitHub Actions integration](docs/GITHUB_ACTIONS.md) for the minimal step,
+permissions, policy options, privacy implications, and exact outputs.
+
 ## What gets written
 
 A normal localisation run produces:
@@ -194,6 +208,7 @@ Verification checks structure, identities, hashes, and cross-artifact consistenc
 - [Getting started](docs/GETTING_STARTED.md)
 - [Product scope and limitations](docs/PRODUCT_SCOPE.md)
 - [Inputs and outputs](docs/INPUTS_AND_OUTPUTS.md)
+- [GitHub Actions integration](docs/GITHUB_ACTIONS.md)
 - [Optional local reproduction](docs/REPRODUCTION.md)
 - [Privacy and data handling](docs/PRIVACY.md)
 - [Runtime threat model](docs/THREAT_MODEL.md)

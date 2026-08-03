@@ -65,6 +65,15 @@ lumi-trace triage \
 
 Malformed individual results are recorded as `NORMALIZATION_FAILED` or `LOCALIZATION_FAILED` error artifacts. Valid results still complete and the package verifies, but the command exits with code `5` for that partial-success state. Exit `0` means every selected result completed. Queue order is a deterministic review priority, not probability or exploitability.
 
+### GitHub Actions wrapper
+
+The first-party GitHub Action passes only a local SARIF path, a local workspace
+repository path, and existing `triage` bounds to this same batch contract. Its
+job summary and outputs are derived only after package verification. It can
+optionally retain the verified package as a GitHub artifact; this is disabled by
+default because the package may contain sensitive metadata. See [GitHub Actions
+integration](GITHUB_ACTIONS.md) for its inputs, CI policies, and exit behaviour.
+
 ## Normalized finding input
 
 `normalized-finding-v1` is the canonical internal representation produced by the manual and SARIF importers. It can be supplied directly with:

@@ -8,6 +8,11 @@ Its primary job is to produce a transparent, deterministic shortlist of files an
 
 For one bounded multi-result SARIF report, `lumi-trace triage` produces the same per-finding shortlists and a consolidated unique-path reviewer queue. The queue is a practical work order only: it is not a probability, exploitability measure, vulnerability verdict, or statement that the repository is safe.
 
+The optional first-party GitHub Action invokes this same triage contract in a
+consumer's workflow after that workflow has created local SARIF. It adds a
+bounded job summary and optional evidence-artifact retention; it does not add a
+scanner, hosted analysis service, or autonomous security decision.
+
 ## Intended users
 
 Lumi Trace is designed for:
@@ -87,7 +92,8 @@ Lumi Trace does not:
 - automatically execute a scanner recommendation, SARIF message, source comment, README command, or repository script;
 - decide that code is safe or compliant;
 - replace qualified human security review;
-- upload source, findings, or output;
+- upload source, findings, or output from the core runtime; the opt-in GitHub
+  Actions artifact setting is a separate consumer-controlled platform upload;
 - call a hosted model or hosted analysis service; or
 - provide legal, regulatory, or professional advice.
 

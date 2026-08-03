@@ -28,6 +28,12 @@ Repository code is treated as data during localisation and is not imported or ex
 
 Batch triage reads every selected result in one local SARIF report and writes a combined queue plus per-result artifacts. It performs no product network request and does not execute repository code or SARIF content.
 
+The optional GitHub Actions wrapper runs that same local runtime on a GitHub
+runner. GitHub necessarily receives normal job logs and job-summary content.
+The wrapper uploads an evidence package only when the workflow explicitly sets
+`upload-artifact: true`; default behaviour does not upload the package. See
+[GitHub Actions integration](GITHUB_ACTIONS.md) before enabling that setting.
+
 ## Data Lumi Trace writes
 
 An evidence package can contain sensitive material, including:
@@ -47,6 +53,8 @@ Treat an evidence package at least as sensitively as the source repository and s
 - Write output to an access-controlled local directory.
 - Apply appropriate retention, backup, incident-response, and deletion rules.
 - Keep output out of public repositories and public issue trackers.
+- Treat workflow artifacts as sensitive evidence and apply appropriate GitHub
+  retention and access settings before enabling artifact upload.
 - Redact or recreate a problem with synthetic data before reporting a bug.
 - Do not assume that `lumi-trace verify` performs redaction; it checks integrity only.
 - Leave process-output previews disabled unless they are necessary.

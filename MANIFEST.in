@@ -11,12 +11,14 @@ include CODE_OF_CONDUCT.md
 include CHANGELOG.md
 include CONTRIBUTING.md
 include DISCLAIMER.md
+include action.yml
 include LICENSE
 include NOTICE
 include README.md
 include SECURITY.md
 include THIRD_PARTY_NOTICES.md
 include docs/ARCHITECTURE.md
+include docs/GITHUB_ACTIONS.md
 include docs/GETTING_STARTED.md
 include docs/INPUTS_AND_OUTPUTS.md
 include docs/PRIVACY.md
@@ -25,6 +27,7 @@ include docs/README.md
 include docs/REPRODUCTION.md
 include docs/THREAT_MODEL.md
 include docs/reference/SCHEMA_COMPATIBILITY.md
+include tools/github_action.py
 include examples/quickstart/README.md
 include examples/quickstart/finding.json
 include examples/quickstart/repository/src/archive.py

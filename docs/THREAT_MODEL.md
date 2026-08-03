@@ -58,7 +58,8 @@ content, archives, findings, and plan steps are not.
 | Remote daemon or daemon-side persistence | Only local Unix-socket/local-machine named-pipe endpoints qualify. Healthchecks and log persistence are disabled, volume declarations are rejected, and forced cleanup includes anonymous volumes. |
 | False confirmation | `CONFIRMED` requires a qualified sandbox, network and immutability attestations, completed steps, and every explicit exit-code/substring witness. Any missing attestation fails closed. |
 | Secret or source disclosure in SARIF | SARIF export omits source snippets and uses repository-relative locations. |
-| Sensitive local-output disclosure | Outputs are never uploaded, previews are opt-in and bounded, documentation warns that paths, symbols, tokens, hashes, metadata, and previews remain sensitive user data. |
+| Sensitive evidence disclosure | Core runtime outputs are never uploaded. The optional GitHub Action uploads only a verified package after explicit consumer opt-in; paths, symbols, tokens, hashes, metadata, and previews remain sensitive user data. |
+| Action-input or summary injection | The GitHub Action resolves paths inside `GITHUB_WORKSPACE`, passes inputs as structured Python arguments rather than shell interpolation, validates scalar output values, and escapes untrusted summary cells. |
 | Evidence tampering | Canonical SHA-256 identities and an artifact manifest bind the repository, index, candidates, receipts, bundle, and package. |
 | Batch result collision or misleading aggregation | Stable result keys include the source run/result position; raw SARIF strings never form output paths. A queue path occurs once, retains every candidate contribution, and orders only by supplied severity, finding count, shortlist rank, and canonical path. Query-specific scores are never summed or presented as probability. |
 

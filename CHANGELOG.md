@@ -4,6 +4,27 @@ This file records user-visible changes to Lumi Trace.
 
 Detailed research history, internal experiment records, and release-approval notes belong in a separate research or maintainer archive rather than the product changelog.
 
+## 0.8.0 - Unreleased
+
+### Added
+
+- Added the first-party `noqt/Lumi-Trace` composite GitHub Action for running
+  the existing bounded `triage` workflow after a consumer's scanner produces
+  local SARIF.
+- The action writes a bounded job summary, exposes scalar result outputs, and
+  can upload only a verified evidence package when the consumer explicitly
+  enables artifact retention.
+- Added opt-in CI policy handling for verified partial processing and the
+  scanner-supplied SARIF severity level.
+
+### Limitations
+
+- The action is integration only: it neither scans a repository nor discovers
+  vulnerabilities, executes repository code, posts PR comments, or turns queue
+  order into a risk, exploitability, or safety verdict.
+- GitHub receives workflow logs and summary content. Evidence artifact upload is
+  disabled by default because evidence can contain sensitive metadata.
+
 ## 0.7.1 - 2026-08-03
 
 ### Added
