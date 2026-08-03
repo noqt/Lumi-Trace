@@ -11,7 +11,7 @@ Lumi Trace is a local command-line tool for application-security engineers, soft
 
 Lumi Trace is deterministic: the same supported inputs produce the same ranked artifacts. Its primary workflow has no hosted-inference path, requires no API key, and sends no product telemetry.
 
-> **Current release candidate:** `v0.7.1` adds local multi-result SARIF triage. Published artifacts are listed on [GitHub Releases](https://github.com/noqt/Lumi-Trace/releases). Use the documentation attached to a release when you need an exact match.
+> **V0.7.1** adds local multi-result SARIF triage. Published artifacts are listed on [GitHub Releases](https://github.com/noqt/Lumi-Trace/releases). Use the documentation attached to a release when you need an exact match.
 
 ## When Lumi Trace is useful
 
