@@ -72,6 +72,25 @@ Batch triage materialises and indexes the local repository once. It does not run
 
 Unsafe archive paths, links, special files, path collisions, encrypted ZIP members, unsupported archive extensions, and inputs above documented limits fail closed.
 
+### Component-scoped input
+
+Where an existing finding legitimately identifies an affected package or
+component, the reviewer may supply that component's ordinary source directory
+as the repository input. The reviewer must choose the root before localisation
+from pre-existing context—for example an advisory's package name, package
+metadata, or documented repository layout. Lumi Trace does not select or infer
+the component.
+
+Component scope must not be derived from a known fix file, fix diff, target
+symbol, or a directory narrowed after looking at the repair. It must be broad
+enough to contain the ordinary implementation. If the affected component is
+unknown, the supported workflow is to provide the full repository.
+
+Evidence from a component-scoped run covers only the supplied component tree.
+It does not establish that other repository areas were indexed, reviewed, or
+free of the finding. Processing time is dependent on the supplied tree and
+environment; no general runtime deadline is implied.
+
 ## Supported runtime profile
 
 - CPython 3.11 or 3.12.

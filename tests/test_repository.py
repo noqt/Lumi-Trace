@@ -13,7 +13,8 @@ from pathlib import Path
 
 import pytest
 
-from lumi_trace.errors import InputError, UnsupportedError
+from lumi_trace import repository as repository_module
+from lumi_trace.errors import InputError, IntegrityError, UnsupportedError
 from lumi_trace.repository import (
     NORMALIZED_MTIME_SECONDS,
     RepositoryWorkspace,
@@ -45,12 +46,37 @@ def test_repository_workspace_is_a_content_identical_snapshot(fixture_repository
     source = compute_repository_identity(fixture_repository)
     with RepositoryWorkspace(fixture_repository) as workspace:
         assert workspace.root != fixture_repository
+        assert workspace.root.parent.parent == fixture_repository.parent
         assert workspace.identity["manifest_id"] == source["manifest_id"]
         assert (workspace.root / "src" / "archive.sh").is_file()
         script = workspace.root / "src" / "archive.sh"
         assert int(script.stat().st_mtime) == NORMALIZED_MTIME_SECONDS
         if os.name != "nt":
             assert stat.S_IMODE(script.stat().st_mode) == 0o644
+
+
+def test_repository_workspace_rejects_source_changed_after_manifest(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    source = repository / "source.py"
+    source.write_text("value = 'trusted'\n", encoding="utf-8")
+    original_manifest = repository_module.repository_manifest
+
+    def manifest_then_change(
+        root: Path, limits: repository_module.RepositoryLimits | None = None
+    ) -> tuple[list[dict[str, object]], int]:
+        records, total_bytes = original_manifest(root, limits)
+        source.write_text("value = 'changed'\n", encoding="utf-8")
+        return records, total_bytes
+
+    monkeypatch.setattr(repository_module, "repository_manifest", manifest_then_change)
+    with (
+        pytest.raises(IntegrityError, match="repository changed while its snapshot was created"),
+        RepositoryWorkspace(repository),
+    ):
+        pass
 
 
 def test_archive_traversal_is_rejected(tmp_path: Path) -> None:

@@ -462,6 +462,7 @@ def test_builder_api_cannot_accept_labels_targets_or_receipts() -> None:
         "repository_source",
         "access_policy",
         "model_artifact",
+        "materialized_repository_identity",
     }
     assert not parameters & {
         "audit_receipt",

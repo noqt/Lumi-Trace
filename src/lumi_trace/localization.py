@@ -764,6 +764,17 @@ def _quarantine_reason(path: str, data: bytes) -> str | None:
     return None
 
 
+def _structural_quarantine_reason(path: str) -> str | None:
+    """Identify path-only exclusions before reading untrusted file content."""
+
+    pure = PurePosixPath(path)
+    if any(part.casefold() in _IGNORED_PARTS for part in pure.parts):
+        return "IGNORED_TREE"
+    if pure.suffix.casefold() != ".py":
+        return "NON_PYTHON"
+    return None
+
+
 def _symbols_ast(
     source: str,
     *,
@@ -978,6 +989,10 @@ def _enumerate_candidates(
         total_bytes += size
         if total_bytes > maximum_total_bytes:
             raise InputError("repository exceeds the localization byte bound")
+        structural_reason = _structural_quarantine_reason(relative)
+        if structural_reason:
+            excluded[structural_reason] += 1
+            continue
         if size > maximum_file_bytes:
             excluded["FILE_TOO_LARGE"] += 1
             continue
@@ -1238,12 +1253,114 @@ def finding_guided_score(candidate: Mapping[str, Any]) -> int:
     )
 
 
+def _build_raw_localization_from_materialized_source(
+    validated: Mapping[str, Any],
+    *,
+    source: Path,
+    repository_identity: Mapping[str, Any],
+    verified_model: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    """Build raw output from an already immutable, verified workspace."""
+
+    runtime_identity = str(validated["configuration"]["runtime_identity"])
+    started_wall = time.perf_counter()
+    started_cpu = time.process_time()
+    measure_peak_memory = bool(validated["configuration"]["measure_peak_memory"])
+    if measure_peak_memory:
+        tracemalloc.start()
+    candidates, generation = _enumerate_candidates(
+        source,
+        validated["finding"],
+        maximum_files=int(validated["configuration"]["maximum_files"]),
+        maximum_total_bytes=int(validated["configuration"]["maximum_total_bytes"]),
+        maximum_file_bytes=int(validated["configuration"]["maximum_file_bytes"]),
+        maximum_candidates=int(validated["configuration"]["maximum_candidates"]),
+        strict_candidate_bound=runtime_identity in STEP1_RUNTIME_IDENTITIES,
+        use_historical_ast=runtime_identity == V041_EVIDENCE_RUNTIME_IDENTITY,
+        require_ascii_paths=runtime_identity != V041_EVIDENCE_RUNTIME_IDENTITY,
+    )
+    ranked = _rank(
+        candidates,
+        validated["finding"],
+        algorithm=str(validated["configuration"]["ranker"]),
+        model_artifact=verified_model,
+    )
+    peak_memory = tracemalloc.get_traced_memory()[1] if measure_peak_memory else None
+    if measure_peak_memory:
+        tracemalloc.stop()
+    selected = ranked[: int(validated["configuration"]["top_k"])]
+    if runtime_identity == V041_EVIDENCE_RUNTIME_IDENTITY:
+        # Preserve the sealed V0.4.1 runtime's original decision rule. Step 1
+        # uses the stricter finding-guided and truncation-aware rule below.
+        abstained = not selected or int(selected[0]["integer_score"]) <= 0
+        abstention_reason = NO_SIGNAL_ABSTENTION if abstained else None
+    elif generation["truncated"]:
+        abstained = True
+        abstention_reason = CANDIDATE_TRUNCATION_ABSTENTION
+    else:
+        abstained = not selected or finding_guided_score(selected[0]) <= 0
+        abstention_reason = NO_SIGNAL_ABSTENTION if abstained else None
+    inventory = sorted(
+        [
+            {
+                "candidate_id": item["candidate_id"],
+                "kind": item["kind"],
+                "path": item["path"],
+                "symbol": item["symbol"],
+                "region": item["region"],
+                "role": item["role"],
+            }
+            for item in ranked
+        ],
+        key=lambda item: item["candidate_id"],
+    )
+    payload = {
+        "schema_version": RAW_OUTPUT_SCHEMA,
+        "request_id": validated["request_id"],
+        "runtime_identity": runtime_identity,
+        "repository": {
+            "repository_id": repository_identity["repository_id"],
+            "manifest_id": repository_identity["manifest_id"],
+            "source_kind": repository_identity["source_kind"],
+        },
+        "quarantine_policy": QUARANTINE_POLICY,
+        "candidate_algorithm": RUNTIME_CANDIDATE_ALGORITHMS[runtime_identity],
+        "ranker": validated["configuration"]["ranker"],
+        "model_artifact_id": None if verified_model is None else verified_model["artifact_id"],
+        "generation": generation,
+        "candidate_count_ranked": len(ranked),
+        "candidate_inventory": inventory,
+        "candidates": selected,
+        "abstention": {
+            "abstained": abstained,
+            "reason": abstention_reason,
+        },
+        "telemetry": {
+            "wall_seconds": time.perf_counter() - started_wall,
+            "cpu_seconds": time.process_time() - started_cpu,
+            "peak_python_bytes": peak_memory,
+            "peak_memory_measured": measure_peak_memory,
+            "network_used": False,
+            "repository_code_executed": False,
+        },
+        "confidence_is_not_probability": True,
+    }
+    payload["ranking_id"] = stable_id(
+        "localization-ranking",
+        [item["candidate_id"] for item in selected],
+    )
+    payload["raw_output_seal"] = stable_id("localization-raw-output", payload)
+    verify_raw_localization(payload)
+    return payload
+
+
 def build_raw_localization(
     request: Mapping[str, Any],
     *,
     repository_source: Path,
     access_policy: Mapping[str, Any] | None = None,
     model_artifact: Mapping[str, Any] | None = None,
+    materialized_repository_identity: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Run the product implementation with no scoring or evaluation inputs."""
 
@@ -1279,13 +1396,19 @@ def build_raw_localization(
         else repository_source.resolve(strict=True)
     )
     expected_hash = validated["repository"]["artifact_sha256"]
+    if materialized_repository_identity is not None:
+        if not source.is_dir() or (
+            canonical_sha256(materialized_repository_identity["manifest_id"]) != expected_hash
+        ):
+            raise IntegrityError("materialized repository identity differs from the request")
+        return _build_raw_localization_from_materialized_source(
+            validated,
+            source=source,
+            repository_identity=materialized_repository_identity,
+            verified_model=verified_model,
+        )
     if source.is_file() and sha256_file(source) != expected_hash:
         raise IntegrityError("repository artifact identity differs from the request")
-    started_wall = time.perf_counter()
-    started_cpu = time.process_time()
-    measure_peak_memory = bool(validated["configuration"]["measure_peak_memory"])
-    if measure_peak_memory:
-        tracemalloc.start()
     with RepositoryWorkspace(
         source,
         RepositoryLimits(
@@ -1301,90 +1424,12 @@ def build_raw_localization(
             raise IntegrityError("repository workspace did not materialize")
         if source.is_dir() and canonical_sha256(workspace.identity["manifest_id"]) != expected_hash:
             raise IntegrityError("repository directory identity differs from the request")
-        candidates, generation = _enumerate_candidates(
-            workspace.root,
-            validated["finding"],
-            maximum_files=int(validated["configuration"]["maximum_files"]),
-            maximum_total_bytes=int(validated["configuration"]["maximum_total_bytes"]),
-            maximum_file_bytes=int(validated["configuration"]["maximum_file_bytes"]),
-            maximum_candidates=int(validated["configuration"]["maximum_candidates"]),
-            strict_candidate_bound=runtime_identity in STEP1_RUNTIME_IDENTITIES,
-            use_historical_ast=runtime_identity == V041_EVIDENCE_RUNTIME_IDENTITY,
-            require_ascii_paths=runtime_identity != V041_EVIDENCE_RUNTIME_IDENTITY,
+        return _build_raw_localization_from_materialized_source(
+            validated,
+            source=workspace.root,
+            repository_identity=workspace.identity,
+            verified_model=verified_model,
         )
-        ranked = _rank(
-            candidates,
-            validated["finding"],
-            algorithm=str(validated["configuration"]["ranker"]),
-            model_artifact=verified_model,
-        )
-        peak_memory = tracemalloc.get_traced_memory()[1] if measure_peak_memory else None
-    if measure_peak_memory:
-        tracemalloc.stop()
-    selected = ranked[: int(validated["configuration"]["top_k"])]
-    if runtime_identity == V041_EVIDENCE_RUNTIME_IDENTITY:
-        # Preserve the sealed V0.4.1 runtime's original decision rule. Step 1
-        # uses the stricter finding-guided and truncation-aware rule below.
-        abstained = not selected or int(selected[0]["integer_score"]) <= 0
-        abstention_reason = NO_SIGNAL_ABSTENTION if abstained else None
-    elif generation["truncated"]:
-        abstained = True
-        abstention_reason = CANDIDATE_TRUNCATION_ABSTENTION
-    else:
-        abstained = not selected or finding_guided_score(selected[0]) <= 0
-        abstention_reason = NO_SIGNAL_ABSTENTION if abstained else None
-    inventory = sorted(
-        [
-            {
-                "candidate_id": item["candidate_id"],
-                "kind": item["kind"],
-                "path": item["path"],
-                "symbol": item["symbol"],
-                "region": item["region"],
-                "role": item["role"],
-            }
-            for item in ranked
-        ],
-        key=lambda item: item["candidate_id"],
-    )
-    payload = {
-        "schema_version": RAW_OUTPUT_SCHEMA,
-        "request_id": validated["request_id"],
-        "runtime_identity": runtime_identity,
-        "repository": {
-            "repository_id": workspace.identity["repository_id"],
-            "manifest_id": workspace.identity["manifest_id"],
-            "source_kind": workspace.identity["source_kind"],
-        },
-        "quarantine_policy": QUARANTINE_POLICY,
-        "candidate_algorithm": RUNTIME_CANDIDATE_ALGORITHMS[runtime_identity],
-        "ranker": validated["configuration"]["ranker"],
-        "model_artifact_id": None if verified_model is None else verified_model["artifact_id"],
-        "generation": generation,
-        "candidate_count_ranked": len(ranked),
-        "candidate_inventory": inventory,
-        "candidates": selected,
-        "abstention": {
-            "abstained": abstained,
-            "reason": abstention_reason,
-        },
-        "telemetry": {
-            "wall_seconds": time.perf_counter() - started_wall,
-            "cpu_seconds": time.process_time() - started_cpu,
-            "peak_python_bytes": peak_memory,
-            "peak_memory_measured": measure_peak_memory,
-            "network_used": False,
-            "repository_code_executed": False,
-        },
-        "confidence_is_not_probability": True,
-    }
-    payload["ranking_id"] = stable_id(
-        "localization-ranking",
-        [item["candidate_id"] for item in selected],
-    )
-    payload["raw_output_seal"] = stable_id("localization-raw-output", payload)
-    verify_raw_localization(payload)
-    return payload
 
 
 def _verified_raw_candidate_id(

@@ -64,6 +64,24 @@ def test_internal_programme_material_is_outside_the_product_path(project_root: P
     assert not (project_root / "docs" / "build-briefs").exists()
 
 
+def test_component_scoped_guidance_preserves_the_evidence_boundary(project_root: Path) -> None:
+    getting_started = " ".join(
+        (project_root / "docs/GETTING_STARTED.md").read_text(encoding="utf-8").split()
+    )
+    inputs = " ".join(
+        (project_root / "docs/INPUTS_AND_OUTPUTS.md").read_text(encoding="utf-8").split()
+    )
+    scope = " ".join((project_root / "docs/PRODUCT_SCOPE.md").read_text(encoding="utf-8").split())
+
+    assert "known fix file" in getting_started
+    assert "full repository" in getting_started
+    assert "covers only the directory" in getting_started
+    assert "known remediation path" in inputs
+    assert "only the supplied tree" in inputs
+    assert "Lumi Trace does not select or infer the component" in scope
+    assert "does not establish that other repository areas" in scope
+
+
 def test_quickstart_is_ascii_apache_licensed_and_inert(project_root: Path) -> None:
     quickstart = project_root / "examples" / "quickstart"
     files = (

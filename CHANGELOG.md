@@ -4,6 +4,22 @@ This file records user-visible changes to Lumi Trace.
 
 Detailed research history, internal experiment records, and release-approval notes belong in a separate research or maintainer archive rather than the product changelog.
 
+## 0.10.0 - 2026-08-04
+
+### Added
+
+- Documented component-scoped triage for a known affected Python package or
+  component when that scope is established before localisation.
+
+### Limitations
+
+- The reviewer selects the component; Lumi Trace does not infer it. A component
+  run covers only the supplied tree, not unscanned repository areas. When the
+  affected component is unknown, use the full repository.
+- Component scope must not be narrowed from a known fix path, fix diff, target
+  symbol, or a hand-picked subset of files. Runtime remains dependent on the
+  supplied tree and environment.
+
 ## 0.8.1 - 2026-08-03
 
 ### Fixed

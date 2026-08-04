@@ -12,7 +12,7 @@ from collections import Counter
 from collections.abc import Iterable
 from pathlib import Path, PurePosixPath
 
-from .canonical import is_printable_ascii, stable_id
+from .canonical import canonical_sha256, is_printable_ascii, stable_id
 from .errors import IntegrityError, UnsupportedError
 from .python_symbols import (
     MAX_BRACKET_DEPTH,
@@ -424,6 +424,7 @@ def build_repository_index(
     *,
     max_text_bytes: int = DEFAULT_MAX_TEXT_BYTES,
     algorithm: str = INDEX_ALGORITHM,
+    manifest_records: list[dict[str, object]] | None = None,
 ) -> dict[str, object]:
     """Build a deterministic file/token/symbol index from a snapshot."""
 
@@ -445,7 +446,15 @@ def build_repository_index(
         or not 1 <= max_text_bytes <= DEFAULT_MAX_TEXT_BYTES
     ):
         raise ValueError(f"max_text_bytes must be between 1 and {DEFAULT_MAX_TEXT_BYTES}")
-    manifest, _ = repository_manifest(root)
+    if manifest_records is None:
+        manifest, _ = repository_manifest(root)
+    else:
+        manifest = manifest_records
+        expected_manifest_id = canonical_sha256(
+            {"algorithm": "lumi-tree-sha256-v1", "files": manifest}
+        )
+        if repository_identity.get("manifest_id") != expected_manifest_id:
+            raise IntegrityError("repository index manifest does not match repository identity")
     if algorithm == INDEX_ALGORITHM and any(
         not is_printable_ascii(str(record["path"])) for record in manifest
     ):
