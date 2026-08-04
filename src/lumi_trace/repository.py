@@ -5,9 +5,9 @@ from __future__ import annotations
 
 import bz2
 import gzip
+import hashlib
 import lzma
 import os
-import shutil
 import stat
 import struct
 import tarfile
@@ -454,13 +454,24 @@ def _collapse_archive_root(root: Path) -> Path:
     return root
 
 
-def _copy_repository(source: Path, destination: Path, limits: RepositoryLimits) -> None:
-    records, _ = repository_manifest(source, limits)
+def _copy_repository(
+    source: Path,
+    destination: Path,
+    records: Iterable[dict[str, object]],
+) -> None:
+    """Copy one verified manifest and reject any changed copied content."""
+
     for record in records:
         relative = Path(str(record["path"]))
         target = destination / relative
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(source / relative, target)
+        digest = hashlib.sha256()
+        with (source / relative).open("rb") as source_stream, target.open("xb") as target_stream:
+            while chunk := source_stream.read(1024 * 1024):
+                target_stream.write(chunk)
+                digest.update(chunk)
+        if f"sha256:{digest.hexdigest()}" != record["sha256"]:
+            raise IntegrityError("repository changed while its snapshot was created")
 
 
 def _normalize_snapshot_metadata(root: Path) -> None:
@@ -490,26 +501,43 @@ class RepositoryWorkspace:
         self._temporary: tempfile.TemporaryDirectory[str] | None = None
         self.root: Path | None = None
         self.identity: dict[str, object] | None = None
+        self.manifest_records: list[dict[str, object]] | None = None
 
     def __enter__(self) -> RepositoryWorkspace:
         source = self.source.resolve(strict=True)
-        self._temporary = tempfile.TemporaryDirectory(prefix="lumi-trace-repository-")
+        try:
+            # A source-adjacent workspace avoids cross-volume copy and hash I/O
+            # while preserving the immutable disposable snapshot contract.
+            self._temporary = tempfile.TemporaryDirectory(
+                prefix="lumi-trace-repository-", dir=source.parent
+            )
+        except OSError:
+            # Read-only or policy-restricted source parents retain the existing
+            # system-temporary fallback.
+            self._temporary = tempfile.TemporaryDirectory(prefix="lumi-trace-repository-")
         materialised = Path(self._temporary.name) / "repository"
         materialised.mkdir()
 
         if source.is_dir():
-            before = compute_repository_identity(source, limits=self.limits)
-            _copy_repository(source, materialised, self.limits)
+            records, total_bytes = repository_manifest(source, self.limits)
+            before_manifest = {
+                "algorithm": "lumi-tree-sha256-v1",
+                "files": records,
+            }
+            manifest_id = canonical_sha256(before_manifest)
+            before = {
+                "repository_id": f"repository:{manifest_id.removeprefix('sha256:')}",
+                "manifest_id": manifest_id,
+                "algorithm": "lumi-tree-sha256-v1",
+                "source_kind": "directory",
+                "file_count": len(records),
+                "total_bytes": total_bytes,
+            }
+            _copy_repository(source, materialised, records)
             _normalize_snapshot_metadata(materialised)
-            after = compute_repository_identity(source, limits=self.limits)
-            if before["manifest_id"] != after["manifest_id"]:
-                raise IntegrityError("repository changed while its snapshot was created")
             self.root = materialised
-            self.identity = compute_repository_identity(
-                materialised, source_kind="directory", limits=self.limits
-            )
-            if before["manifest_id"] != self.identity["manifest_id"]:
-                raise IntegrityError("repository snapshot identity does not match its source")
+            self.identity = before
+            self.manifest_records = records
         elif source.is_file():
             archive_sha256 = sha256_file(source)
             lower_name = source.name.lower()

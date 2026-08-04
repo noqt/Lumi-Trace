@@ -96,6 +96,19 @@ The current profile rejects links, special files, unsafe paths, path collisions,
 
 Remote Git URLs are not supported. Clone or otherwise acquire the repository separately, then give Lumi Trace the local path.
 
+When a finding already identifies an affected package or component, the local
+directory may be that component's normal source root. Select it before running
+localisation from legitimate context such as the finding, package metadata, or
+documented layout. Do not narrow the input using a known remediation path or a
+subset chosen after inspecting a fix. The operator is responsible for ensuring
+the selected root contains the affected implementation. If that scope is not
+known, use the complete repository.
+
+The repository identity and all output evidence bind only the supplied tree.
+They do not cover, index, or make claims about sibling components or other
+unscanned repository areas. Runtime varies with the supplied tree and the
+execution environment.
+
 ## Reproduction plan input
 
 Reproduction is optional and uses a separate `reproduction-plan-v1` file. A plan is never inferred from a finding or repository.

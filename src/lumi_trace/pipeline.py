@@ -139,7 +139,11 @@ def trace_repository(
     with RepositoryWorkspace(repository_source) as workspace:
         if workspace.root is None or workspace.identity is None:
             raise RuntimeError("repository workspace did not materialise")
-        index = build_repository_index(workspace.root, workspace.identity)
+        index = build_repository_index(
+            workspace.root,
+            workspace.identity,
+            manifest_records=workspace.manifest_records,
+        )
         # The public V0.6 result contains unique paths, so the localizer must
         # retain enough ranked anchors to fill the requested shortlist even
         # when early results share a path.  This remains a bounded local-only
@@ -156,6 +160,7 @@ def trace_repository(
         raw_localization = build_raw_localization(
             request,
             repository_source=workspace.root,
+            materialized_repository_identity=workspace.identity,
         )
         candidate_set = project_localization_candidates(
             finding,

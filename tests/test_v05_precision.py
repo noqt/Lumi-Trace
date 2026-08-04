@@ -4,8 +4,11 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from pathlib import Path
 
-from lumi_trace.localization import _candidate, _query, _rank
+import pytest
+
+from lumi_trace.localization import _candidate, _enumerate_candidates, _query, _rank
 
 
 def _finding() -> dict[str, object]:
@@ -18,6 +21,39 @@ def _finding() -> dict[str, object]:
         "keywords": [],
         "locations": [],
     }
+
+
+def test_candidate_enumeration_does_not_read_non_python_or_ignored_tree_content(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = tmp_path / "src" / "guard.py"
+    source.parent.mkdir()
+    source.write_text("def validate_path(value):\n    return value\n", encoding="utf-8")
+    ignored = tmp_path / ".git" / "objects" / "untrusted.py"
+    ignored.parent.mkdir(parents=True)
+    ignored.write_bytes(b"not repository source")
+    non_python = tmp_path / "docs" / "notes.md"
+    non_python.parent.mkdir()
+    non_python.write_text("untrusted documentation", encoding="utf-8")
+    original_read_bytes = Path.read_bytes
+
+    def guarded_read_bytes(path: Path) -> bytes:
+        if ".git" in path.parts or path.suffix == ".md":
+            raise AssertionError("structurally excluded content was read")
+        return original_read_bytes(path)
+
+    monkeypatch.setattr(Path, "read_bytes", guarded_read_bytes)
+    candidates, receipt = _enumerate_candidates(
+        tmp_path,
+        _finding(),
+        maximum_files=20,
+        maximum_total_bytes=1_000_000,
+        maximum_file_bytes=1_000_000,
+        maximum_candidates=100,
+    )
+
+    assert {candidate["path"] for candidate in candidates} == {"src/guard.py"}
+    assert receipt["quarantine_counts"] == {"IGNORED_TREE": 1, "NON_PYTHON": 1}
 
 
 def test_v05_demotes_an_explicit_test_role_decoy_that_v04_ranks_first() -> None:

@@ -30,7 +30,7 @@ py -3.12 -m venv .venv
 From a downloaded wheel:
 
 ```sh
-python -m pip install --no-deps ./skylark_lumi_trace-0.8.1-py3-none-any.whl
+python -m pip install --no-deps ./skylark_lumi_trace-0.10.0-py3-none-any.whl
 ```
 
 From a source checkout:
@@ -165,6 +165,31 @@ lumi-trace trace \
 ```
 
 The repository may be a local directory, safe ZIP archive, or supported TAR-family archive. Remote Git URLs are not accepted.
+
+### Trace a known component when its identity is already known
+
+If the finding legitimately identifies the affected Python package or component,
+you may pass that component's ordinary source directory as `--repository`:
+
+```sh
+lumi-trace trace \
+  --finding ./finding.json \
+  --finding-format manual \
+  --repository ./local-repository/src/affected_package \
+  --output ./component-trace-evidence
+```
+
+Choose this directory from information available before localisation, such as
+the advisory's affected package name, packaging metadata, or documented
+repository layout. It must be a real component tree broad enough to contain
+the ordinary implementation—not a known fix file, its parent directory chosen
+after inspecting a fix, or a hand-picked subset of files. Lumi Trace does not
+infer the right component for you. If the affected component is unknown, pass
+the full repository instead.
+
+The resulting evidence package identifies and covers only the directory you
+supplied. It says nothing about files outside that component. Runtime depends
+on the supplied tree and environment; it is not a service-level deadline.
 
 ## 8. Use SARIF input
 

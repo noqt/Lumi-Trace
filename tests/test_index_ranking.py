@@ -29,7 +29,12 @@ def test_index_and_rank_are_deterministic(
     finding = import_manual(manual_finding_path, fixture_repository)
     with RepositoryWorkspace(fixture_repository) as workspace:
         first_index = build_repository_index(workspace.root, workspace.identity)
-        second_index = build_repository_index(workspace.root, workspace.identity)
+        assert workspace.manifest_records is not None
+        second_index = build_repository_index(
+            workspace.root,
+            workspace.identity,
+            manifest_records=workspace.manifest_records,
+        )
     assert first_index == second_index
     archive_file = next(item for item in first_index["files"] if item["path"] == "src/archive.sh")
     assert any(symbol["name"] == "unsafe_join" for symbol in archive_file["symbols"])
