@@ -25,7 +25,7 @@ qualification and is not authorised for customer or public use.
 | API keys required | No |
 | Public weight release | Not authorised |
 
-The Apache-2.0 repository licence applies to Skylark-owned source code. It does
+The Apache-2.0 repository licence applies to source code distributed from this repository. It does
 not license the private checkpoint or governed training corpus.
 
 ## Architecture and Product Boundary

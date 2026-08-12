@@ -1,15 +1,20 @@
-# Lumi Trace
+# Lumi: Trace functionality
 
 **Turn a known security finding into ranked source locations and a verifiable evidence package—without uploading your repository.**
 
-Lumi Trace is a local command-line tool for application-security engineers, software maintainers, and security reviewers. Give it an existing finding and a local Python repository or supported archive. It will:
+This repository provides Trace functionality for Lumi as a local command-line
+tool for application-security engineers, software maintainers, and security
+reviewers. Give it an existing finding and a local Python repository or
+supported archive. It will:
 
 1. normalise the finding;
 2. create an immutable local snapshot of the repository;
 3. rank the files and symbols most relevant to the finding; and
 4. export human-reviewable JSON and SARIF evidence.
 
-Lumi Trace is deterministic: the same supported inputs produce the same ranked artifacts. Its primary workflow has no hosted-inference path, requires no API key, and sends no product telemetry.
+Lumi's Trace workflow is deterministic: the same supported inputs produce the
+same ranked artifacts. Its primary workflow has no hosted-inference path,
+requires no API key, and sends no product telemetry.
 
 > **V0.10.0** documents component-scoped triage when an existing finding already
 > identifies the affected package or component. The evidence package covers
@@ -18,7 +23,7 @@ Lumi Trace is deterministic: the same supported inputs produce the same ranked a
 > direct checksum verification from a flat GitHub Release download. Published
 > artifacts are listed on [GitHub Releases](https://github.com/noqt/Lumi-Trace/releases).
 
-## When Lumi Trace is useful
+## When Trace functionality is useful
 
 Use Lumi Trace when you already have a finding from a scanner, advisory, code review, penetration test, or incident investigation and need to answer:
 
@@ -27,7 +32,10 @@ Use Lumi Trace when you already have a finding from a scanner, advisory, code re
 - Can the result be exported back to SARIF?
 - Can an explicit reproduction plan be run locally under a restricted container policy?
 
-Lumi Trace is **not** a vulnerability scanner. It does not discover new vulnerabilities, generate patches or exploits, decide that a repository is safe, or execute instructions embedded in findings or source code.
+Lumi's Trace functionality is **not** a vulnerability scanner. It does not
+discover new vulnerabilities, generate patches or exploits, decide that a
+repository is safe, or execute instructions embedded in findings or source
+code.
 
 ## Key properties
 
@@ -117,7 +125,7 @@ lumi-trace version
 
 ## Five-minute synthetic walkthrough
 
-The source repository and source archive include a small Skylark-authored fixture under `examples/quickstart/`. It demonstrates installation, ranking, output, and verification. It is not a benchmark or a claim about real-world detection coverage.
+The source repository and source archive include a small synthetic fixture under `examples/quickstart/`, distributed under Apache-2.0. It demonstrates installation, ranking, output, and verification. It is not a benchmark or a claim about real-world detection coverage.
 
 From the repository root:
 
@@ -149,10 +157,13 @@ The walkthrough does not supply a reproduction plan, so the human summary is exp
 
 ```text
 Localisation: complete
-Ranked locations: 2
+Ranked locations: 1
 Confirmation: not attempted (NO_REPRODUCTION_PLAN)
 Evidence classification: INSUFFICIENT_EVIDENCE
 ```
+
+The fixture has a two-candidate universe. V0.10.0 projects those candidates to
+one unique ranked review path, so the human summary reports one ranked location.
 
 That does **not** mean localisation failed. It means candidate ranking completed, but Lumi Trace was not asked to execute a witness and therefore did not confirm the finding. See [Understanding results](docs/PRODUCT_SCOPE.md#localisation-and-confirmation-are-separate).
 
@@ -253,6 +264,6 @@ Report suspected vulnerabilities through GitHub's private vulnerability-reportin
 
 ## Licence and support
 
-Skylark-owned source code and documentation are licensed under Apache-2.0. User-supplied repositories, findings, generated evidence, model weights, and third-party material are not licensed by that source-code licence.
+Source code and documentation distributed from this repository are licensed under Apache-2.0. User-supplied repositories, findings, generated evidence, model weights, and third-party material are not licensed by that source-code licence.
 
 Community support is best effort through GitHub Issues. There is no service-level agreement.

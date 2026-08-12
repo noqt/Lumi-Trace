@@ -1,6 +1,6 @@
 # Lumi Trace synthetic quickstart
 
-This fixture is Skylark-authored and licensed under Apache-2.0.
+This synthetic fixture is distributed under Apache-2.0.
 
 It exists only to demonstrate the Lumi Trace workflow and output format. It is not a benchmark, a real advisory, or evidence of coverage on natural repositories.
 
