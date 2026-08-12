@@ -9,7 +9,7 @@ The release does not distribute third-party source code, model weights,
 training data, advisory records, customer repository content, examples,
 generated evidence, CyberGym tasks, or protected Lumi evidence. The source,
 documentation, schemas, and synthetic test material in the release are
-Skylark-authored and licensed under Apache-2.0 unless a file states otherwise.
+distributed under Apache-2.0 unless a file states otherwise.
 
 Users supply their own findings and local repositories or archives. Those
 inputs and generated output do not become project content and remain subject to

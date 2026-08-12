@@ -2,7 +2,7 @@
 
 ## Apache-2.0 Scope
 
-The repository's Apache-2.0 licence applies only to Skylark-owned source code
+The repository's Apache-2.0 licence applies only to source code
 and documentation expressly distributed under that licence. It establishes an
 open-source software project; it does not establish or license an open-source
 AI model.
@@ -31,7 +31,7 @@ Apache-2.0 on the source repository does not grant rights to:
 - CyberGym tasks, task metadata, source bundles, or derived task evidence;
 - credentials, secrets, private manifests, or customer and ad hoc local runtime
   receipts; or
-- Skylark names, marks, or branding beyond rights expressly granted by law.
+- former company names, marks, or branding beyond rights expressly granted by law.
 
 Future `TRACE-001` weights require a separate, explicit weight licence. Future
 training data requires documented rights and provenance. Neither category
@@ -49,13 +49,13 @@ User-supplied repositories and immutable archives are local runtime inputs.
 They do not become project fixtures or distributable project content. Evidence
 reports containing customer or third-party material remain under the user's
 control and must not be committed or published by the project. Public examples
-and fixtures must be Skylark-authored or carry a verified permissive licence
+and fixtures must be created for this repository or carry a verified permissive licence
 and explicit provenance.
 
 The generated-evidence exception permits either:
 
 1. a versioned release seal produced exclusively from the repository's
-   licensed, Skylark-authored synthetic fixture; or
+   licensed synthetic fixture created for this repository; or
 2. a separately versioned, disclosure-reviewed aggregate evaluation seal that
    contains no repository or case identity, source, label, path, symbol,
    revision, diff, raw output, customer data, or protected-partition substance.
@@ -82,7 +82,7 @@ Before any public release, a reviewer must confirm that:
 - the repository contains only authorised, distributable content;
 - no weights or training data are present;
 - no historical, customer, holdback, CyberGym, or private evidence is present,
-  apart from the manifest-bound Skylark-authored synthetic release seal;
+  apart from the manifest-bound licensed synthetic release seal;
 - fixture provenance and permissions are recorded;
 - dependency and licence checks pass; and
 - secret scanning passes.
