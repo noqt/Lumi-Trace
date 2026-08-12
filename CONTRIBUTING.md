@@ -2,7 +2,9 @@
 
 Thank you for helping improve Lumi Trace.
 
-Lumi Trace is a local, deterministic, fail-closed security-review tool. Contributions should preserve its clear product boundary: existing findings in, ranked source locations and verifiable evidence out.
+This repository provides Lumi's local, deterministic, fail-closed Trace
+functionality. Contributions should preserve its clear boundary: existing
+findings in, ranked source locations and verifiable evidence out.
 
 ## Good contribution areas
 
@@ -33,7 +35,7 @@ Do not include:
 - host-execution fallback for reproduction; or
 - claims of security performance that are not supported by published evidence.
 
-Use synthetic, Skylark-authored fixtures wherever possible.
+Use synthetic fixtures created specifically for this repository wherever possible.
 
 ## Development setup
 

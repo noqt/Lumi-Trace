@@ -59,4 +59,4 @@ authorised-code-execution risk. Lumi Trace has no host execution fallback.
 
 Never attach private source, real findings, generated evidence, third-party
 repository contents, credentials, or private manifests to a report. Minimal
-synthetic reproductions and Skylark-authored fixtures are preferred.
+synthetic reproductions and fixtures created specifically for this repository are preferred.
