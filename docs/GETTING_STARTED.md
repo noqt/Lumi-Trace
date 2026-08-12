@@ -92,19 +92,10 @@ PowerShell:
 
 The ranked output should include `src/archive.py::extraction_target`.
 
-Lumi Trace refuses to overwrite an existing output directory. Delete the synthetic output or choose a new path before rerunning:
-
-```sh
-rm -rf out/quickstart
-```
-
-PowerShell:
-
-```powershell
-Remove-Item -Recurse -Force .\out\quickstart
-```
-
-Only remove a directory after confirming it contains no evidence you need to retain.
+Lumi Trace refuses to overwrite an existing output directory. For every rerun,
+choose a fresh path that does not yet exist, such as `out/quickstart-2`, and use
+that same new path for both `trace` and `verify`. Preserve earlier evidence
+directories; do not delete or overwrite them merely to rerun the walkthrough.
 
 ## 5. Understand the first result
 
@@ -112,10 +103,13 @@ A no-Docker quickstart run normally reports:
 
 ```text
 Localisation: complete
-Ranked locations: 2
+Ranked locations: 1
 Confirmation: not attempted (NO_REPRODUCTION_PLAN)
 Evidence classification: INSUFFICIENT_EVIDENCE
 ```
+
+The fixture has a two-candidate universe. V0.10.0 projects those candidates to
+one unique ranked review path, so the human summary reports one ranked location.
 
 This is not a crash and does not invalidate the ranked candidates. Lumi Trace separates two questions:
 

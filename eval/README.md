@@ -1,4 +1,4 @@
-# Skylark Lumi Trace Eval
+# Lumi Trace Eval
 
 Trace-Eval is the isolated deterministic evaluation and training-readiness
 qualification harness for Lumi Trace. It verifies and invokes the exact V0.1
@@ -59,5 +59,5 @@ trace-eval assurance seal-partitions CARDS ... --output FILE
 trace-eval assurance training-admission CARDS ... --output DIRECTORY
 ```
 
-Skylark-owned source is licensed under Apache-2.0. See the repository root
+Source distributed from this repository is licensed under Apache-2.0. See the repository root
 `LICENSE`, `NOTICE`, and `THIRD_PARTY_NOTICES.md`.
