@@ -22,12 +22,14 @@ authority. Machine-readable files under `schemas/` control machine validation;
 the `docs/research/` archive and historical evidence remain provenance, not the
 supported product contract.
 
-The source snapshot for this guidance branch is local commit
-`4aa33fadb9391c7ef9c4eaf8e76c8810e998b712` on
-`codex/lumi-trace-v0-10-0`. It is an unpushed documentation and metadata
-attribution correction atop `ac01efad7c06289003cce30613a0857fe8495a17`.
-Locally available `origin/main` and annotated `v0.10.0` resolve to
-`60ceacaa5b92718cc50bbed4e5ce34da7e85e093`; revalidate external state before
+This guidance entered integration through the accepted side lineage
+`ac01efad7c06289003cce30613a0857fe8495a17` ->
+`4aa33fadb9391c7ef9c4eaf8e76c8810e998b712` (bounded documentation and
+metadata attribution correction) ->
+`857ff748f4e322f82283e76ecd7e5cc7c0c7c48e` (root guidance). The integration
+branch was based on freshly verified public `main`; public `main` and the
+peeled annotated `v0.10.0` tag then resolved to
+`60ceacaa5b92718cc50bbed4e5ce34da7e85e093`. Revalidate external state before
 any external use. These identities record provenance only. They do not
 authorise a push, tag, release, deployment, or public claim.
 
