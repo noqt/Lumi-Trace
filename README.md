@@ -157,10 +157,13 @@ The walkthrough does not supply a reproduction plan, so the human summary is exp
 
 ```text
 Localisation: complete
-Ranked locations: 2
+Ranked locations: 1
 Confirmation: not attempted (NO_REPRODUCTION_PLAN)
 Evidence classification: INSUFFICIENT_EVIDENCE
 ```
+
+The fixture has a two-candidate universe. V0.10.0 projects those candidates to
+one unique ranked review path, so the human summary reports one ranked location.
 
 That does **not** mean localisation failed. It means candidate ranking completed, but Lumi Trace was not asked to execute a witness and therefore did not confirm the finding. See [Understanding results](docs/PRODUCT_SCOPE.md#localisation-and-confirmation-are-separate).
 
