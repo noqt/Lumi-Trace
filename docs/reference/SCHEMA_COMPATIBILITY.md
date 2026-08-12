@@ -170,5 +170,5 @@ evidence package public-safe: normalized findings, repository indexes,
 candidates, receipts, and bundles can contain customer finding text, paths,
 symbols, token vocabulary, hashes, command metadata, and opt-in output
 previews. Keep customer and ad hoc packages local. Only the manifest-bound,
-versioned release seal generated from the licensed Skylark-authored synthetic
+versioned release seal generated from the licensed repository synthetic
 fixture may be committed under the open-source boundary.
