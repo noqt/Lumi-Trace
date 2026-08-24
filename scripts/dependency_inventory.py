@@ -18,7 +18,7 @@ from packaging.requirements import InvalidRequirement, Requirement
 from packaging.version import InvalidVersion, Version
 
 ROOT = Path(__file__).resolve().parents[1]
-BOOTSTRAP_REQUIREMENTS = ("pip==26.1.2",)
+BOOTSTRAP_REQUIREMENTS = ("pip==26.2",)
 
 _SAFE_NAME = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")
 _SAFE_VERSION = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.!+_-]*$")
