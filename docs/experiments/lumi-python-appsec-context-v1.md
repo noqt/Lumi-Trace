@@ -49,6 +49,23 @@ internal or CI runs, and publication of the example do not count. A receipt is
 not proof of installation, productive use, repeat use, adoption, demand,
 security effectiveness, independence, or willingness to pay.
 
+## Separate prompted feedback channel
+
+By `2026-08-24T12:30:42Z`, the public repository's Discussions setting was
+enabled and the maintainers had published [Discussion #40](https://github.com/noqt/Lumi-Trace/discussions/40),
+alongside [Issue #36](https://github.com/noqt/Lumi-Trace/issues/36), as separate
+product-feedback surfaces. They are not receipt channels for
+`LUMI-EXP-PYAPPSEC-01`. Any run, comment, report, or other response prompted
+through those surfaces is excluded from this experiment and may be considered
+only as prompted qualitative product feedback. It cannot qualify as an
+independent receipt, move `T0`, extend or restart the window, or alter the cutoff.
+
+Use only inert synthetic or public authorised material. Do not post secrets,
+private or customer source, personal data, a live or unpatched vulnerability,
+exploit payloads, raw logs, screenshots, attachments, or active-target details.
+The repository setting and posts create no claim of use, effectiveness,
+adoption, demand, independence, or willingness to pay.
+
 ## 1. Obtain and verify the exact release
 
 From the existing [`v0.10.0` GitHub Release](https://github.com/noqt/Lumi-Trace/releases/tag/v0.10.0),
@@ -255,5 +272,5 @@ history-preserving correction route is an ordinary reviewed commit on this same
 repository that removes the active README invitation and replaces this page's
 participation text with a dated `EXPERIMENT CLOSED` notice and result. Do not
 force-push, rewrite history, delete this page, delete participant content, change
-the release or tag, enable Issues or Discussions, or silently restart the
-window.
+the release or tag, enable Issues or Discussions as experiment receipt channels,
+treat feedback submitted there as independent, or silently restart the window.
