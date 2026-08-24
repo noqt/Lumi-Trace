@@ -2,6 +2,15 @@
 
 Experiment marker: `LUMI-EXP-PYAPPSEC-01`
 
+**Fork-and-run option:** after forking this repository, open its **Actions** tab
+and enable Actions for the fork if GitHub prompts you to do so. Then choose
+**Synthetic Python AppSec demo** and select **Run workflow**. The
+[`workflow_dispatch` source](../../.github/workflows/python-appsec-demo.yml)
+downloads and verifies the exact public `v0.10.0` release, uses only the bundled
+inert fixture, uploads no evidence artifact, and prints a bounded result plus
+optional receipt fields. GitHub retains its normal workflow logs and job summary.
+No local installation is required.
+
 This worked example shows how Lumi Trace `v0.10.0` maps an already-supplied
 synthetic Python application-security finding to likely source context and
 produces a hash-bound evidence package. It uses only the inert quickstart
@@ -17,15 +26,16 @@ SAST or qualified review. The expected result is localisation with
 ## Measurement status and fixed window
 
 This page does not start an experiment merely by existing on a local branch.
-Publication must occur through a public GitHub pull request. `T0` is the exact
-server-reported `merged_at` value returned by the GitHub Pull Request API for
-the pull request whose merge first places this exact worked-example blob on
-public `main`. The activation record binds the pull-request URL, number, merge
-commit, worked-example blob SHA, API response time, and `merged_at`. A direct
-push, local commit date, author date, committer date, or first manual
-observation does not start the experiment. The measurement window is exactly
-`[T0, T0 + 14 days)`; it is not extended, restarted, reposted, or moved after
-results are seen.
+The one canonical activation is [pull request #34](https://github.com/noqt/Lumi-Trace/pull/34),
+whose GitHub-reported `merged_at` is `2026-08-24T05:57:53Z`, merge commit is
+`9f4c566c9298be7c4973054c1dbb8057c57f40c2`, and activated worked-example blob
+is `9f3572c6f2d951587df1c9ac49d1fedf996054a0`. That fixed merge time is `T0`.
+The fork-and-run navigation added later is a usability clarification only: it
+does not create a second activation, replace the canonical identity, move `T0`,
+or restart the window. A direct push, local commit date, author date, committer
+date, or first manual observation does not start the experiment. The measurement
+window is exactly `[T0, T0 + 14 days)`; it is not extended, restarted, reposted,
+or moved after results are seen.
 
 A receipt can qualify only when it is a public pull request in a
 participant-controlled GitHub repository and the GitHub API reports both its

@@ -1,0 +1,179 @@
+name: Synthetic Python AppSec demo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  run-synthetic-example:
+    name: Run the verified synthetic example
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Set up CPython 3.12
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Download and verify the exact v0.10.0 release
+        shell: bash
+        env:
+          RELEASE_BASE_URL: https://github.com/noqt/Lumi-Trace/releases/download/v0.10.0
+        run: |
+          set -euo pipefail
+          demo_dir="${RUNNER_TEMP}/lumi-python-appsec-demo"
+          install -d -m 0700 "${demo_dir}"
+          cd "${demo_dir}"
+
+          for filename in \
+            skylark_lumi_trace-0.10.0-py3-none-any.whl \
+            skylark_lumi_trace-0.10.0.tar.gz \
+            SHA256SUMS
+          do
+            curl --fail --location --retry 3 --proto '=https' --tlsv1.2 \
+              --output "${filename}" "${RELEASE_BASE_URL}/${filename}"
+          done
+
+          printf '%s  %s\n' \
+            'fb788f981dbf681d08f2edf2515db8e968669ef23f5109cac31bfad866cce11d' \
+            'skylark_lumi_trace-0.10.0-py3-none-any.whl' \
+            'a28123e75fd4a47bd551a0c300d043b0156badba61843c3769a649b8017fe690' \
+            'skylark_lumi_trace-0.10.0.tar.gz' \
+            'cf5cb839baf28fe6cae7691ec8832db03d92dd924f65ab59b988ec1bb8152268' \
+            'SHA256SUMS' > expected-release-sha256.txt
+          sha256sum --check expected-release-sha256.txt
+          sha256sum --check SHA256SUMS
+
+      - name: Extract only regular release files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path, PurePosixPath
+          import os
+          import tarfile
+
+          demo_dir = Path(os.environ["RUNNER_TEMP"]) / "lumi-python-appsec-demo"
+          destination = demo_dir / "source"
+          destination.mkdir(mode=0o700)
+          archive = demo_dir / "skylark_lumi_trace-0.10.0.tar.gz"
+          with tarfile.open(archive, mode="r:gz") as source:
+              members = source.getmembers()
+              for member in members:
+                  relative = PurePosixPath(member.name)
+                  if relative.is_absolute() or ".." in relative.parts:
+                      raise RuntimeError("release archive contains an unsafe path")
+                  if not (member.isfile() or member.isdir()):
+                      raise RuntimeError("release archive contains a non-regular entry")
+              source.extractall(destination, members=members, filter="data")
+
+          fixture = (
+              destination
+              / "skylark_lumi_trace-0.10.0"
+              / "examples"
+              / "quickstart"
+              / "finding.json"
+          )
+          if not fixture.is_file():
+              raise RuntimeError("verified release does not contain the synthetic fixture")
+          PY
+
+      - name: Run Lumi Trace on the bundled synthetic fixture
+        shell: bash
+        env:
+          PIP_DISABLE_PIP_VERSION_CHECK: "1"
+          PYTHONDONTWRITEBYTECODE: "1"
+          PYTHONNOUSERSITE: "1"
+        run: |
+          set -euo pipefail
+          demo_dir="${RUNNER_TEMP}/lumi-python-appsec-demo"
+          source_dir="${demo_dir}/source/skylark_lumi_trace-0.10.0"
+          venv_dir="${demo_dir}/venv"
+          output_dir="${demo_dir}/evidence"
+
+          python -m venv "${venv_dir}"
+          "${venv_dir}/bin/python" -m pip install --no-deps --no-index \
+            "${demo_dir}/skylark_lumi_trace-0.10.0-py3-none-any.whl"
+          "${venv_dir}/bin/lumi-trace" version > "${demo_dir}/version.json"
+          "${venv_dir}/bin/lumi-trace" trace \
+            --finding "${source_dir}/examples/quickstart/finding.json" \
+            --finding-format manual \
+            --repository "${source_dir}/examples/quickstart/repository" \
+            --output "${output_dir}" \
+            > "${demo_dir}/trace-result.json"
+          "${venv_dir}/bin/lumi-trace" verify "${output_dir}" \
+            > "${demo_dir}/verify-result.json"
+
+      - name: Show the bounded result and optional receipt fields
+        shell: bash
+        env:
+          CANONICAL_WORKED_EXAMPLE_COMMIT: 9f4c566c9298be7c4973054c1dbb8057c57f40c2
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          import json
+          import os
+
+          demo_dir = Path(os.environ["RUNNER_TEMP"]) / "lumi-python-appsec-demo"
+          trace = json.loads((demo_dir / "trace-result.json").read_text(encoding="utf-8"))
+          verify = json.loads((demo_dir / "verify-result.json").read_text(encoding="utf-8"))
+          version = json.loads((demo_dir / "version.json").read_text(encoding="utf-8"))
+          top = trace["top_implementation_locations"][0]
+          if version.get("version") != "0.10.0" or version.get("inventory_id") != "skylark.lumi.trace":
+              raise RuntimeError("unexpected Lumi Trace release identity")
+          if trace.get("classification") != "INSUFFICIENT_EVIDENCE":
+              raise RuntimeError("unexpected evidence classification")
+          if trace.get("reason_codes") != ["NO_REPRODUCTION_PLAN"]:
+              raise RuntimeError("unexpected evidence reason")
+          if top.get("path") != "src/archive.py" or top.get("symbol") != "extraction_target":
+              raise RuntimeError("unexpected top implementation location")
+          if verify.get("valid") is not True:
+              raise RuntimeError("evidence verification failed")
+
+          bundle = demo_dir / "evidence" / "evidence-bundle.json"
+          bundle_sha = sha256(bundle.read_bytes()).hexdigest()
+          worked_example_commit = os.environ["CANONICAL_WORKED_EXAMPLE_COMMIT"]
+          summary = f"""## Lumi Trace synthetic Python AppSec demo
+
+          The exact public `v0.10.0` release ran against its bundled inert fixture.
+
+          - Top implementation path: `src/archive.py::extraction_target`
+          - Evidence classification: `INSUFFICIENT_EVIDENCE`
+          - Confirmation: not attempted (`NO_REPRODUCTION_PLAN`)
+          - Evidence package verification: `valid`
+          - Evidence bundle SHA-256: `{bundle_sha}`
+
+          Lumi Trace localised supplied evidence; it did not scan for, prove, exploit,
+          fix, or rule out a vulnerability. This run does not establish adoption,
+          demand, independence, security effectiveness, or willingness to pay. GitHub
+          retains its normal workflow logs and job summary; the evidence directory is
+          temporary and this workflow uploads no artifact.
+
+          ### Optional public receipt fields
+
+          Copy these fields only if you independently choose to publish a receipt in a
+          public pull request in a GitHub repository you control. A run by NOQT, a
+          maintainer, or anyone asked, paid, employed, contracted, or contacted by the
+          maintainers or experiment sponsors does **not** qualify.
+
+          ```yaml
+          experiment_id: LUMI-EXP-PYAPPSEC-01
+          worked_example_commit: {worked_example_commit}
+          lumi_version: 0.10.0
+          wheel_sha256: fb788f981dbf681d08f2edf2515db8e968669ef23f5109cac31bfad866cce11d
+          synthetic_fixture_blob_sha256: a6cc1774c6d27003e014ca67edf2d9b7baf1a530bcbdab4ef2714cd388664f8f
+          finding_input_sha256: 85a3d1c0bfddc3c3073394842702077fe34e5abef20de179c6959d8827cb403f
+          evidence_bundle_sha256: {bundle_sha}
+          ranked_path: src/archive.py::extraction_target
+          verify_result: valid
+          data_statement: synthetic/public input only; no secret, private source, or live vulnerability
+          independence_statement: self-attested; I was not paid, contacted, contracted, employed, or asked by the project maintainers or experiment sponsors to run or publish this receipt
+          ```
+          """
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(summary, encoding="utf-8")
+          print(summary)
+          PY
