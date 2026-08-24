@@ -53,7 +53,7 @@ jobs:
           test "$RELEASE_TAG" = "v$version"
       - name: Install release checks
         run: |
-          python -m pip install --disable-pip-version-check --upgrade "pip==26.1.2"
+          python -m pip install --disable-pip-version-check --upgrade "pip==26.2"
           python -m pip install --disable-pip-version-check -e ".[dev]"
       - name: Validate release candidate
         run: |

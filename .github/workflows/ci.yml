@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           cache: pip
-      - run: python -m pip install --disable-pip-version-check --upgrade "pip==26.1.2"
+      - run: python -m pip install --disable-pip-version-check --upgrade "pip==26.2"
       - name: Install project and development checks
         run: python -m pip install --disable-pip-version-check -e ".[dev]"
       - name: Test deterministic runtime
@@ -50,7 +50,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: python -m pip install --disable-pip-version-check --upgrade "pip==26.1.2"
+      - run: python -m pip install --disable-pip-version-check --upgrade "pip==26.2"
       - run: python -m pip install --disable-pip-version-check -e ".[dev]"
       - run: python -m ruff check .
       - run: python -m ruff format --check .
@@ -99,7 +99,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           cache: pip
-      - run: python -m pip install --disable-pip-version-check --upgrade "pip==26.1.2"
+      - run: python -m pip install --disable-pip-version-check --upgrade "pip==26.2"
       - name: Install test-only runtime and evaluator checkouts
         run: python -m pip install --disable-pip-version-check -e ".[dev]" -e ./eval
       - name: Test Trace-Eval public-fixture controls
@@ -116,7 +116,7 @@ jobs:
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.12"
-      - run: python -m pip install --disable-pip-version-check --upgrade "pip==26.1.2"
+      - run: python -m pip install --disable-pip-version-check --upgrade "pip==26.2"
       - run: python -m pip install --disable-pip-version-check -e ".[dev]"
       - name: Preload immutable Alpine fixture image
         run: docker pull alpine@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1
