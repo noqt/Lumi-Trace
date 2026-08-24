@@ -2,6 +2,12 @@
 
 **Turn a known security finding into ranked source locations and a verifiable evidence package—without uploading your repository.**
 
+> **Break Lumi before you trust it.** Fork this repository, run the
+> [no-local-setup synthetic AppSec demo](https://github.com/noqt/Lumi-Trace/blob/main/docs/experiments/lumi-python-appsec-context-v1.md),
+> and report irrelevant rankings, missing evidence, blocked setup, or
+> reproducible defects in [the public challenge](https://github.com/noqt/Lumi-Trace/issues/36).
+> A useful failure report is more valuable than a star.
+
 This repository provides Trace functionality for Lumi as a local command-line
 tool for application-security engineers, software maintainers, and security
 reviewers. Give it an existing finding and a local Python repository or
