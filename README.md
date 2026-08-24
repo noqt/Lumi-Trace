@@ -243,6 +243,7 @@ Verification checks structure, identities, hashes, and cross-artifact consistenc
 ## Documentation
 
 - [Getting started](docs/GETTING_STARTED.md)
+- [Synthetic Python AppSec context example](docs/experiments/lumi-python-appsec-context-v1.md) — a checksum- and hash-bound supplied-finding walkthrough using only the bundled inert fixture; it is not vulnerability discovery, exploitability evidence, productive use, or adoption evidence.
 - [Product scope and limitations](docs/PRODUCT_SCOPE.md)
 - [Inputs and outputs](docs/INPUTS_AND_OUTPUTS.md)
 - [GitHub Actions integration](docs/GITHUB_ACTIONS.md)
