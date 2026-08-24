@@ -3,7 +3,7 @@
 **Turn a known security finding into ranked source locations and a verifiable evidence package—without uploading your repository.**
 
 > **Break Lumi before you trust it.** Fork this repository, run the
-> [no-local-setup synthetic AppSec demo](https://github.com/noqt/Lumi-Trace/actions/workflows/python-appsec-demo.yml),
+> [no-local-setup synthetic AppSec demo](https://github.com/noqt/Lumi-Trace/blob/main/docs/experiments/lumi-python-appsec-context-v1.md),
 > and report irrelevant rankings, missing evidence, blocked setup, or
 > reproducible defects in [the public challenge](https://github.com/noqt/Lumi-Trace/issues/36).
 > A useful failure report is more valuable than a star.
