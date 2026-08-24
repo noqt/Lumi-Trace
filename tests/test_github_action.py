@@ -234,13 +234,11 @@ def test_python_appsec_demo_is_manual_read_only_and_uses_verified_release(
     job = workflow["jobs"]["run-synthetic-example"]
     assert job["timeout-minutes"] == "10"
     steps = job["steps"]
-    assert steps[0]["uses"] == (
-        "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405"
-    )
+    assert steps[0]["uses"] == ("actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405")
     assert "--no-deps --no-index" in source
     assert "sha256sum --check expected-release-sha256.txt" in source
     assert "sha256sum --check SHA256SUMS" in source
-    assert "filter=\"data\"" in source
+    assert 'filter="data"' in source
     assert "fb788f981dbf681d08f2edf2515db8e968669ef23f5109cac31bfad866cce11d" in source
     assert "a28123e75fd4a47bd551a0c300d043b0156badba61843c3769a649b8017fe690" in source
     assert "cf5cb839baf28fe6cae7691ec8832db03d92dd924f65ab59b988ec1bb8152268" in source
@@ -251,9 +249,9 @@ def test_python_appsec_demo_is_manual_read_only_and_uses_verified_release(
 
 
 def test_python_appsec_worked_example_links_fork_and_run_workflow(project_root: Path) -> None:
-    page = (
-        project_root / "docs" / "experiments" / "lumi-python-appsec-context-v1.md"
-    ).read_text(encoding="utf-8")
+    page = (project_root / "docs" / "experiments" / "lumi-python-appsec-context-v1.md").read_text(
+        encoding="utf-8"
+    )
     link = "../../.github/workflows/python-appsec-demo.yml"
     assert page.index(link) < page.index("This worked example")
     assert "enable Actions for the fork" in page
