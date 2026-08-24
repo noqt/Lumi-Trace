@@ -205,22 +205,32 @@ or machine identifier, IP address, environment path, raw log, screenshot,
 attachment, private source, real finding, exploit detail, or other personal or
 private content to the receipt body. The independence statement is unverified
 self-attestation, not proof of identity or affiliation. Reviewers do not inspect
-profiles, infer identity, contact the participant, or collect account metadata.
+profile fields beyond the account and repository identifiers unavoidably present
+in the public pull-request URL. They do not infer identity, contact the
+participant, or copy profile names, email addresses, organisations, locations,
+avatars, biographies, or other account metadata into the experiment register.
 
 A copied or unverifiable receipt, bot result, receipt from a known project
 maintainer or experiment builder/reviewer, or receipt that says it was prompted,
 contacted, contracted, paid, or requested by the maintainers or sponsors does
 not qualify. Absence of known affiliation is not a positive independence claim.
 
-Count at most one record for each exact public pull-request URL and head commit
-SHA. Mirrors and reposts of that same receipt identity are deduplicated. Equal
-evidence-bundle hashes remain eligible because deterministic runs can produce
-equal outputs. Observation is limited to bounded public GitHub searches at day
-7 and the cutoff; private analytics are not inspected. The private experiment
-register retains only the URL, pull-request number, head SHA, required receipt
-fields, server timestamps, qualification reason, and record digest until 30
-days after cutoff. After that, only the aggregate result and record digests are
-retained; any deletion follows the project's protected-deletion controls.
+Count at most one record for each immutable public pull-request URL and number.
+The first qualifying observation binds its then-current head commit SHA and
+receipt-body digest to that single record. A later head or body revision updates
+and requalifies or invalidates the existing record; it never creates another
+count. Mirrors and reposts of that same pull-request identity are deduplicated.
+Equal evidence-bundle hashes remain eligible because deterministic runs can
+produce equal outputs. Observation is limited to bounded public GitHub searches
+at day 7 and the cutoff; private analytics are not inspected.
+
+The private experiment register retains only the unavoidable account-linked
+pull-request URL and number, head SHA, required receipt fields, server
+timestamps, qualification reason, and receipt-body digest until 30 days after
+cutoff. At that point all record-level fields and digests are deleted through
+the project's protected-deletion procedure; only the non-linkable aggregate
+count and channel decision remain. The register is not reused for contact,
+profiling, promotion, or another experiment.
 
 ## Safety stop and correction
 
