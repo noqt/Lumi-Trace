@@ -17,18 +17,27 @@ SAST or qualified review. The expected result is localisation with
 ## Measurement status and fixed window
 
 This page does not start an experiment merely by existing on a local branch.
-`T0` is the public GitHub timestamp when an independently accepted exact
-worked-example commit reaches public `main`. The measurement window is exactly
+Publication must occur through a public GitHub pull request. `T0` is the exact
+server-reported `merged_at` value returned by the GitHub Pull Request API for
+the pull request whose merge first places this exact worked-example blob on
+public `main`. The activation record binds the pull-request URL, number, merge
+commit, worked-example blob SHA, API response time, and `merged_at`. A direct
+push, local commit date, author date, committer date, or first manual
+observation does not start the experiment. The measurement window is exactly
 `[T0, T0 + 14 days)`; it is not extended, restarted, reposted, or moved after
 results are seen.
 
-Only a qualifying public, source-bound, unaffiliated synthetic workflow receipt
-created in that window can count. Zero qualifying receipts at the cutoff is
-`ZERO_SIGNAL_CHANNEL_REJECT`. Downloads, page views, repository traffic, clones,
-stars, watches, forks, generic mentions, internal or CI runs, and publication of
-the example do not count. A receipt is not proof of installation, productive
-use, repeat use, adoption, demand, security effectiveness, or willingness to
-pay.
+A receipt can qualify only when it is a public pull request in a
+participant-controlled GitHub repository and the GitHub API reports both its
+`created_at` and latest `updated_at` inside the fixed window. The first bounded
+observation records its URL, pull-request number, head commit SHA, required
+receipt fields, `created_at`, `updated_at`, and response time. User-controlled
+Git commit dates do not establish eligibility. Zero qualifying self-attested
+independent receipts at the cutoff is `ZERO_SIGNAL_CHANNEL_REJECT`. Downloads,
+page views, repository traffic, clones, stars, watches, forks, generic mentions,
+internal or CI runs, and publication of the example do not count. A receipt is
+not proof of installation, productive use, repeat use, adoption, demand,
+security effectiveness, independence, or willingness to pay.
 
 ## 1. Obtain and verify the exact release
 
@@ -161,25 +170,20 @@ finding input sha256: 85a3d1c0bfddc3c3073394842702077fe34e5abef20de179c6959d8827
 repository manifest: c1c0f34490cc76c5a7af819555c9a4178dc3f0bd880ba18b428d1a653fd46e24
 ```
 
-On CPython 3.12.10 for Windows, two clean runs with these exact inputs produced
-byte-identical package artifacts. The exact observed `evidence-bundle.json` was
-6,077 bytes at SHA-256
-`f016bc8f06b46d4c877fd9cb8f59edcb03fd9d89869a79eb947fd917cb5ece1e`,
-with bundle identity
-`evidence-bundle:da81db2425cc09c9fcb68fa11b43ba7af246daabe02e216102dba7f32c93e3c1`.
 The bundle records the exact finding input hash and repository manifest above.
-Because the evidence bundle also records runtime identity, participants must
-report the hash their own supported run actually produced rather than copying
-this platform-specific observed hash.
+Report the evidence-bundle hash from your own supported run. Equal output hashes
+are expected when independent runs have identical inputs and runtime identity;
+they are not evidence that two receipts came from the same participant.
 
-## 4. Privacy-safe public receipt
+## 4. Minimal public receipt
 
 Do not send a receipt through Lumi Issues, Discussions, a pull-request comment,
-private vulnerability reporting, email, direct message, or another NOQT intake
-route. This example creates no account, endpoint, response obligation, or
-permission to submit material to NOQT. If you independently choose to record a
-result, use a publicly readable GitHub commit or immutable blob you control and
-include only these fields:
+private vulnerability reporting, email, direct message, or another
+maintainer-controlled intake route. This example creates no account, endpoint,
+response obligation, or permission to submit material to the project
+maintainers or experiment sponsors. If you independently choose to record a
+result, open a public pull request in a GitHub repository you control and include
+only these fields in its body:
 
 ```yaml
 experiment_id: LUMI-EXP-PYAPPSEC-01
@@ -192,19 +196,31 @@ evidence_bundle_sha256: <sha256 from your completed run>
 ranked_path: src/archive.py::extraction_target
 verify_result: valid
 data_statement: synthetic/public input only; no secret, private source, or live vulnerability
+independence_statement: self-attested; I was not paid, contacted, contracted, employed, or asked by the project maintainers or experiment sponsors to run or publish this receipt
 ```
 
-Do not add a name, email, organisation, geography, device or machine identifier,
-IP address, environment path, raw log, screenshot, attachment, private source,
-real finding, exploit detail, or other personal/private content. Public evidence
-is self-attested as to who ran the commands. A copied or unverifiable receipt,
-a bot result, a result from NOQT or this experiment's builders/reviewers, or a
-result prompted, contacted, or paid for by NOQT does not qualify.
+GitHub necessarily displays account, profile, and commit metadata around a
+public pull request. Do not add a name, email, organisation, geography, device
+or machine identifier, IP address, environment path, raw log, screenshot,
+attachment, private source, real finding, exploit detail, or other personal or
+private content to the receipt body. The independence statement is unverified
+self-attestation, not proof of identity or affiliation. Reviewers do not inspect
+profiles, infer identity, contact the participant, or collect account metadata.
 
-At most one receipt per public actor and unique source identity may count.
-Mirrors, reposts, identical receipt/output hashes, and ambiguous affiliation are
-deduplicated or excluded. Observation is limited to bounded public GitHub
-searches at day 7 and the cutoff; private analytics are not inspected.
+A copied or unverifiable receipt, bot result, receipt from a known project
+maintainer or experiment builder/reviewer, or receipt that says it was prompted,
+contacted, contracted, paid, or requested by the maintainers or sponsors does
+not qualify. Absence of known affiliation is not a positive independence claim.
+
+Count at most one record for each exact public pull-request URL and head commit
+SHA. Mirrors and reposts of that same receipt identity are deduplicated. Equal
+evidence-bundle hashes remain eligible because deterministic runs can produce
+equal outputs. Observation is limited to bounded public GitHub searches at day
+7 and the cutoff; private analytics are not inspected. The private experiment
+register retains only the URL, pull-request number, head SHA, required receipt
+fields, server timestamps, qualification reason, and record digest until 30
+days after cutoff. After that, only the aggregate result and record digests are
+retained; any deletion follows the project's protected-deletion controls.
 
 ## Safety stop and correction
 
