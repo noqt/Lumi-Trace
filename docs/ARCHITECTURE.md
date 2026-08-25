@@ -53,10 +53,13 @@ A full `trace` pipeline run requires exactly one selected SARIF result. `triage.
 directory or archive. It materialises a disposable clean-room workspace:
 
 1. enumerate and hash the source in stable path order;
-2. reject symlinks, special files, unsafe archive paths, case/Unicode
-   collisions, and configured size/count violations;
+2. canonicalise a narrowly supported repository-internal file symlink into an
+   inert Git-style link stub, while rejecting every other link, special file,
+   unsafe archive path, case/Unicode collision, and configured size/count
+   violation;
 3. copy a directory or safely extract a ZIP/TAR-family archive;
-4. re-hash directory sources before and after copying to detect mutation; and
+4. copy regular files through no-follow handles and compare each copied byte
+   stream with the pre-copy manifest to detect mutation; and
 5. compute a host-path-free `lumi-tree-sha256-v1` repository identity.
 
 Snapshot files are normalized to mode `0644`, directories to `0755`, and mtimes
@@ -68,6 +71,17 @@ Git administration data is excluded and no Git command is executed against the
 supplied repository. Repository-local Git configuration is therefore never a
 host-execution surface. Content identity, not VCS metadata, is the provenance
 anchor.
+
+For directory inputs, a symbolic link is accepted only when its exact UTF-8,
+NFC, portable POSIX target is a canonical relative path to a regular file
+inside the repository and does not traverse another link, nested mount, or
+`.git`. Lumi never reads the target through the link. It hashes the exact link
+target bytes and materialises those bytes as a regular file in the clean-room
+snapshot, matching Git's link-blob representation without preserving link
+behaviour. A symlink and a regular file containing the same target bytes are
+intentionally identity-equivalent; any change to those canonical bytes during
+snapshotting fails integrity. Archive links remain unsupported, so
+directory/archive identity parity is not claimed for symlink-bearing inputs.
 
 ### Deterministic Index
 
