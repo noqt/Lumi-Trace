@@ -195,6 +195,7 @@ def test_action_escapes_summary_cells_and_declares_only_safe_shelling(project_ro
 def test_composite_action_is_pinned_and_uses_adapter_outputs(project_root: Path) -> None:
     action = yaml.safe_load((project_root / "action.yml").read_text(encoding="utf-8"))
     assert action["name"] == "Lumi Trace"
+    assert action["branding"] == {"icon": "search", "color": "purple"}
     assert set(action["inputs"]) == {
         "sarif",
         "repository",
