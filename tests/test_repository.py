@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import os
@@ -31,6 +32,80 @@ def test_repository_identity_is_stable_and_host_path_free(fixture_repository: Pa
     assert first["repository_id"].startswith("repository:")
 
 
+def test_manifest_digest_and_size_share_the_validated_stream(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    source = repository / "source.py"
+    source.write_bytes(b"old")
+    replacement = b"replacement bytes"
+    original_open = repository_module._open_regular_no_follow
+    replaced = False
+
+    def replace_then_open(path: Path, root: Path) -> io.BufferedReader:
+        nonlocal replaced
+        if path == source and not replaced:
+            source.write_bytes(replacement)
+            replaced = True
+        return original_open(path, root)
+
+    monkeypatch.setattr(repository_module, "_open_regular_no_follow", replace_then_open)
+    records, total_bytes = repository_module.repository_manifest(repository)
+
+    assert total_bytes == len(replacement)
+    assert records == [
+        {
+            "path": "source.py",
+            "sha256": f"sha256:{hashlib.sha256(replacement).hexdigest()}",
+            "size_bytes": len(replacement),
+        }
+    ]
+
+
+def test_copy_rejects_manifest_size_mismatch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    (repository / "source.py").write_bytes(b"trusted")
+    original_manifest = repository_module.repository_manifest
+
+    def manifest_with_false_size(
+        root: Path, limits: repository_module.RepositoryLimits | None = None
+    ) -> tuple[list[dict[str, object]], int]:
+        records, total_bytes = original_manifest(root, limits)
+        records[0]["size_bytes"] = int(records[0]["size_bytes"]) + 1
+        return records, total_bytes + 1
+
+    monkeypatch.setattr(repository_module, "repository_manifest", manifest_with_false_size)
+    with pytest.raises(IntegrityError, match="repository changed"), RepositoryWorkspace(repository):
+        pass
+
+
+def test_manifest_replacement_cannot_bypass_byte_limit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    source = repository / "source.py"
+    source.write_bytes(b"old")
+    original_open = repository_module._open_regular_no_follow
+    replaced = False
+
+    def replace_then_open(path: Path, root: Path) -> io.BufferedReader:
+        nonlocal replaced
+        if path == source and not replaced:
+            source.write_bytes(b"larger than limit")
+            replaced = True
+        return original_open(path, root)
+
+    monkeypatch.setattr(repository_module, "_open_regular_no_follow", replace_then_open)
+    limits = repository_module.RepositoryLimits(max_bytes=3)
+    with pytest.raises(UnsupportedError, match="expanded byte limit"):
+        repository_module.repository_manifest(repository, limits)
+
+
 @pytest.mark.skipif(os.name != "nt", reason="Windows Path.is_mount compatibility")
 def test_windows_manifest_does_not_call_unsupported_is_mount(
     fixture_repository: Path, monkeypatch: pytest.MonkeyPatch
@@ -55,6 +130,180 @@ def test_repository_workspace_is_a_content_identical_snapshot(fixture_repository
             assert stat.S_IMODE(script.stat().st_mode) == 0o644
 
 
+def _symlink_or_skip(target: str | Path, link: Path, *, target_is_directory: bool = False) -> None:
+    try:
+        link.symlink_to(target, target_is_directory=target_is_directory)
+    except (NotImplementedError, OSError) as exc:
+        pytest.skip(f"symbolic links are unavailable: {exc}")
+
+
+def test_internal_file_symlink_becomes_identity_equivalent_git_stub(tmp_path: Path) -> None:
+    linked_repository = tmp_path / "linked"
+    linked_repository.mkdir()
+    (linked_repository / "AGENTS.md").write_text("trusted instructions\n", encoding="utf-8")
+    _symlink_or_skip("AGENTS.md", linked_repository / "CLAUDE.md")
+
+    stub_repository = tmp_path / "stub"
+    stub_repository.mkdir()
+    (stub_repository / "AGENTS.md").write_text("trusted instructions\n", encoding="utf-8")
+    (stub_repository / "CLAUDE.md").write_bytes(b"AGENTS.md")
+
+    linked_identity = compute_repository_identity(linked_repository)
+    assert linked_identity == compute_repository_identity(stub_repository)
+    with RepositoryWorkspace(linked_repository) as workspace:
+        assert workspace.identity == linked_identity
+        stub = workspace.root / "CLAUDE.md"
+        assert not stub.is_symlink()
+        assert stub.read_bytes() == b"AGENTS.md"
+
+
+@pytest.mark.parametrize(
+    ("raw_target", "message"),
+    [
+        (b"", "canonical relative path"),
+        (b"./AGENTS.md", "canonical relative path"),
+        (b"nested/../AGENTS.md", "canonical relative path"),
+        (b"nested\\AGENTS.md", "POSIX separators"),
+        ("cafe\u0301.md".encode(), "NFC Unicode"),
+        (b"\xff", "valid UTF-8"),
+    ],
+)
+def test_symlink_stub_rejects_noncanonical_target_bytes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    raw_target: bytes,
+    message: str,
+) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    link = repository / "link"
+    monkeypatch.setattr(repository_module.os, "readlink", lambda _path: raw_target)
+    with pytest.raises(UnsupportedError, match=message):
+        repository_module._symlink_stub_payload(link, repository)
+
+
+def test_internal_symlink_rejects_nonportable_target(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    monkeypatch.setattr(repository_module.os, "readlink", lambda _path: b"CON")
+    with pytest.raises(InputError, match="non-portable symbolic link target"):
+        repository_module._symlink_stub_payload(repository / "link", repository)
+
+
+def test_internal_symlink_rejects_git_administration_target(tmp_path: Path) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    git_directory = repository / ".git"
+    git_directory.mkdir()
+    (git_directory / "config").write_text("private\n", encoding="utf-8")
+    _symlink_or_skip(".git/config", repository / "config-link")
+    with pytest.raises(UnsupportedError, match="Git administration"):
+        compute_repository_identity(repository)
+
+
+def test_internal_symlink_rejects_directory_broken_chain_and_loop_targets(tmp_path: Path) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    directory = repository / "directory"
+    directory.mkdir()
+    _symlink_or_skip("directory", repository / "directory-link", target_is_directory=True)
+    with pytest.raises(UnsupportedError, match="regular file"):
+        compute_repository_identity(repository)
+
+    (repository / "directory-link").unlink()
+    _symlink_or_skip("missing.txt", repository / "broken-link")
+    with pytest.raises(UnsupportedError, match="must exist"):
+        compute_repository_identity(repository)
+
+    (repository / "broken-link").unlink()
+    (repository / "target.txt").write_text("target\n", encoding="utf-8")
+    _symlink_or_skip("target.txt", repository / "second-link")
+    _symlink_or_skip("second-link", repository / "first-link")
+    with pytest.raises(UnsupportedError, match="another link"):
+        compute_repository_identity(repository)
+
+    (repository / "first-link").unlink()
+    (repository / "second-link").unlink()
+    _symlink_or_skip("loop", repository / "loop")
+    with pytest.raises(UnsupportedError, match="another link"):
+        compute_repository_identity(repository)
+
+
+def test_internal_symlink_rejects_absolute_parent_and_external_targets(tmp_path: Path) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    (repository / "target.txt").write_text("target\n", encoding="utf-8")
+    outside = tmp_path / "outside.txt"
+    outside.write_text("outside\n", encoding="utf-8")
+
+    _symlink_or_skip(str(outside), repository / "absolute-link")
+    with pytest.raises(UnsupportedError, match="canonical relative path"):
+        compute_repository_identity(repository)
+
+    (repository / "absolute-link").unlink()
+    nested = repository / "nested"
+    nested.mkdir()
+    _symlink_or_skip("../target.txt", nested / "parent-link")
+    with pytest.raises(UnsupportedError, match="canonical relative path"):
+        compute_repository_identity(repository)
+
+    (nested / "parent-link").unlink()
+    _symlink_or_skip("../outside.txt", repository / "external-link")
+    with pytest.raises(UnsupportedError, match="canonical relative path"):
+        compute_repository_identity(repository)
+
+
+def test_symlink_retarget_race_fails_integrity(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    (repository / "first.txt").write_text("first\n", encoding="utf-8")
+    (repository / "second.txt").write_text("second\n", encoding="utf-8")
+    link = repository / "link.txt"
+    _symlink_or_skip("first.txt", link)
+    original_manifest = repository_module.repository_manifest
+
+    def manifest_then_retarget(
+        root: Path, limits: repository_module.RepositoryLimits | None = None
+    ) -> tuple[list[dict[str, object]], int]:
+        records, total_bytes = original_manifest(root, limits)
+        link.unlink()
+        link.symlink_to("second.txt")
+        return records, total_bytes
+
+    monkeypatch.setattr(repository_module, "repository_manifest", manifest_then_retarget)
+    with pytest.raises(IntegrityError, match="repository changed"), RepositoryWorkspace(repository):
+        pass
+
+
+def test_symlink_to_equivalent_stub_race_preserves_identity(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    (repository / "AGENTS.md").write_text("trusted instructions\n", encoding="utf-8")
+    link = repository / "CLAUDE.md"
+    _symlink_or_skip("AGENTS.md", link)
+    expected = compute_repository_identity(repository)
+    original_manifest = repository_module.repository_manifest
+
+    def manifest_then_replace(
+        root: Path, limits: repository_module.RepositoryLimits | None = None
+    ) -> tuple[list[dict[str, object]], int]:
+        records, total_bytes = original_manifest(root, limits)
+        link.unlink()
+        link.write_bytes(b"AGENTS.md")
+        return records, total_bytes
+
+    monkeypatch.setattr(repository_module, "repository_manifest", manifest_then_replace)
+    with RepositoryWorkspace(repository) as workspace:
+        assert workspace.identity == expected
+        assert (workspace.root / "CLAUDE.md").read_bytes() == b"AGENTS.md"
+
+
 def test_repository_workspace_rejects_source_changed_after_manifest(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -76,6 +325,89 @@ def test_repository_workspace_rejects_source_changed_after_manifest(
         pytest.raises(IntegrityError, match="repository changed while its snapshot was created"),
         RepositoryWorkspace(repository),
     ):
+        pass
+
+
+def test_regular_file_to_symlink_race_is_rejected_before_open(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    source = repository / "source.py"
+    source.write_text("value = 'trusted'\n", encoding="utf-8")
+    outside = tmp_path / "outside.py"
+    outside.write_text("value = 'private'\n", encoding="utf-8")
+    probe = tmp_path / "symlink-probe"
+    _symlink_or_skip("outside.py", probe)
+    probe.unlink()
+
+    original_manifest = repository_module.repository_manifest
+    original_is_symlink = Path.is_symlink
+    armed = False
+    replaced = False
+
+    def manifest_then_arm(
+        root: Path, limits: repository_module.RepositoryLimits | None = None
+    ) -> tuple[list[dict[str, object]], int]:
+        nonlocal armed
+        records, total_bytes = original_manifest(root, limits)
+        armed = True
+        return records, total_bytes
+
+    def replace_after_link_check(path: Path) -> bool:
+        nonlocal replaced
+        result = original_is_symlink(path)
+        if armed and not replaced and path == source:
+            source.unlink()
+            source.symlink_to("../outside.py")
+            replaced = True
+        return result
+
+    monkeypatch.setattr(repository_module, "repository_manifest", manifest_then_arm)
+    monkeypatch.setattr(Path, "is_symlink", replace_after_link_check)
+    with pytest.raises(IntegrityError, match="repository changed"), RepositoryWorkspace(repository):
+        pass
+
+
+def test_regular_file_ancestor_to_symlink_race_is_rejected_before_open(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    nested = repository / "nested"
+    nested.mkdir()
+    source = nested / "source.py"
+    source.write_text("value = 'trusted'\n", encoding="utf-8")
+    outside = tmp_path / "outside-directory"
+    probe = tmp_path / "symlink-probe"
+    _symlink_or_skip("outside-directory", probe, target_is_directory=True)
+    probe.unlink()
+
+    original_manifest = repository_module.repository_manifest
+    original_is_symlink = Path.is_symlink
+    armed = False
+    replaced = False
+
+    def manifest_then_arm(
+        root: Path, limits: repository_module.RepositoryLimits | None = None
+    ) -> tuple[list[dict[str, object]], int]:
+        nonlocal armed
+        records, total_bytes = original_manifest(root, limits)
+        armed = True
+        return records, total_bytes
+
+    def replace_after_link_check(path: Path) -> bool:
+        nonlocal replaced
+        result = original_is_symlink(path)
+        if armed and not replaced and path == source:
+            nested.rename(outside)
+            nested.symlink_to("../outside-directory", target_is_directory=True)
+            replaced = True
+        return result
+
+    monkeypatch.setattr(repository_module, "repository_manifest", manifest_then_arm)
+    monkeypatch.setattr(Path, "is_symlink", replace_after_link_check)
+    with pytest.raises(IntegrityError, match="repository changed"), RepositoryWorkspace(repository):
         pass
 
 
