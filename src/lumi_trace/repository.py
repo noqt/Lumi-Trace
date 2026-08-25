@@ -18,6 +18,7 @@ import zlib
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
+from typing import BinaryIO
 
 from .canonical import canonical_sha256, sha256_file
 from .errors import InputError, IntegrityError, UnsupportedError
@@ -92,14 +93,209 @@ def _is_link_like(path: Path) -> bool:
     return bool(attributes & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0))
 
 
+def _windows_opened_path(file_descriptor: int) -> Path:
+    """Return the final DOS path bound to one already-open Windows handle."""
+
+    import ctypes
+    import msvcrt
+
+    get_final_path = ctypes.windll.kernel32.GetFinalPathNameByHandleW
+    get_final_path.argtypes = [
+        ctypes.c_void_p,
+        ctypes.c_wchar_p,
+        ctypes.c_ulong,
+        ctypes.c_ulong,
+    ]
+    get_final_path.restype = ctypes.c_ulong
+    handle = msvcrt.get_osfhandle(file_descriptor)
+    required = get_final_path(handle, None, 0, 0)
+    if not required:
+        raise ctypes.WinError()
+    buffer = ctypes.create_unicode_buffer(required + 1)
+    written = get_final_path(handle, buffer, len(buffer), 0)
+    if not written or written >= len(buffer):
+        raise ctypes.WinError()
+    final_path = buffer.value
+    if final_path.startswith("\\\\?\\UNC\\"):
+        final_path = "\\\\" + final_path[8:]
+    elif final_path.startswith("\\\\?\\"):
+        final_path = final_path[4:]
+    return Path(final_path)
+
+
+def _open_regular_no_follow(path: Path, root: Path) -> BinaryIO:
+    """Open a repository file without following any path-component link."""
+
+    try:
+        relative = path.relative_to(root)
+    except ValueError as exc:
+        raise IntegrityError("repository changed while its snapshot was created") from exc
+    if not relative.parts:
+        raise IntegrityError("repository changed while its snapshot was created")
+
+    if os.name == "nt":
+        file_descriptor = -1
+        try:
+            file_descriptor = os.open(path, os.O_RDONLY | os.O_BINARY)
+            metadata = os.fstat(file_descriptor)
+            final_path = _windows_opened_path(file_descriptor)
+            expected = os.path.normcase(os.path.abspath(path))
+            opened = os.path.normcase(os.path.abspath(final_path))
+            root_path = os.path.normcase(os.path.abspath(root))
+            try:
+                os.path.relpath(opened, root_path)
+            except ValueError as exc:
+                raise IntegrityError("repository changed while its snapshot was created") from exc
+            if opened != expected or not stat.S_ISREG(metadata.st_mode):
+                raise IntegrityError("repository changed while its snapshot was created")
+            stream = os.fdopen(file_descriptor, "rb")
+            file_descriptor = -1
+            return stream
+        except OSError as exc:
+            raise IntegrityError("repository changed while its snapshot was created") from exc
+        finally:
+            if file_descriptor >= 0:
+                os.close(file_descriptor)
+
+    no_follow = getattr(os, "O_NOFOLLOW", None)
+    directory_only = getattr(os, "O_DIRECTORY", None)
+    if no_follow is None or directory_only is None:
+        raise UnsupportedError("this host cannot safely open repository files without links")
+
+    directory_descriptor = -1
+    file_descriptor = -1
+    try:
+        directory_flags = os.O_RDONLY | directory_only | no_follow
+        directory_descriptor = os.open(root, directory_flags)
+        root_metadata = os.fstat(directory_descriptor)
+        for part in relative.parts[:-1]:
+            next_descriptor = os.open(
+                part,
+                directory_flags,
+                dir_fd=directory_descriptor,
+            )
+            metadata = os.fstat(next_descriptor)
+            if not stat.S_ISDIR(metadata.st_mode) or metadata.st_dev != root_metadata.st_dev:
+                os.close(next_descriptor)
+                raise IntegrityError("repository changed while its snapshot was created")
+            os.close(directory_descriptor)
+            directory_descriptor = next_descriptor
+        file_descriptor = os.open(
+            relative.parts[-1],
+            os.O_RDONLY | no_follow,
+            dir_fd=directory_descriptor,
+        )
+        metadata = os.fstat(file_descriptor)
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_dev != root_metadata.st_dev:
+            raise IntegrityError("repository changed while its snapshot was created")
+        stream = os.fdopen(file_descriptor, "rb")
+        file_descriptor = -1
+        return stream
+    except OSError as exc:
+        raise IntegrityError("repository changed while its snapshot was created") from exc
+    finally:
+        if file_descriptor >= 0:
+            os.close(file_descriptor)
+        if directory_descriptor >= 0:
+            os.close(directory_descriptor)
+
+
+def _hash_regular_no_follow(path: Path, root: Path, *, max_bytes: int) -> tuple[str, int]:
+    digest = hashlib.sha256()
+    size_bytes = 0
+    with _open_regular_no_follow(path, root) as stream:
+        while chunk := stream.read(1024 * 1024):
+            size_bytes += len(chunk)
+            if size_bytes > max_bytes:
+                raise UnsupportedError("repository exceeds expanded byte limit")
+            digest.update(chunk)
+    return f"sha256:{digest.hexdigest()}", size_bytes
+
+
+def _symlink_stub_payload(path: Path, root: Path) -> bytes:
+    """Return one validated link target as inert Git-style stub bytes."""
+
+    try:
+        try:
+            raw_target = os.readlink(os.fsencode(path))
+        except (NotImplementedError, TypeError):
+            raw_target = os.readlink(path)
+    except (NotImplementedError, OSError) as exc:
+        raise UnsupportedError("symbolic link target changed or became unreadable") from exc
+    if isinstance(raw_target, str):
+        try:
+            payload = raw_target.encode("utf-8", errors="strict")
+        except UnicodeEncodeError as exc:
+            raise UnsupportedError("symbolic link target must be valid UTF-8") from exc
+    else:
+        payload = raw_target
+    try:
+        target_text = payload.decode("utf-8", errors="strict")
+    except UnicodeDecodeError as exc:
+        raise UnsupportedError("symbolic link target must be valid UTF-8") from exc
+    if target_text != unicodedata.normalize("NFC", target_text):
+        raise UnsupportedError("symbolic link target must use NFC Unicode")
+    if "\\" in target_text:
+        raise UnsupportedError("symbolic link target must use POSIX separators")
+
+    target = PurePosixPath(target_text)
+    raw_parts = target_text.split("/")
+    if (
+        not target_text
+        or target.is_absolute()
+        or any(not part or part in {".", ".."} for part in raw_parts)
+    ):
+        raise UnsupportedError("symbolic link target must be a canonical relative path")
+    _validate_portable_parts(
+        raw_parts,
+        raw_name=target_text,
+        descriptor="symbolic link target",
+    )
+
+    lexical_target = path.parent.joinpath(*raw_parts)
+    try:
+        lexical_relative = lexical_target.relative_to(root)
+    except ValueError as exc:
+        raise UnsupportedError("symbolic link target escapes the repository") from exc
+    if any(part.casefold() == ".git" for part in lexical_relative.parts):
+        raise UnsupportedError("symbolic link target cannot reference Git administration data")
+
+    current = root
+    for part in lexical_relative.parts:
+        current /= part
+        try:
+            metadata = current.lstat()
+        except OSError as exc:
+            raise UnsupportedError("symbolic link target must exist") from exc
+        if _is_link_like(current) or stat.S_ISLNK(metadata.st_mode):
+            raise UnsupportedError("symbolic link target cannot traverse another link")
+        if os.name != "nt" and current.is_mount():
+            raise UnsupportedError("symbolic link target cannot cross a nested mount")
+
+    try:
+        resolved_target = lexical_target.resolve(strict=True)
+        resolved_relative = resolved_target.relative_to(root)
+    except (OSError, RuntimeError, ValueError) as exc:
+        raise UnsupportedError("symbolic link target must resolve inside the repository") from exc
+    if any(part.casefold() == ".git" for part in resolved_relative.parts):
+        raise UnsupportedError("symbolic link target cannot reference Git administration data")
+    try:
+        resolved_metadata = resolved_target.lstat()
+    except OSError as exc:
+        raise UnsupportedError("symbolic link target changed or became unreadable") from exc
+    if _is_link_like(resolved_target) or not stat.S_ISREG(resolved_metadata.st_mode):
+        raise UnsupportedError("symbolic link target must resolve to a regular file")
+    return payload
+
+
 def repository_manifest(
     root: Path, limits: RepositoryLimits | None = None
 ) -> tuple[list[dict[str, object]], int]:
     """Hash every regular file below root in stable relative-path order.
 
-    Git administration files are excluded. Symlinks and special files are
-    rejected in V0.1 so a snapshot cannot escape or change meaning between
-    operating systems.
+    Git administration files are excluded. Safe repository-internal file
+    symlinks become inert Git-style link stubs. Other links and special files
+    are rejected so a snapshot cannot escape the repository.
     """
 
     limits = limits or RepositoryLimits()
@@ -130,9 +326,11 @@ def repository_manifest(
                 )
                 _check_collision(relative, seen_entries)
                 if _is_link_like(candidate):
-                    raise UnsupportedError(
-                        f"links or reparse points are unsupported in V0.1: {relative}"
-                    )
+                    if candidate.is_symlink():
+                        _symlink_stub_payload(candidate, root)
+                        entries.append((relative, candidate, False))
+                        continue
+                    raise UnsupportedError(f"links or reparse points are unsupported: {relative}")
                 # Windows mount points are reparse points and were rejected above.
                 # Path.is_mount() itself is unsupported on Windows before Python 3.12.
                 if os.name != "nt" and candidate.is_mount():
@@ -155,18 +353,28 @@ def repository_manifest(
     for path in sorted(paths, key=lambda item: _canonical_relative(item, root).encode("utf-8")):
         relative = _canonical_relative(path, root)
         metadata = path.lstat()
-        if _is_link_like(path) or stat.S_ISLNK(metadata.st_mode):
-            raise UnsupportedError(f"links or reparse points are unsupported in V0.1: {relative}")
-        if not stat.S_ISREG(metadata.st_mode):
-            raise UnsupportedError(f"special files are unsupported in V0.1: {relative}")
-        total_bytes += metadata.st_size
+        if path.is_symlink():
+            payload = _symlink_stub_payload(path, root)
+            digest = f"sha256:{hashlib.sha256(payload).hexdigest()}"
+            size_bytes = len(payload)
+        else:
+            if _is_link_like(path) or stat.S_ISLNK(metadata.st_mode):
+                raise UnsupportedError(f"links or reparse points are unsupported: {relative}")
+            if not stat.S_ISREG(metadata.st_mode):
+                raise UnsupportedError(f"special files are unsupported in V0.1: {relative}")
+            digest, size_bytes = _hash_regular_no_follow(
+                path,
+                root,
+                max_bytes=limits.max_bytes - total_bytes,
+            )
+        total_bytes += size_bytes
         if total_bytes > limits.max_bytes:
             raise UnsupportedError(f"repository exceeds expanded byte limit of {limits.max_bytes}")
         records.append(
             {
                 "path": relative,
-                "sha256": sha256_file(path),
-                "size_bytes": metadata.st_size,
+                "sha256": digest,
+                "size_bytes": size_bytes,
             }
         )
     return records, total_bytes
@@ -463,14 +671,30 @@ def _copy_repository(
 
     for record in records:
         relative = Path(str(record["path"]))
+        source_path = source / relative
         target = destination / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         digest = hashlib.sha256()
-        with (source / relative).open("rb") as source_stream, target.open("xb") as target_stream:
-            while chunk := source_stream.read(1024 * 1024):
-                target_stream.write(chunk)
-                digest.update(chunk)
-        if f"sha256:{digest.hexdigest()}" != record["sha256"]:
+        copied_bytes = 0
+        expected_bytes = int(record["size_bytes"])
+        if source_path.is_symlink():
+            payload = _symlink_stub_payload(source_path, source)
+            with target.open("xb") as target_stream:
+                target_stream.write(payload)
+            digest.update(payload)
+            copied_bytes = len(payload)
+        else:
+            with (
+                _open_regular_no_follow(source_path, source) as source_stream,
+                target.open("xb") as target_stream,
+            ):
+                while chunk := source_stream.read(1024 * 1024):
+                    copied_bytes += len(chunk)
+                    if copied_bytes > expected_bytes:
+                        raise IntegrityError("repository changed while its snapshot was created")
+                    target_stream.write(chunk)
+                    digest.update(chunk)
+        if copied_bytes != expected_bytes or f"sha256:{digest.hexdigest()}" != record["sha256"]:
             raise IntegrityError("repository changed while its snapshot was created")
 
 

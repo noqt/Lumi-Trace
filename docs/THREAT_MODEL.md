@@ -43,8 +43,8 @@ content, archives, findings, and plan steps are not.
 | Threat | Current control |
 | --- | --- |
 | Archive traversal or host overwrite | Canonical relative paths; rejection of absolute and parent paths, links, special members, encrypted ZIP members, oversized members, and case/Unicode collisions; extraction only into a temporary root. The current deterministic profile additionally requires printable-ASCII repository paths. |
-| Source mutation or time-of-check/time-of-use drift | Stable manifests before and after directory copying; re-hash of the materialised snapshot; integrity failure on mismatch. |
-| Symlink or special-file escape | Symlink directories, symlink files, devices, sockets, FIFOs, and archive links are unsupported. |
+| Source mutation or time-of-check/time-of-use drift | A pre-copy manifest; no-follow, handle-validated regular-file reads; per-file copy-time digest comparison; and integrity failure on mismatch. |
+| Symlink or special-file escape | A directory-input symlink to a repository-internal regular file is read only as strict UTF-8 target metadata and becomes an inert regular-file stub containing those exact bytes; the aliased target is never opened through the link. Absolute, noncanonical, nonportable, external, `.git`, chained, directory, broken, reparse, junction, nested-mount and archive links remain unsupported, as do devices, sockets and FIFOs. Symlink behaviour and target content are not preserved. |
 | Archive or repository resource exhaustion | File-count, expanded-byte, per-member, per-text-file, Python-source-line, bracket-depth, f-string-depth, parser-projection character/work/AST-node/AST-depth, per-file/global token and symbol, index JSON-byte/item, timeout, output, PID, memory, CPU, swap, core, and file-descriptor limits. Parser projections are capped at 16,384 characters, 512 non-whitespace work units, 2,048 AST nodes and 128 AST levels. The fixed scanner uses byte-oriented mask storage and constant-space explicit-continuation counting. |
 | Host parser or Unicode database changes ranking output | The lexical front end freezes string/f-string handling and ASCII declaration identifiers before bounded Python 3.11 grammar validation; AST nodes never supply evidence fields; non-Python patterns use ASCII regex semantics; successful current-profile runs require printable-ASCII repository paths and CPython 3.11/3.12 with a recursion limit of at least 1,000; cross-runtime index and candidate bytes are release-gate comparisons. |
 | Lexical symbol mistaken for proof of valid code | Unsupported or declaration-ambiguous Python files emit no partial symbols. Accepted symbols remain lexical landmarks only; the extractor does not assert that unrelated statements are semantically valid or that the file imports or compiles. |
@@ -94,6 +94,9 @@ plan on the host.
   channel.
 - Repository indexing can reveal identifiers and string-derived tokens even
   when source snippets are absent.
+- Symlink-bearing directory inputs intentionally model accepted file links as
+  inert Git-style stubs. Equivalent archive inputs remain unsupported, and the
+  stub does not represent target-file content or runtime link behaviour.
 - Docker qualification tests observable controls at runtime; it is not a formal
   proof of isolation.
 - Deterministic ranking can miss the relevant location or rank an unrelated
