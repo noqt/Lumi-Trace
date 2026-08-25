@@ -17,7 +17,7 @@ import zipfile
 import zlib
 from collections.abc import Iterable
 from dataclasses import dataclass
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import BinaryIO
 
 from .canonical import canonical_sha256, sha256_file
@@ -235,17 +235,18 @@ def _symlink_stub_payload(path: Path, root: Path) -> bytes:
         raise UnsupportedError("symbolic link target must be valid UTF-8") from exc
     if target_text != unicodedata.normalize("NFC", target_text):
         raise UnsupportedError("symbolic link target must use NFC Unicode")
-    if "\\" in target_text:
-        raise UnsupportedError("symbolic link target must use POSIX separators")
-
     target = PurePosixPath(target_text)
+    windows_target = PureWindowsPath(target_text)
     raw_parts = target_text.split("/")
     if (
         not target_text
         or target.is_absolute()
+        or windows_target.is_absolute()
         or any(not part or part in {".", ".."} for part in raw_parts)
     ):
         raise UnsupportedError("symbolic link target must be a canonical relative path")
+    if "\\" in target_text:
+        raise UnsupportedError("symbolic link target must use POSIX separators")
     _validate_portable_parts(
         raw_parts,
         raw_name=target_text,
