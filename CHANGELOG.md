@@ -4,6 +4,30 @@ This file records user-visible changes to Lumi Trace.
 
 Detailed research history, internal experiment records, and release-approval notes belong in a separate research or maintainer archive rather than the product changelog.
 
+## 0.10.1 - 2026-08-25
+
+### Fixed
+
+- Accept narrowly safe repository-internal file symlinks by representing them
+  as inert Git-style target-byte stubs in the clean-room snapshot.
+- Continue to fail closed on external, chained, directory, `.git`, mount,
+  reparse, junction, and archive links.
+
+### Changed
+
+- Declare supported `search` and `purple` branding metadata for the existing
+  GitHub Action. This changes no Action input, output, permission, or runtime
+  behaviour.
+
+### Limitations
+
+- A safe file-symlink stub records the link target text; it does not follow or
+  import the target as source. Symlink support remains limited to one regular
+  file target inside the supplied repository tree.
+- Lumi Trace remains a local deterministic review aid for known findings. It
+  is not a vulnerability scanner, exploitability decision, or repository
+  safety verdict.
+
 ## 0.10.0 - 2026-08-04
 
 ### Added

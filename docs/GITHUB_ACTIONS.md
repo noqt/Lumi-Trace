@@ -1,6 +1,6 @@
 # GitHub Actions integration
 
-Lumi Trace V0.10.0 runs the existing local batch-SARIF triage workflow inside a
+Lumi Trace V0.10.1 runs the existing local batch-SARIF triage workflow inside a
 GitHub Actions job. It does not scan a repository, call a hosted model, post PR
 comments, or decide that a finding is exploitable. Your workflow must create a
 local SARIF 2.1.0 file first.
@@ -15,7 +15,7 @@ After checkout and the step that writes `results.sarif`, add:
 
 ```yaml
 - name: Prioritise scanner findings
-  uses: noqt/Lumi-Trace@v0.10.0
+  uses: noqt/Lumi-Trace@v0.10.1
   with:
     sarif: results.sarif
 ```
@@ -51,7 +51,7 @@ steps:
   # Run your existing scanner here. It must write results.sarif locally.
 
   - name: Prioritise scanner findings
-    uses: noqt/Lumi-Trace@v0.10.0
+    uses: noqt/Lumi-Trace@v0.10.1
     with:
       sarif: results.sarif
       fail-on-severity: high

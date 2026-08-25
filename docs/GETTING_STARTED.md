@@ -30,7 +30,7 @@ py -3.12 -m venv .venv
 From a downloaded wheel:
 
 ```sh
-python -m pip install --no-deps ./skylark_lumi_trace-0.10.0-py3-none-any.whl
+python -m pip install --no-deps ./skylark_lumi_trace-0.10.1-py3-none-any.whl
 ```
 
 From a source checkout:
@@ -108,7 +108,7 @@ Confirmation: not attempted (NO_REPRODUCTION_PLAN)
 Evidence classification: INSUFFICIENT_EVIDENCE
 ```
 
-The fixture has a two-candidate universe. V0.10.0 projects those candidates to
+The fixture has a two-candidate universe. V0.10.1 projects those candidates to
 one unique ranked review path, so the human summary reports one ranked location.
 
 This is not a crash and does not invalidate the ranked candidates. Lumi Trace separates two questions:
