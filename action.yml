@@ -1,5 +1,8 @@
 name: Lumi Trace
 description: Prioritise known SARIF findings into a deterministic, verified reviewer queue.
+branding:
+  icon: search
+  color: purple
 inputs:
   sarif:
     description: Local SARIF 2.1.0 file inside GITHUB_WORKSPACE.
