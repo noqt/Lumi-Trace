@@ -8,6 +8,10 @@
 > reproducible defects in [the public challenge](https://github.com/noqt/Lumi-Trace/issues/36).
 > A useful failure report is more valuable than a star.
 
+Already use Bandit? [Try Lumi on a synthetic Bandit SARIF file in your GitHub
+fork](docs/TRY_BANDIT_DEMO.md). There is no local setup, API key, private source,
+or evidence upload.
+
 This repository provides Trace functionality for Lumi as a local command-line
 tool for application-security engineers, software maintainers, and security
 reviewers. Give it an existing finding and a local Python repository or

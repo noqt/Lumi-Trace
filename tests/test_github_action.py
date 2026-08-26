@@ -262,3 +262,42 @@ def test_python_appsec_worked_example_links_fork_and_run_workflow(project_root: 
     assert "9f4c566c9298be7c4973054c1dbb8057c57f40c2" in page
     assert "9f3572c6f2d951587df1c9ac49d1fedf996054a0" in page
     assert "does not create a second activation" in page
+
+
+def test_bandit_demo_fixture_produces_one_verified_review_path(
+    project_root: Path, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "bandit-demo"
+    workspace.mkdir(parents=True)
+    fixture = project_root / "examples" / "bandit-demo"
+    shutil.copy2(fixture / "bandit.sarif", workspace / "findings.sarif")
+    shutil.copytree(fixture / "repository", workspace / "repository")
+
+    completed, outputs, summary = _run_action(project_root, workspace, tmp_path)
+
+    assert completed.returncode == 0, completed.stderr
+    assert outputs["status"] == "complete"
+    assert outputs["selected-results"] == "1"
+    assert outputs["completed-localizations"] == "1"
+    assert outputs["unique-review-paths"] == "1"
+    assert "app.py" in summary
+    assert "Synthetic example" not in summary
+
+
+def test_bandit_demo_workflow_is_manual_read_only_and_uploads_nothing(
+    project_root: Path,
+) -> None:
+    path = project_root / ".github" / "workflows" / "bandit-sarif-demo.yml"
+    source = path.read_text(encoding="utf-8")
+    workflow = yaml.load(source, Loader=yaml.BaseLoader)
+
+    assert set(workflow["on"]) == {"workflow_dispatch"}
+    assert workflow["permissions"] == {"contents": "read"}
+    job = workflow["jobs"]["run-synthetic-bandit-example"]
+    assert job["runs-on"] == "ubuntu-24.04"
+    assert job["timeout-minutes"] == "10"
+    assert job["steps"][0]["uses"] == ("actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1")
+    assert job["steps"][1]["uses"] == "./"
+    assert job["steps"][1]["with"]["upload-artifact"] == "false"
+    assert "pull_request:" not in source
+    assert "push:" not in source
