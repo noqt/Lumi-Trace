@@ -1,0 +1,39 @@
+name: Try Lumi on synthetic Bandit SARIF
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  run-synthetic-bandit-example:
+    name: Build a verified reviewer queue
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out this fork
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - id: lumi
+        name: Turn the supplied finding into a review queue
+        uses: ./
+        with:
+          sarif: examples/bandit-demo/bandit.sarif
+          repository: examples/bandit-demo/repository
+          output: .lumi-trace-bandit-demo
+          upload-artifact: "false"
+
+      - name: Check the bounded synthetic result
+        shell: bash
+        env:
+          LUMI_STATUS: ${{ steps.lumi.outputs.status }}
+          LUMI_SELECTED: ${{ steps.lumi.outputs.selected-results }}
+          LUMI_COMPLETED: ${{ steps.lumi.outputs.completed-localizations }}
+          LUMI_REVIEW_PATHS: ${{ steps.lumi.outputs.unique-review-paths }}
+        run: |
+          set -euo pipefail
+          test "$LUMI_STATUS" = complete
+          test "$LUMI_SELECTED" = 1
+          test "$LUMI_COMPLETED" = 1
+          test "$LUMI_REVIEW_PATHS" = 1
