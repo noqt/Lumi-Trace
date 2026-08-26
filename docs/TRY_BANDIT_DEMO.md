@@ -18,7 +18,8 @@ vulnerability is real, exploitable, fixed, or absent. Lumi does not execute the
 fixture, discover vulnerabilities, or send source to a NOQT service. Do not
 replace the fixture with private source or sensitive findings in a public fork.
 
-If it fails, ranks the wrong path, or explains the result badly, post the exact
-public run URL and a redacted description in the [public challenge](https://github.com/noqt/Lumi-Trace/issues/36).
-Do not post secrets, private paths, source, screenshots, raw logs, or live
-vulnerability details.
+If it fails, ranks the wrong path, explains the result badly, or never starts,
+[post the public run or exact blocker](https://github.com/noqt/Lumi-Trace/issues/new?template=bandit_demo_result.yml).
+The short form asks only what happened and where you got stuck. Do not post
+secrets, private paths, source, screenshots, raw logs, or live vulnerability
+details.

@@ -1,0 +1,43 @@
+name: Bandit demo result
+description: Share a public synthetic Bandit demo run or the exact blocker
+title: "[Bandit demo] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form only for the public synthetic Bandit walkthrough. Do not post private source, findings, paths, logs, screenshots, credentials, or vulnerability details.
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: What happened?
+      options:
+        - The workflow completed
+        - The workflow failed
+        - The ranking or explanation was unclear
+        - I could not start the workflow
+    validations:
+      required: true
+  - type: input
+    id: public_run_url
+    attributes:
+      label: Public workflow run URL
+      description: Link only to a public run using the unchanged synthetic fixture. Leave blank if you could not start it.
+      placeholder: https://github.com/OWNER/Lumi-Trace/actions/runs/...
+  - type: textarea
+    id: result
+    attributes:
+      label: Result or exact blocker
+      description: Say whether app.py ranked first, or name the exact step that blocked you. Redact sensitive text and do not paste raw logs.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Disclosure check
+      options:
+        - label: I used the unchanged public synthetic fixture, or the workflow did not start.
+          required: true
+        - label: I have not included secrets, private source, private paths, raw logs, screenshots, or vulnerability details.
+          required: true
+        - label: This is not a security vulnerability report.
+          required: true
