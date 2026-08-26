@@ -2,7 +2,7 @@
 
 Lumi turns an existing scanner finding into a short, verifiable source-review
 queue. This public demo uses a first-party synthetic Bandit-format SARIF file
-and an inert four-line Python fixture, so you can see the result without sharing
+and a tiny inert Python fixture, so you can see the result without sharing
 your code or installing anything locally.
 
 1. [Fork Lumi Trace](https://github.com/noqt/Lumi-Trace/fork).
