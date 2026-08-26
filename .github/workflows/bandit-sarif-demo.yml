@@ -37,3 +37,17 @@ jobs:
           test "$LUMI_SELECTED" = 1
           test "$LUMI_COMPLETED" = 1
           test "$LUMI_REVIEW_PATHS" = 1
+
+      - name: Make the next step obvious
+        shell: bash
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'MARKDOWN'
+
+          ## Tried it?
+
+          Tell us what happened in the short Bandit demo result form:
+          https://github.com/noqt/Lumi-Trace/issues/new?template=bandit_demo_result.yml
+
+          Share only a public run URL or exact blocker. Don't include secrets,
+          private paths, source, screenshots, raw logs, or live vulnerability details.
+          MARKDOWN
