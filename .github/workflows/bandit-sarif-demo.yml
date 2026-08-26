@@ -40,14 +40,18 @@ jobs:
 
       - name: Make the next step obvious
         shell: bash
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          cat >> "$GITHUB_STEP_SUMMARY" <<'MARKDOWN'
-
-          ## Tried it?
-
-          Tell us what happened in the short Bandit demo result form:
-          https://github.com/noqt/Lumi-Trace/issues/new?template=bandit_demo_result.yml
-
-          Share only a public run URL or exact blocker. Don't include secrets,
-          private paths, source, screenshots, raw logs, or live vulnerability details.
-          MARKDOWN
+          {
+            echo
+            echo "## Tried it?"
+            echo
+            echo "Your public demo run:"
+            echo "$RUN_URL"
+            echo
+            echo "Copy that link into the short Bandit demo result form, or tell us the exact blocker:"
+            echo "https://github.com/noqt/Lumi-Trace/issues/new?template=bandit_demo_result.yml"
+            echo
+            echo "Don't include secrets, private paths, source, screenshots, raw logs, or live vulnerability details."
+          } >> "$GITHUB_STEP_SUMMARY"

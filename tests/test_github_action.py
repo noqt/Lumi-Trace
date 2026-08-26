@@ -300,7 +300,12 @@ def test_bandit_demo_workflow_is_manual_read_only_and_uploads_nothing(
     assert job["steps"][1]["uses"] == "./"
     assert job["steps"][1]["with"]["upload-artifact"] == "false"
     assert job["steps"][3]["name"] == "Make the next step obvious"
-    assert 'cat >> "$GITHUB_STEP_SUMMARY"' in source
+    assert job["steps"][3]["env"]["RUN_URL"] == (
+        "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+    )
+    assert 'echo "$RUN_URL"' in source
+    assert '} >> "$GITHUB_STEP_SUMMARY"' in source
+    assert "Copy that link into the short Bandit demo result form" in source
     assert "https://github.com/noqt/Lumi-Trace/issues/new?template=bandit_demo_result.yml" in source
     assert "Don't include secrets" in source
     assert "pull_request:" not in source
