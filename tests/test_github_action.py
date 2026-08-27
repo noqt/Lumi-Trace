@@ -297,10 +297,23 @@ def test_bandit_demo_workflow_is_manual_read_only_and_uploads_nothing(
     assert job["runs-on"] == "ubuntu-24.04"
     assert job["timeout-minutes"] == "10"
     assert job["steps"][0]["uses"] == ("actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1")
-    assert job["steps"][1]["uses"] == "./"
-    assert job["steps"][1]["with"]["upload-artifact"] == "false"
-    assert job["steps"][3]["name"] == "Make the next step obvious"
-    assert job["steps"][3]["env"]["RUN_URL"] == (
+    assert job["steps"][1]["uses"] == (
+        "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405"
+    )
+    bandit_step = job["steps"][2]
+    assert bandit_step["name"] == "Generate a real Bandit SARIF report"
+    assert bandit_step["working-directory"] == "examples/bandit-demo/repository"
+    assert bandit_step["env"]["BANDIT_SARIF"] == ("${{ github.workspace }}/.lumi-bandit-demo.sarif")
+    assert '"bandit[sarif]==1.9.4"' in bandit_step["run"]
+    assert "--ignore-nosec" in bandit_step["run"]
+    assert "--tests B602" in bandit_step["run"]
+    assert "--recursive ." in bandit_step["run"]
+    assert 'test "$bandit_exit_code" -eq 1' in bandit_step["run"]
+    assert job["steps"][3]["uses"] == "./"
+    assert job["steps"][3]["with"]["sarif"] == ".lumi-bandit-demo.sarif"
+    assert job["steps"][3]["with"]["upload-artifact"] == "false"
+    assert job["steps"][5]["name"] == "Make the next step obvious"
+    assert job["steps"][5]["env"]["RUN_URL"] == (
         "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
     )
     assert 'echo "$RUN_URL"' in source
