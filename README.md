@@ -13,6 +13,10 @@ fork](docs/TRY_BANDIT_DEMO.md). There is no local setup, API key, private source
 or evidence upload. When you're done, [post the public run or exact
 blocker](https://github.com/noqt/Lumi-Trace/issues/new?template=bandit_demo_result.yml).
 
+Want to see the result before you fork it? [Open the latest successful demo
+run](https://github.com/noqt/Lumi-Trace/actions/workflows/bandit-sarif-demo.yml?query=branch%3Amain).
+It uses the bundled synthetic example and uploads no evidence file.
+
 This repository provides Trace functionality for Lumi as a local command-line
 tool for application-security engineers, software maintainers, and security
 reviewers. Give it an existing finding and a local Python repository or
