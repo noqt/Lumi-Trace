@@ -15,11 +15,39 @@ jobs:
       - name: Check out this fork
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Generate a real Bandit SARIF report
+        shell: bash
+        working-directory: examples/bandit-demo/repository
+        env:
+          BANDIT_SARIF: ${{ github.workspace }}/.lumi-bandit-demo.sarif
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-input "bandit[sarif]==1.9.4"
+
+          set +e
+          bandit \
+            --ignore-nosec \
+            --tests B602 \
+            --recursive . \
+            --format sarif \
+            --output "$BANDIT_SARIF"
+          bandit_exit_code=$?
+          set -e
+
+          # One synthetic finding is the expected input, not a failed demo.
+          test "$bandit_exit_code" -eq 1
+          test -s "$BANDIT_SARIF"
+
       - id: lumi
-        name: Turn the supplied finding into a review queue
+        name: Turn Bandit's finding into a review queue
         uses: ./
         with:
-          sarif: examples/bandit-demo/bandit.sarif
+          sarif: .lumi-bandit-demo.sarif
           repository: examples/bandit-demo/repository
           output: .lumi-trace-bandit-demo
           upload-artifact: "false"

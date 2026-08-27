@@ -1,17 +1,17 @@
 # Try Lumi on Bandit SARIF
 
 Lumi turns an existing scanner finding into a short, verifiable source-review
-queue. This public demo uses a first-party synthetic Bandit-format SARIF file
-and a tiny inert Python fixture, so you can see the result without sharing
-your code or installing anything locally.
+queue. This public demo runs Bandit 1.9.4 against a tiny inert Python fixture,
+then sends the real SARIF result through Lumi. You can see the whole handoff
+without sharing your code or installing anything locally.
 
 1. [Fork Lumi Trace](https://github.com/noqt/Lumi-Trace/fork).
 2. In your fork, enable **Actions** if GitHub asks you to.
 3. Open **Actions -> Try Lumi on synthetic Bandit SARIF -> Run workflow**.
 
-The job should finish with one completed localisation and put `app.py` first in
-the review queue. The workflow uploads no artifact. GitHub retains its normal
-workflow logs and job summary.
+The job should find one synthetic Bandit issue, finish one Lumi localisation,
+and put `app.py` first in the review queue. The workflow uploads no artifact.
+GitHub retains its normal workflow logs and job summary.
 
 This is a synthetic product walkthrough, not a scanner run or proof that a
 vulnerability is real, exploitable, fixed, or absent. Lumi does not execute the
