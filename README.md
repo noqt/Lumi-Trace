@@ -2,20 +2,18 @@
 
 **Turn a known security finding into ranked source locations and a verifiable evidence package—without uploading your repository.**
 
-> **Break Lumi before you trust it.** Fork this repository, run the
-> [no-local-setup synthetic AppSec demo](https://github.com/noqt/Lumi-Trace/blob/main/docs/experiments/lumi-python-appsec-context-v1.md),
-> and report irrelevant rankings, missing evidence, blocked setup, or
-> reproducible defects in [the public challenge](https://github.com/noqt/Lumi-Trace/issues/36).
-> A useful failure report is more valuable than a star.
+> **Watch the real scanner-to-review handoff.** [See the passing Bandit
+> run](https://github.com/noqt/Lumi-Trace/actions/workflows/bandit-sarif-demo.yml?query=branch%3Amain),
+> then [fork Lumi Trace](https://github.com/noqt/Lumi-Trace/fork) and open
+> **Actions -> Try Lumi on synthetic Bandit SARIF -> Run workflow**. Bandit
+> 1.9.4 scans the inert fixture before Lumi ranks it. There is no local install,
+> API key, private source, or evidence upload.
 
-Already use Bandit? [Try Lumi on a synthetic Bandit SARIF file in your GitHub
-fork](docs/TRY_BANDIT_DEMO.md). There is no local setup, API key, private source,
-or evidence upload. When you're done, [post the public run or exact
-blocker](https://github.com/noqt/Lumi-Trace/issues/new?template=bandit_demo_result.yml).
-
-Want to see the result before you fork it? [Open the latest successful demo
-run](https://github.com/noqt/Lumi-Trace/actions/workflows/bandit-sarif-demo.yml?query=branch%3Amain).
-It uses the bundled synthetic example and uploads no evidence file.
+If Lumi ranks the wrong path, explains the result badly, or doesn't run,
+[send us the public run or exact blocker](https://github.com/noqt/Lumi-Trace/issues/new?template=bandit_demo_result.yml).
+A useful failure report is more valuable than a star. The
+[three-step guide](https://github.com/noqt/Lumi-Trace/blob/main/docs/TRY_BANDIT_DEMO.md)
+shows the full flow.
 
 This repository provides Trace functionality for Lumi as a local command-line
 tool for application-security engineers, software maintainers, and security
