@@ -312,12 +312,22 @@ def test_bandit_demo_workflow_is_manual_read_only_and_uploads_nothing(
     assert job["steps"][3]["uses"] == "./"
     assert job["steps"][3]["with"]["sarif"] == ".lumi-bandit-demo.sarif"
     assert job["steps"][3]["with"]["upload-artifact"] == "false"
-    assert job["steps"][5]["name"] == "Make the next step obvious"
+    assert job["steps"][5]["name"] == "Explain the result and invite feedback"
+    assert job["steps"][5]["env"]["LUMI_SELECTED"] == ("${{ steps.lumi.outputs.selected-results }}")
+    assert job["steps"][5]["env"]["LUMI_COMPLETED"] == (
+        "${{ steps.lumi.outputs.completed-localizations }}"
+    )
+    assert job["steps"][5]["env"]["LUMI_REVIEW_PATHS"] == (
+        "${{ steps.lumi.outputs.unique-review-paths }}"
+    )
     assert job["steps"][5]["env"]["RUN_URL"] == (
         "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
     )
     assert 'echo "$RUN_URL"' in source
     assert '} >> "$GITHUB_STEP_SUMMARY"' in source
+    assert "## What Lumi did" in source
+    assert "Scanner finding in. Focused review queue out." in source
+    assert "This walkthrough doesn't claim a real vulnerability exists." in source
     assert "Copy that link into the short Bandit demo result form" in source
     assert "https://github.com/noqt/Lumi-Trace/issues/new?template=bandit_demo_result.yml" in source
     assert "Don't include secrets" in source
