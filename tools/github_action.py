@@ -24,6 +24,7 @@ if str(SOURCE_ROOT) not in sys.path:
 
 from lumi_trace.canonical import load_json  # noqa: E402
 from lumi_trace.cli import main as cli_main  # noqa: E402
+from lumi_trace.errors import InputError, IntegrityError  # noqa: E402
 from lumi_trace.triage import TRIAGE_PARTIAL_SUCCESS_EXIT_CODE, verify_triage_package  # noqa: E402
 
 SEVERITY_ORDER = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
@@ -210,7 +211,7 @@ def _load_verified_package(output: Path, cli_exit_code: int) -> VerifiedPackage 
         summary = load_json(output / "triage-summary.json")
         queue_document = load_json(output / "review-queue.json")
         normalized_document = load_json(output / "normalized-findings.json")
-    except (OSError, ValueError):
+    except (InputError, IntegrityError, OSError, ValueError):
         return None
     if (
         not isinstance(summary, dict)

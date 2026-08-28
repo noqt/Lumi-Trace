@@ -15,6 +15,7 @@ from types import ModuleType
 import pytest
 import yaml
 
+from lumi_trace.errors import InputError, IntegrityError
 from lumi_trace.triage import verify_triage_package
 
 
@@ -260,6 +261,94 @@ def test_action_integrity_failure_excludes_verifier_exception(
     assert "could not verify the generated evidence package" in summary
     assert secret not in summary
     assert str(workspace) not in summary
+
+
+@pytest.mark.parametrize(
+    ("invalid_state", "expected_exception"),
+    [
+        ("missing-package", None),
+        ("missing-manifest", InputError),
+        ("tampered-manifest", IntegrityError),
+    ],
+)
+def test_action_maps_real_package_integrity_failures_to_safe_remediation(
+    project_root: Path,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    invalid_state: str,
+    expected_exception: type[Exception] | None,
+) -> None:
+    module = _action_module(project_root)
+    workspace = _consumer_workspace(project_root, tmp_path)
+    output = tmp_path / "github-output.txt"
+    summary_path = tmp_path / "github-summary.md"
+    for name, value in {
+        "GITHUB_WORKSPACE": str(workspace),
+        "GITHUB_OUTPUT": str(output),
+        "GITHUB_STEP_SUMMARY": str(summary_path),
+        "LUMI_TRACE_ACTION_SARIF": "findings.sarif",
+        "LUMI_TRACE_ACTION_REPOSITORY": "repository",
+        "LUMI_TRACE_ACTION_OUTPUT": ".lumi-trace",
+        "LUMI_TRACE_ACTION_TOP_K": "10",
+        "LUMI_TRACE_ACTION_MAX_FINDINGS": "100",
+        "LUMI_TRACE_ACTION_FAIL_ON_PARTIAL": "true",
+        "LUMI_TRACE_ACTION_FAIL_ON_SEVERITY": "none",
+        "LUMI_TRACE_ACTION_ARTIFACT_NAME": "lumi-trace-evidence",
+    }.items():
+        monkeypatch.setenv(name, value)
+
+    real_cli_main = module.cli_main
+    package_path = workspace / ".lumi-trace"
+
+    def cli_with_invalid_package(argv: list[str]) -> int:
+        exit_code = real_cli_main(argv)
+        assert exit_code == 0
+        if invalid_state == "missing-package":
+            package_path.rename(workspace / ".withheld-lumi-trace")
+        elif invalid_state == "missing-manifest":
+            (package_path / "manifest.json").rename(workspace / "withheld-manifest.json")
+        else:
+            manifest_path = package_path / "manifest.json"
+            manifest = json.loads(manifest_path.read_text("utf-8"))
+            manifest["package_id"] = f"triage-package:{'0' * 64}"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        return exit_code
+
+    observed_exceptions: list[Exception] = []
+    real_verify_package = module.verify_triage_package
+
+    def observe_verification(path: Path) -> None:
+        try:
+            real_verify_package(path)
+        except (InputError, IntegrityError) as error:
+            observed_exceptions.append(error)
+            raise
+
+    monkeypatch.setattr(module, "cli_main", cli_with_invalid_package)
+    monkeypatch.setattr(module, "verify_triage_package", observe_verification)
+    assert module.main() == 0
+
+    outputs = _parse_outputs(output)
+    summary = summary_path.read_text("utf-8")
+    assert outputs == {
+        "status": "integrity-failure",
+        "exit-code": "2",
+        "selected-results": "",
+        "completed-localizations": "",
+        "result-local-errors": "",
+        "unique-review-paths": "",
+        "evidence-path": "",
+        "package-ready": "false",
+        "artifact-name": "lumi-trace-evidence",
+    }
+    if expected_exception is None:
+        assert observed_exceptions == []
+    else:
+        assert [type(error) for error in observed_exceptions] == [expected_exception]
+        assert all(str(error) not in summary for error in observed_exceptions)
+    assert "could not verify the generated evidence package" in summary
+    assert str(workspace) not in summary
+    assert "traceback" not in summary.casefold()
 
 
 def test_action_unexpected_failure_uses_only_generic_allowlisted_reason(
