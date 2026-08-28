@@ -63,7 +63,7 @@ lumi-trace triage \
 
 `--top-k` defaults to ten unique paths per completed finding. `--max-findings` defaults to 100 and may not exceed 1,000. The command fails before repository localisation if its selected result count or requested aggregate contribution bound is too large; it never silently truncates results.
 
-Malformed individual results are recorded as `NORMALIZATION_FAILED` or `LOCALIZATION_FAILED` error artifacts. Valid results still complete and the package verifies, but the command exits with code `5` for that partial-success state. Exit `0` means every selected result completed. Queue order is a deterministic review priority, not probability or exploitability.
+Malformed individual results are recorded as `NORMALIZATION_FAILED` or `LOCALIZATION_FAILED` error artifacts. Valid results still complete and the package verifies, but the command exits with code `5` for that partial-success state. A valid SARIF report with no results produces a verified package with zero counts and an empty queue. Exit `0` means every selected result completed, including the valid empty case. An empty result is not evidence that the repository is secure. Queue order is a deterministic review priority, not probability or exploitability.
 
 ### GitHub Actions wrapper
 

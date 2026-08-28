@@ -76,12 +76,16 @@ jobs:
         env:
           STATUS: ${{ steps.lumi.outputs.status }}
           EXIT_CODE: ${{ steps.lumi.outputs.exit-code }}
+          SELECTED_RESULTS: ${{ steps.lumi.outputs.selected-results }}
+          PACKAGE_READY: ${{ steps.lumi.outputs.package-ready }}
           EVIDENCE_PATH: ${{ steps.lumi.outputs.evidence-path }}
           ARTIFACT_ID: ${{ steps.lumi.outputs.artifact-id }}
         run: |
           set -euo pipefail
           test "$STATUS" = complete
           test "$EXIT_CODE" = 0
+          test "$SELECTED_RESULTS" = 1
+          test "$PACKAGE_READY" = true
           test "$EVIDENCE_PATH" = .lumi-trace-action-evidence
           test -n "$ARTIFACT_ID"
 

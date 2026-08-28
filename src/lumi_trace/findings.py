@@ -614,8 +614,6 @@ def import_sarif_batch(
         context = _sarif_run_context(run)
         contexts.append(context)
         selected_count += len(context[2])
-    if selected_count == 0:
-        raise InputError("SARIF input contains no results")
     if selected_count > max_findings:
         raise InputError(
             "SARIF selection contains "
