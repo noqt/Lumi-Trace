@@ -12,6 +12,7 @@ from copy import deepcopy
 from pathlib import Path
 from types import ModuleType
 
+import pytest
 import yaml
 
 from lumi_trace.triage import verify_triage_package
@@ -42,6 +43,25 @@ def _consumer_workspace(project_root: Path, tmp_path: Path, *, partial: bool = F
         source["runs"][0]["results"].append(invalid)
     (workspace / "findings.sarif").write_text(json.dumps(source), encoding="utf-8")
     return workspace
+
+
+def _bandit_workspace(project_root: Path, tmp_path: Path, *, result_count: int) -> Path:
+    workspace = tmp_path / "consumer"
+    workspace.mkdir(parents=True)
+    fixture = project_root / "examples" / "bandit-demo"
+    shutil.copytree(fixture / "repository", workspace / "repository")
+    source = json.loads((fixture / "bandit.sarif").read_text("utf-8"))
+    source["runs"][0]["results"] = source["runs"][0]["results"][:result_count]
+    (workspace / "findings.sarif").write_text(json.dumps(source), encoding="utf-8")
+    return workspace
+
+
+def _package_bytes(path: Path) -> dict[str, bytes]:
+    return {
+        item.relative_to(path).as_posix(): item.read_bytes()
+        for item in sorted(path.rglob("*"))
+        if item.is_file()
+    }
 
 
 def _parse_outputs(path: Path) -> dict[str, str]:
@@ -177,8 +197,132 @@ def test_action_rejects_workspace_escape_without_echoing_untrusted_input(
     assert outputs["status"] == "input-error"
     assert outputs["exit-code"] == "2"
     assert outputs["package-ready"] == "false"
+    assert "Check the Action paths and bounded input values" in summary
     assert "::warning::" not in summary
+    assert str(workspace) not in summary
     assert not (workspace / ".lumi-trace").exists()
+
+
+def test_action_fatal_failure_excludes_sarif_content_credentials_and_paths(
+    project_root: Path, tmp_path: Path
+) -> None:
+    workspace = _consumer_workspace(project_root, tmp_path)
+    secret = "credential-value-must-not-appear-7421"
+    (workspace / "findings.sarif").write_text(
+        json.dumps({"version": "2.1.0", "runs": [], "credential": secret}), encoding="utf-8"
+    )
+
+    completed, outputs, summary = _run_action(project_root, workspace, tmp_path)
+
+    assert completed.returncode == 0, completed.stderr
+    assert outputs["status"] == "fatal-error"
+    assert outputs["exit-code"] == "2"
+    assert outputs["package-ready"] == "false"
+    assert "Validate the local SARIF 2.1.0 input and repository" in summary
+    assert secret not in summary
+    assert str(workspace) not in summary
+    assert "traceback" not in summary.casefold()
+
+
+def test_action_integrity_failure_excludes_verifier_exception(
+    project_root: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _action_module(project_root)
+    workspace = _consumer_workspace(project_root, tmp_path)
+    secret = "credential=integrity-secret"
+    output = tmp_path / "github-output.txt"
+    summary_path = tmp_path / "github-summary.md"
+    for name, value in {
+        "GITHUB_WORKSPACE": str(workspace),
+        "GITHUB_OUTPUT": str(output),
+        "GITHUB_STEP_SUMMARY": str(summary_path),
+        "LUMI_TRACE_ACTION_SARIF": "findings.sarif",
+        "LUMI_TRACE_ACTION_REPOSITORY": "repository",
+        "LUMI_TRACE_ACTION_OUTPUT": ".lumi-trace",
+        "LUMI_TRACE_ACTION_TOP_K": "10",
+        "LUMI_TRACE_ACTION_MAX_FINDINGS": "100",
+        "LUMI_TRACE_ACTION_FAIL_ON_PARTIAL": "true",
+        "LUMI_TRACE_ACTION_FAIL_ON_SEVERITY": "none",
+        "LUMI_TRACE_ACTION_ARTIFACT_NAME": "lumi-trace-evidence",
+    }.items():
+        monkeypatch.setenv(name, value)
+
+    def reject_package(_path: Path) -> None:
+        raise ValueError(f"{secret}\n{workspace}")
+
+    monkeypatch.setattr(module, "verify_triage_package", reject_package)
+    assert module.main() == 0
+
+    outputs = _parse_outputs(output)
+    summary = summary_path.read_text("utf-8")
+    assert outputs["status"] == "integrity-failure"
+    assert outputs["package-ready"] == "false"
+    assert "could not verify the generated evidence package" in summary
+    assert secret not in summary
+    assert str(workspace) not in summary
+
+
+def test_action_unexpected_failure_uses_only_generic_allowlisted_reason(
+    project_root: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _action_module(project_root)
+    workspace = _consumer_workspace(project_root, tmp_path)
+    secret = "adapter-secret-must-not-appear"
+    monkeypatch.setenv("ACTIONS_RUNTIME_TOKEN", secret)
+    output = tmp_path / "github-output.txt"
+    summary_path = tmp_path / "github-summary.md"
+    for name, value in {
+        "GITHUB_WORKSPACE": str(workspace),
+        "GITHUB_OUTPUT": str(output),
+        "GITHUB_STEP_SUMMARY": str(summary_path),
+        "LUMI_TRACE_ACTION_SARIF": "findings.sarif",
+        "LUMI_TRACE_ACTION_REPOSITORY": "repository",
+        "LUMI_TRACE_ACTION_OUTPUT": ".lumi-trace",
+        "LUMI_TRACE_ACTION_TOP_K": "10",
+        "LUMI_TRACE_ACTION_MAX_FINDINGS": "100",
+        "LUMI_TRACE_ACTION_FAIL_ON_PARTIAL": "true",
+        "LUMI_TRACE_ACTION_FAIL_ON_SEVERITY": "none",
+        "LUMI_TRACE_ACTION_ARTIFACT_NAME": "lumi-trace-evidence",
+    }.items():
+        monkeypatch.setenv(name, value)
+
+    def fail_unexpectedly(_argv: list[str]) -> int:
+        raise RuntimeError(
+            f"ACTIONS_RUNTIME_TOKEN={os.environ['ACTIONS_RUNTIME_TOKEN']}\n"
+            f"{workspace}\n::error::do not render"
+        )
+
+    monkeypatch.setattr(module, "cli_main", fail_unexpectedly)
+    assert module.main() == 0
+
+    outputs = _parse_outputs(output)
+    summary = summary_path.read_text("utf-8")
+    assert outputs["status"] == "adapter-error"
+    assert outputs["package-ready"] == "false"
+    assert "The Lumi Trace Action stopped unexpectedly" in summary
+    assert secret not in summary
+    assert str(workspace) not in summary
+    assert "::error::" not in summary
+    assert "traceback" not in summary.casefold()
+
+
+def test_failure_reason_rendering_is_allowlisted_escaped_single_line_and_bounded(
+    project_root: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _action_module(project_root)
+    injected = "<tag>|`[x](y)\r\n::error::" + ("x" * 1_000)
+    monkeypatch.setitem(module.FAILURE_REASON_TEMPLATES, "adapter-error", injected)
+
+    rendered = module._render_failure_reason("adapter-error")
+
+    assert len(rendered) <= module.MAX_FAILURE_REASON_LENGTH
+    assert "\n" not in rendered and "\r" not in rendered
+    assert "<" not in rendered
+    assert "|" not in rendered.replace("\\|", "")
+    assert "`" not in rendered.replace("\\`", "")
+    assert module._render_failure_reason("unknown-secret-code") == module._render_failure_reason(
+        "adapter-error-unknown"
+    )
 
 
 def test_action_escapes_summary_cells_and_declares_only_safe_shelling(project_root: Path) -> None:
@@ -215,6 +359,9 @@ def test_composite_action_is_pinned_and_uses_adapter_outputs(project_root: Path)
     assert "github.workspace" in steps[2]["with"]["path"]
     assert steps[2]["with"]["include-hidden-files"] is True
     assert "github_action.py" in steps[1]["run"]
+    assert action["outputs"]["package-ready"]["value"] == (
+        "${{ steps.triage.outputs.package-ready }}"
+    )
 
 
 def test_action_source_is_retained_in_the_source_distribution(project_root: Path) -> None:
@@ -264,24 +411,38 @@ def test_python_appsec_worked_example_links_fork_and_run_workflow(project_root: 
     assert "does not create a second activation" in page
 
 
-def test_bandit_demo_fixture_produces_one_verified_review_path(
-    project_root: Path, tmp_path: Path
+@pytest.mark.parametrize(("result_count", "expected_paths"), [(0, 0), (1, 1)])
+def test_bandit_action_is_deterministic_for_empty_and_nonempty_sarif(
+    project_root: Path, tmp_path: Path, result_count: int, expected_paths: int
 ) -> None:
-    workspace = tmp_path / "bandit-demo"
-    workspace.mkdir(parents=True)
-    fixture = project_root / "examples" / "bandit-demo"
-    shutil.copy2(fixture / "bandit.sarif", workspace / "findings.sarif")
-    shutil.copytree(fixture / "repository", workspace / "repository")
+    attempts: list[tuple[dict[str, str], str, dict[str, bytes]]] = []
+    for label in ("first", "second"):
+        attempt = tmp_path / label
+        workspace = _bandit_workspace(project_root, attempt, result_count=result_count)
+        completed, outputs, summary = _run_action(project_root, workspace, attempt)
+        assert completed.returncode == 0, completed.stderr
+        package = workspace / ".lumi-trace"
+        verify_triage_package(package)
+        attempts.append((outputs, summary, _package_bytes(package)))
 
-    completed, outputs, summary = _run_action(project_root, workspace, tmp_path)
-
-    assert completed.returncode == 0, completed.stderr
+    outputs, summary, package = attempts[0]
     assert outputs["status"] == "complete"
-    assert outputs["selected-results"] == "1"
-    assert outputs["completed-localizations"] == "1"
-    assert outputs["unique-review-paths"] == "1"
-    assert "app.py" in summary
-    assert "Synthetic example" not in summary
+    assert outputs["exit-code"] == "0"
+    assert outputs["selected-results"] == str(result_count)
+    assert outputs["completed-localizations"] == str(result_count)
+    assert outputs["result-local-errors"] == "0"
+    assert outputs["unique-review-paths"] == str(expected_paths)
+    assert outputs["package-ready"] == "true"
+    assert attempts[1][0] == outputs
+    assert attempts[1][1] == summary
+    assert attempts[1][2] == package
+    if result_count == 0:
+        assert json.loads(package["review-queue.json"])["entries"] == []
+        assert "Bandit reported no findings" in summary
+        assert "does not mean the repository is secure" in summary
+    else:
+        assert "app.py" in summary
+        assert "Synthetic example" not in summary
 
 
 def test_bandit_demo_workflow_is_manual_read_only_and_uploads_nothing(

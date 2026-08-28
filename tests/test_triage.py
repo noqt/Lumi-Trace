@@ -32,6 +32,82 @@ def _multi_result_sarif(project_root: Path, destination: Path) -> Path:
     return destination
 
 
+def _empty_sarif(project_root: Path, destination: Path) -> Path:
+    source = json.loads((project_root / "tests" / "data" / "finding.sarif").read_text("utf-8"))
+    source["runs"][0]["results"] = []
+    destination.write_text(json.dumps(source), encoding="utf-8")
+    return destination
+
+
+def test_triage_accepts_empty_sarif_as_verified_complete_package(
+    tmp_path: Path, project_root: Path
+) -> None:
+    repository = project_root / "tests" / "fixtures" / "localization-repository"
+    sarif = _empty_sarif(project_root, tmp_path / "empty.sarif")
+    output = tmp_path / "empty-triage"
+
+    result = triage_sarif(
+        sarif_path=sarif,
+        repository_source=repository,
+        output_directory=output,
+        implementation_revision="fixture-revision",
+    )
+
+    assert result["exit_code"] == 0
+    verify_triage_package(output)
+    assert load_json(output / "triage-summary.json") == {
+        "artifact_type": "summary",
+        "completed_localizations": 0,
+        "exit_code": 0,
+        "exit_status": "complete",
+        "localization_abstentions": 0,
+        "queue_order_is_not_probability": True,
+        "result_local_errors": 0,
+        "schema_version": "batch-triage-package-v1",
+        "selected_results": 0,
+        "unique_review_paths": 0,
+    }
+    assert load_json(output / "normalized-findings.json")["findings"] == []
+    assert load_json(output / "review-queue.json")["entries"] == []
+    projected = load_json(output / "triage.sarif")
+    assert projected["runs"][0]["tool"]["driver"]["rules"] == []
+    assert projected["runs"][0]["results"] == []
+    assert main(["verify", str(output)]) == 0
+
+
+def test_triage_cli_reports_empty_complete_and_verifies(
+    tmp_path: Path,
+    project_root: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    repository = project_root / "tests" / "fixtures" / "localization-repository"
+    sarif = _empty_sarif(project_root, tmp_path / "empty.sarif")
+    output = tmp_path / "empty-cli-triage"
+
+    assert (
+        main(
+            [
+                "triage",
+                "--sarif",
+                str(sarif),
+                "--repository",
+                str(repository),
+                "--output",
+                str(output),
+            ]
+        )
+        == 0
+    )
+    captured = capsys.readouterr()
+    machine_summary = json.loads(captured.out)
+    assert machine_summary["command"] == "triage"
+    assert machine_summary["selected_results"] == 0
+    assert machine_summary["unique_review_paths"] == 0
+    assert machine_summary["exit_status"] == "complete"
+    assert "0 selected; 0 completed; 0 error" in captured.err
+    assert main(["verify", str(output)]) == 0
+
+
 def test_triage_preserves_single_finding_candidates_and_partial_success(
     tmp_path: Path, project_root: Path
 ) -> None:

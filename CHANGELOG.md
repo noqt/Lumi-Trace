@@ -4,6 +4,21 @@ This file records user-visible changes to Lumi Trace.
 
 Detailed research history, internal experiment records, and release-approval notes belong in a separate research or maintainer archive rather than the product changelog.
 
+## Unreleased
+
+### Fixed
+
+- Treat valid SARIF reports with no results as successful verified empty triage
+  packages, with zero counts and an empty review queue.
+- Expose the Action's verified `package-ready` state to callers and show only
+  bounded, allow-listed failure guidance in GitHub job summaries.
+
+### Security
+
+- Action failure summaries exclude arbitrary exception text, raw SARIF,
+  findings, tracebacks, credentials, environment values, and absolute workspace
+  paths.
+
 ## 0.10.1 - 2026-08-25
 
 ### Fixed
