@@ -35,6 +35,21 @@ permissions:
 The consumer workflow remains responsible for checkout and for producing the
 SARIF file. Lumi Trace never installs or runs a scanner.
 
+## Pull requests from forks
+
+GitHub may hold workflow runs from public-fork pull requests until a maintainer
+with write access reviews the workflow change and selects **Approve workflows to
+run**. That is a GitHub Actions control, not a Lumi permission or account step.
+See GitHub's guide to [approving workflow runs from forks][approve-fork-runs].
+
+For a first optional trial that must not change the job's pass or fail result,
+add `continue-on-error: true` to the Lumi step. After the workflow finishes, open
+its run summary and select the job. Lumi's bounded reviewer queue appears in the
+job summary; no Lumi evidence artifact is uploaded unless `upload-artifact: true`
+is set explicitly.
+
+[approve-fork-runs]: https://docs.github.com/en/actions/how-tos/manage-workflow-runs/approve-runs-from-forks
+
 ## Policy and evidence example
 
 This example keeps a verified evidence package as a private workflow artifact
