@@ -24,6 +24,7 @@ if str(SOURCE_ROOT) not in sys.path:
 
 from lumi_trace.canonical import load_json  # noqa: E402
 from lumi_trace.cli import main as cli_main  # noqa: E402
+from lumi_trace.errors import InputError, IntegrityError  # noqa: E402
 from lumi_trace.triage import TRIAGE_PARTIAL_SUCCESS_EXIT_CODE, verify_triage_package  # noqa: E402
 
 SEVERITY_ORDER = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
@@ -39,6 +40,37 @@ OUTPUT_KEYS = (
     "package-ready",
     "artifact-name",
 )
+MAX_FAILURE_REASON_LENGTH = 240
+FAILURE_REASON_TEMPLATES = {
+    "action-input": (
+        "Check the Action paths and bounded input values against the documented inputs, then rerun."
+    ),
+    "triage-input": (
+        "Lumi Trace could not process the supplied inputs. Validate the local SARIF 2.1.0 "
+        "input and repository, then rerun."
+    ),
+    "triage-unsupported": (
+        "Lumi Trace does not support part of the supplied local input. Check the documented "
+        "SARIF and repository limits, then rerun."
+    ),
+    "triage-integrity": (
+        "Lumi Trace detected an input integrity failure. Recreate the local inputs from a "
+        "trusted source, then rerun."
+    ),
+    "package-integrity": (
+        "Lumi Trace could not verify the generated evidence package. Remove the output "
+        "directory and rerun; if this persists, report a bug without attaching evidence."
+    ),
+    "adapter-error": (
+        "The Lumi Trace Action stopped unexpectedly. Rerun the job; if this persists, report "
+        "a bug without attaching logs, findings, credentials, or private paths."
+    ),
+    "adapter-error-unknown": (
+        "The Lumi Trace Action stopped unexpectedly. Rerun the job; if this persists, report "
+        "a bug without attaching logs, findings, credentials, or private paths."
+    ),
+}
+ALLOWLISTED_SCANNER_NAMES = {"bandit": "Bandit"}
 
 
 class ActionConfigurationError(ValueError):
@@ -179,7 +211,7 @@ def _load_verified_package(output: Path, cli_exit_code: int) -> VerifiedPackage 
         summary = load_json(output / "triage-summary.json")
         queue_document = load_json(output / "review-queue.json")
         normalized_document = load_json(output / "normalized-findings.json")
-    except (OSError, ValueError):
+    except (InputError, IntegrityError, OSError, ValueError):
         return None
     if (
         not isinstance(summary, dict)
@@ -227,20 +259,68 @@ def _escape_markdown_cell(value: object) -> str:
     return text
 
 
+def _render_failure_reason(reason_code: str) -> str:
+    """Render only a source-owned reason template, never exception or input text."""
+
+    template = FAILURE_REASON_TEMPLATES.get(
+        reason_code, FAILURE_REASON_TEMPLATES["adapter-error-unknown"]
+    )
+    single_line = " ".join(str(template).splitlines()).strip()
+    rendered = _escape_markdown_cell(single_line)
+    if len(rendered) > MAX_FAILURE_REASON_LENGTH:
+        rendered = rendered[: MAX_FAILURE_REASON_LENGTH - 1].rstrip("\\") + "…"
+    return rendered
+
+
+def _cli_failure_reason(cli_exit_code: int) -> str:
+    return {
+        2: "triage-input",
+        3: "triage-unsupported",
+        4: "triage-integrity",
+    }.get(cli_exit_code, "adapter-error-unknown")
+
+
+def _allowlisted_scanner_subject(sarif_path: Path) -> str:
+    """Return a fixed scanner label without rendering untrusted SARIF metadata."""
+
+    try:
+        document = load_json(sarif_path)
+    except (OSError, ValueError):
+        return "The upstream scanner"
+    runs = document.get("runs") if isinstance(document, dict) else None
+    if not isinstance(runs, list) or not runs:
+        return "The upstream scanner"
+    labels: list[str] = []
+    for run in runs:
+        tool = run.get("tool") if isinstance(run, dict) else None
+        driver = tool.get("driver") if isinstance(tool, dict) else None
+        name = driver.get("name") if isinstance(driver, dict) else None
+        label = ALLOWLISTED_SCANNER_NAMES.get(name.casefold()) if isinstance(name, str) else None
+        if label is None:
+            return "The upstream scanner"
+        labels.append(label)
+    if labels and len(set(labels)) == 1:
+        return labels[0]
+    return "The upstream scanners"
+
+
 def _write_job_summary(
     config: ActionConfig,
     package: VerifiedPackage | None,
     *,
     status: str,
     policy_triggered: bool,
+    failure_reason_code: str | None,
 ) -> None:
     config.github_summary.parent.mkdir(parents=True, exist_ok=True)
     lines = ["## Lumi Trace review summary", "", f"**Status:** `{status}`", ""]
     if package is None:
+        reason = _render_failure_reason(failure_reason_code or "adapter-error-unknown")
         lines.extend(
             [
+                f"**Why it stopped:** {reason}",
+                "",
                 "Lumi Trace did not produce a verified evidence package.",
-                "Check the action inputs and the bounded Lumi Trace result in this job.",
             ]
         )
     else:
@@ -277,6 +357,15 @@ def _write_job_summary(
                 lines.append(f"| {rank} | {path} | {severity} | {finding_count} | {best_rank} |")
             lines.append("")
         lines.append(f"**Verified evidence:** `{_escape_markdown_cell(relative_output)}`")
+        if selected == 0:
+            scanner = _allowlisted_scanner_subject(config.sarif)
+            lines.extend(
+                [
+                    "",
+                    f"**No findings:** {scanner} reported no findings in the supplied SARIF. "
+                    "This does not mean the repository is secure.",
+                ]
+            )
         if policy_triggered:
             lines.append("**CI policy:** configured scanner-severity threshold triggered.")
         lines.extend(
@@ -325,8 +414,15 @@ def _finish(
     status: str,
     exit_code: int,
     policy_triggered: bool,
+    failure_reason_code: str | None,
 ) -> None:
-    _write_job_summary(config, package, status=status, policy_triggered=policy_triggered)
+    _write_job_summary(
+        config,
+        package,
+        status=status,
+        policy_triggered=policy_triggered,
+        failure_reason_code=failure_reason_code,
+    )
     summary = package.summary if package is not None else {}
     relative_output = ""
     if package is not None:
@@ -375,7 +471,19 @@ def main() -> int:
                 if cli_exit_code in {0, TRIAGE_PARTIAL_SUCCESS_EXIT_CODE}
                 else "fatal-error"
             )
-            _finish(config, None, status=status, exit_code=2, policy_triggered=False)
+            failure_reason_code = (
+                "package-integrity"
+                if status == "integrity-failure"
+                else _cli_failure_reason(cli_exit_code)
+            )
+            _finish(
+                config,
+                None,
+                status=status,
+                exit_code=2,
+                policy_triggered=False,
+                failure_reason_code=failure_reason_code,
+            )
             return 0
         policy_triggered = _triggered_by_severity(package, config.fail_on_severity)
         if cli_exit_code == TRIAGE_PARTIAL_SUCCESS_EXIT_CODE and config.fail_on_partial:
@@ -392,17 +500,32 @@ def main() -> int:
             status=status,
             exit_code=final_exit_code,
             policy_triggered=policy_triggered,
+            failure_reason_code=None,
         )
     except ActionConfigurationError:
         fallback = config or _minimal_config_for_error()
         if fallback is None:
             return 2
-        _finish(fallback, None, status="input-error", exit_code=2, policy_triggered=False)
+        _finish(
+            fallback,
+            None,
+            status="input-error",
+            exit_code=2,
+            policy_triggered=False,
+            failure_reason_code="action-input",
+        )
     except Exception:
         fallback = config or _minimal_config_for_error()
         if fallback is None:
             return 2
-        _finish(fallback, None, status="adapter-error", exit_code=2, policy_triggered=False)
+        _finish(
+            fallback,
+            None,
+            status="adapter-error",
+            exit_code=2,
+            policy_triggered=False,
+            failure_reason_code="adapter-error",
+        )
     return 0
 
 

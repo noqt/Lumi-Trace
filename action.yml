@@ -62,6 +62,9 @@ outputs:
   evidence-path:
     description: Workspace-relative path of a verified evidence package.
     value: ${{ steps.triage.outputs.evidence-path }}
+  package-ready:
+    description: Whether evidence-path names a package verified by Lumi Trace.
+    value: ${{ steps.triage.outputs.package-ready }}
   artifact-id:
     description: GitHub artifact identifier when upload-artifact is true.
     value: ${{ steps.upload.outputs.artifact-id }}
