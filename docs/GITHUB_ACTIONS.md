@@ -86,12 +86,23 @@ directories before triage begins.
 
 The action exposes `status`, `exit-code`, `selected-results`,
 `completed-localizations`, `result-local-errors`, `unique-review-paths`, and
-the workspace-relative `evidence-path`. When artifact upload is enabled, it
-also exposes GitHub's `artifact-id` and `artifact-digest` outputs.
+the workspace-relative `evidence-path`. `package-ready` is `true` only when
+that path names a package which the Action has verified. When artifact upload
+is enabled, the Action also exposes GitHub's `artifact-id` and
+`artifact-digest` outputs.
 
 The GitHub job summary contains counts and, at most, ten review paths with
 their scanner-supplied severity, finding count, and best shortlist rank. It
 does not include source snippets, raw SARIF messages, or absolute runner paths.
+Valid SARIF with no results produces a verified empty package, zero counts, an
+empty queue, `status: complete`, and exit code `0`. The summary records that the
+scanner reported no findings and explicitly does not treat that result as proof
+that the repository is secure.
+
+When the Action cannot produce a verified package, the summary includes one
+short actionable reason selected from fixed templates. Exception text,
+tracebacks, SARIF content, findings, credentials, environment values, and
+absolute workspace paths are not included in that reason.
 
 ## Exit behaviour
 
