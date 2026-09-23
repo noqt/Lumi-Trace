@@ -10,7 +10,7 @@ from typing import Any
 from . import __version__
 from .canonical import stable_id
 from .errors import IntegrityError
-from .findings import validate_normalized_finding
+from .findings import SARIF_SRCROOT_DESCRIPTION, validate_normalized_finding
 from .indexing import (
     INDEX_ALGORITHM,
     LEGACY_INDEX_ALGORITHM,
@@ -733,7 +733,9 @@ def export_sarif(bundle: dict[str, object]) -> dict[str, object]:
                     }
                 },
                 "automationDetails": {"id": bundle["bundle_id"]},
-                "originalUriBaseIds": {"%SRCROOT%": {"uri": "./"}},
+                "originalUriBaseIds": {
+                    "%SRCROOT%": {"description": {"text": SARIF_SRCROOT_DESCRIPTION}}
+                },
                 "results": [result],
                 "properties": {
                     "repositoryManifestId": bundle["repository"]["manifest_id"],

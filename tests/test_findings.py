@@ -99,6 +99,7 @@ def test_sarif_ambiguous_uri_base_is_rejected(tmp_path: Path) -> None:
         "runs": [
             {
                 "tool": {"driver": {"name": "fixture"}},
+                "originalUriBaseIds": {"BUILDROOT": {"uri": "./build/"}},
                 "results": [
                     {
                         "ruleId": "X",
@@ -108,7 +109,7 @@ def test_sarif_ambiguous_uri_base_is_rejected(tmp_path: Path) -> None:
                                 "physicalLocation": {
                                     "artifactLocation": {
                                         "uri": "src/module.py",
-                                        "uriBaseId": "UNRESOLVED_BASE",
+                                        "uriBaseId": "BUILDROOT",
                                     }
                                 }
                             }
@@ -126,7 +127,12 @@ def test_sarif_ambiguous_uri_base_is_rejected(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize(
     "mapped_uri",
-    ["https://example.invalid/source/", "file:///private/source/", "../other/"],
+    [
+        "https://example.invalid/source/",
+        "file:///private/source/",
+        "../other/",
+        "./other/",
+    ],
 )
 def test_sarif_conflicting_srcroot_mapping_is_rejected(
     tmp_path: Path,
@@ -161,6 +167,100 @@ def test_sarif_conflicting_srcroot_mapping_is_rejected(
     path.write_text(json.dumps(sarif), encoding="utf-8")
     with pytest.raises(UnsupportedError, match="canonical local mapping"):
         import_sarif(path)
+
+
+@pytest.mark.parametrize(
+    "source_root",
+    [
+        {"uri": "./"},
+        {"description": {"text": "Repository root for relative artifact paths."}},
+    ],
+)
+def test_sarif_accepts_only_the_supported_srcroot_forms_and_preserves_relative_paths(
+    tmp_path: Path,
+    source_root: dict[str, object],
+) -> None:
+    sarif = {
+        "version": "2.1.0",
+        "runs": [
+            {
+                "tool": {"driver": {"name": "fixture"}},
+                "originalUriBaseIds": {"%SRCROOT%": source_root},
+                "results": [
+                    {
+                        "ruleId": "X",
+                        "message": {"text": "relative source root"},
+                        "locations": [
+                            {
+                                "physicalLocation": {
+                                    "artifactLocation": {
+                                        "uri": "src/module.py",
+                                        "uriBaseId": "%SRCROOT%",
+                                    }
+                                }
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    path = tmp_path / "supported-srcroot.sarif"
+    path.write_text(json.dumps(sarif), encoding="utf-8")
+
+    findings = import_sarif(path)
+
+    assert findings[0]["locations"][0]["path"] == "src/module.py"
+
+
+@pytest.mark.parametrize(
+    ("source_root_present", "source_root"),
+    [
+        (False, None),
+        (True, None),
+        (True, {"uri": "./"}),
+        (True, {"description": {"text": "Repository root for relative artifact paths."}}),
+    ],
+)
+def test_sarif_accepts_unused_buildroot_without_changing_srcroot_behavior(
+    tmp_path: Path,
+    source_root_present: bool,
+    source_root: dict[str, object] | None,
+) -> None:
+    bases: dict[str, object] = {"BUILDROOT": {"uri": "./build/"}}
+    if source_root_present:
+        bases["%SRCROOT%"] = source_root
+    sarif = {
+        "version": "2.1.0",
+        "runs": [
+            {
+                "tool": {"driver": {"name": "fixture"}},
+                "originalUriBaseIds": bases,
+                "results": [
+                    {
+                        "ruleId": "X",
+                        "message": {"text": "unused build root"},
+                        "locations": [
+                            {
+                                "physicalLocation": {
+                                    "artifactLocation": {
+                                        "uri": "src/module.py",
+                                        "uriBaseId": "%SRCROOT%",
+                                    }
+                                }
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    path = tmp_path / "unused-buildroot.sarif"
+    path.write_text(json.dumps(sarif), encoding="utf-8")
+
+    findings = import_sarif(path)
+
+    assert findings[0]["locations"][0]["path"] == "src/module.py"
 
 
 def test_manual_unknown_fields_fail_closed(tmp_path: Path) -> None:

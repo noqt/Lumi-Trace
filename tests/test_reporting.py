@@ -2,13 +2,13 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import pytest
 
 from lumi_trace.canonical import canonical_sha256, stable_id
 from lumi_trace.errors import InputError, IntegrityError
-from lumi_trace.findings import import_manual
+from lumi_trace.findings import import_manual, import_sarif
 from lumi_trace.indexing import build_repository_index
 from lumi_trace.localization import V041_EVIDENCE_CANDIDATE_ALGORITHM
 from lumi_trace.ranking import rank_candidates
@@ -147,7 +147,7 @@ def test_receipt_verification_requires_resolved_sandbox_identity() -> None:
 
 
 def test_bundle_and_sarif_are_verifiable_and_contain_no_snippets(
-    fixture_repository: Path, manual_finding_path: Path
+    tmp_path: Path, fixture_repository: Path, manual_finding_path: Path
 ) -> None:
     finding = import_manual(manual_finding_path, fixture_repository)
     with RepositoryWorkspace(fixture_repository) as workspace:
@@ -165,9 +165,27 @@ def test_bundle_and_sarif_are_verifiable_and_contain_no_snippets(
     verify_evidence_bundle(bundle)
     assert bundle["classification"]["outcome"] == "CONFIRMED"
     sarif = export_sarif(bundle)
+    run = sarif["runs"][0]
+    assert run["originalUriBaseIds"] == {
+        "%SRCROOT%": {"description": {"text": "Repository root for relative artifact paths."}}
+    }
+    result = run["results"][0]
+    artifact_locations = [
+        location["physicalLocation"]["artifactLocation"]
+        for location in result.get("locations", []) + result.get("relatedLocations", [])
+    ]
+    assert artifact_locations
+    assert all(
+        location["uriBaseId"] == "%SRCROOT%" and not PurePosixPath(location["uri"]).is_absolute()
+        for location in artifact_locations
+    )
     encoded = json.dumps(sarif)
     assert '"snippet"' not in encoded
     assert str(fixture_repository) not in encoded
+    sarif_path = tmp_path / "standalone.sarif"
+    sarif_path.write_text(encoded, encoding="utf-8")
+    round_tripped = import_sarif(sarif_path, repository_root=fixture_repository)
+    assert round_tripped[0]["locations"][0]["path"] == artifact_locations[0]["uri"]
     assert sarif["runs"][0]["results"][0]["properties"]["currentWeights"] == 0
     assert (
         sarif["runs"][0]["results"][0]["properties"]["rankingAlgorithm"]
