@@ -13,6 +13,7 @@ from .errors import InputError, UnsupportedError
 from .indexing import tokenize
 
 NORMALIZED_FINDING_VERSION = "normalized-finding-v1"
+SARIF_SRCROOT_DESCRIPTION = "Repository root for relative artifact paths."
 _SEVERITIES = {"CRITICAL", "HIGH", "MEDIUM", "LOW", "NOTE", "UNKNOWN"}
 _CWE = re.compile(r"(?i)\bCWE[-_ ]?(\d+)\b")
 _FINDING_ID = re.compile(r"^[A-Za-z0-9._:-]+$")
@@ -409,7 +410,7 @@ def _sarif_location(
 
 
 def _validate_sarif_uri_bases(run: dict[str, Any]) -> None:
-    """Reject a declared source-root alias that changes its local meaning."""
+    """Reject conflicting mappings for the explicit local source-root alias."""
 
     bases = run.get("originalUriBaseIds")
     if bases is None:
@@ -417,12 +418,14 @@ def _validate_sarif_uri_bases(run: dict[str, Any]) -> None:
     if not isinstance(bases, dict):
         raise InputError("SARIF run.originalUriBaseIds must be an object")
     source_root = bases.get("%SRCROOT%")
-    if source_root is not None and (
-        not isinstance(source_root, dict)
-        or set(source_root) != {"uri"}
-        or source_root.get("uri") != "./"
+    if source_root is not None and source_root not in (
+        {"uri": "./"},
+        {"description": {"text": SARIF_SRCROOT_DESCRIPTION}},
     ):
-        raise UnsupportedError('SARIF %SRCROOT% must use the canonical local mapping {"uri":"./"}')
+        raise UnsupportedError(
+            'SARIF %SRCROOT% must use the canonical local mapping {"uri":"./"} '
+            "or the canonical description-only root"
+        )
 
 
 def _load_sarif_document(path: Path) -> tuple[list[object], str]:

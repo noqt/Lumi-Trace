@@ -19,7 +19,12 @@ from .localization import (
 )
 from .pipeline import source_revision
 from .ranking import project_localization_candidates, verify_candidate_set
-from .reporting import build_evidence_bundle, export_sarif, verify_evidence_bundle
+from .reporting import (
+    SARIF_SRCROOT_DESCRIPTION,
+    build_evidence_bundle,
+    export_sarif,
+    verify_evidence_bundle,
+)
 from .repository import RepositoryWorkspace
 
 TRIAGE_PACKAGE_SCHEMA = "batch-triage-package-v1"
@@ -247,7 +252,9 @@ def _combined_sarif(
                         "rules": [rules[key] for key in sorted(rules)],
                     }
                 },
-                "originalUriBaseIds": {"%SRCROOT%": {"uri": "./"}},
+                "originalUriBaseIds": {
+                    "%SRCROOT%": {"description": {"text": SARIF_SRCROOT_DESCRIPTION}}
+                },
                 "results": results,
                 "properties": {
                     "repositoryManifestId": repository["manifest_id"],
