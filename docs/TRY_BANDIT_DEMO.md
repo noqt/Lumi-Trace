@@ -7,23 +7,33 @@ without sharing your code or installing anything locally.
 
 ## See the result before you fork
 
-[Open the demo runs on `main`](https://github.com/noqt/Lumi-Trace/actions/workflows/bandit-sarif-demo.yml?query=branch%3Amain),
-select the most recent successful run, and read the **Build a verified reviewer
-queue** job summary on the run summary page.
+**Observed run (historical; completed successfully 2026-08-27):** [GitHub Actions
+run 33064835136](https://github.com/noqt/Lumi-Trace/actions/runs/33064835136)
+used source commit
+[`3ed61d61a26a4ad297ea9c0dad5abbede84aa14c`](https://github.com/noqt/Lumi-Trace/commit/3ed61d61a26a4ad297ea9c0dad5abbede84aa14c)
+and the pinned fixture
+[`examples/bandit-demo/repository/app.py`](https://github.com/noqt/Lumi-Trace/blob/3ed61d61a26a4ad297ea9c0dad5abbede84aa14c/examples/bandit-demo/repository/app.py)
+(blob `d87fe0034fa7ced92a53951c78b7279564fb2791`). This records that historical
+source; the repository's current `main` is
+[`7713c8606f9bec04c6eab6f20e7cd8b34c9d1ea1`](https://github.com/noqt/Lumi-Trace/commit/7713c8606f9bec04c6eab6f20e7cd8b34c9d1ea1).
 
-The supplied example is deliberately small so the handoff is easy to inspect:
+The supplied example is deliberately small so the handoff is easy to inspect.
+These are the results recorded in the linked successful run:
 
-| Stage | Supplied input | Observed result |
+| Stage | Supplied input | Observed result in run 33064835136 |
 | --- | --- | --- |
-| Bandit | An inert `app.py` fixture containing one synthetic `subprocess.run(..., shell=True)` case | One B602 SARIF result pointing to `app.py` |
-| Lumi | That SARIF result and the same tiny fixture repository | Status `complete`, one completed localisation, and one review path: `app.py` |
+| Bandit | The pinned inert `app.py` fixture containing one synthetic `subprocess.run(..., shell=True)` case | One synthetic B602 SARIF finding pointing to `app.py` |
+| Lumi | That SARIF finding and the same tiny fixture repository | The completed run recorded `status=complete`, `selected-results=1`, `completed-localizations=1`, and `unique-review-paths=1`. Its summary named `app.py` as the sole review path. |
 
 Bandit already identifies the source location in this one-finding example.
-Lumi does not discover another vulnerability; it checks the supplied result,
-builds the review queue, and verifies the bounded evidence package during the
-job. Artifact upload is disabled, so this workflow does not upload the evidence
-package as a GitHub artifact. GitHub retains its normal workflow logs and job
-summary.
+Lumi does not discover another vulnerability; it only localizes the supplied
+finding. The job also verifies the bounded evidence package. Artifact upload is
+disabled, so this workflow does not upload the evidence package as a GitHub
+artifact. GitHub retains its normal workflow logs and job summary.
+
+For a newer run, [open the demo runs on `main`](https://github.com/noqt/Lumi-Trace/actions/workflows/bandit-sarif-demo.yml?query=branch%3Amain),
+select the most recent successful run, and read the **Build a verified reviewer
+queue** job summary on the run summary page.
 
 ## Run the same handoff in your fork
 
