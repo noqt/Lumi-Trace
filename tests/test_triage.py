@@ -3,13 +3,14 @@ from __future__ import annotations
 
 import json
 from copy import deepcopy
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import pytest
 
 from lumi_trace.canonical import dump_json, load_json
 from lumi_trace.cli import main
 from lumi_trace.errors import InputError, IntegrityError
+from lumi_trace.findings import import_sarif
 from lumi_trace.pipeline import trace_repository
 from lumi_trace.triage import TRIAGE_PARTIAL_SUCCESS_EXIT_CODE, triage_sarif, verify_triage_package
 
@@ -70,8 +71,12 @@ def test_triage_accepts_empty_sarif_as_verified_complete_package(
     assert load_json(output / "normalized-findings.json")["findings"] == []
     assert load_json(output / "review-queue.json")["entries"] == []
     projected = load_json(output / "triage.sarif")
-    assert projected["runs"][0]["tool"]["driver"]["rules"] == []
-    assert projected["runs"][0]["results"] == []
+    projected_run = projected["runs"][0]
+    assert projected_run["tool"]["driver"]["rules"] == []
+    assert projected_run["results"] == []
+    assert projected_run["originalUriBaseIds"] == {
+        "%SRCROOT%": {"description": {"text": "Repository root for relative artifact paths."}}
+    }
     assert main(["verify", str(output)]) == 0
 
 
@@ -124,6 +129,31 @@ def test_triage_preserves_single_finding_candidates_and_partial_success(
 
     assert result["exit_code"] == TRIAGE_PARTIAL_SUCCESS_EXIT_CODE
     verify_triage_package(output)
+    projected_sarif = load_json(output / "triage.sarif")
+    projected_run = projected_sarif["runs"][0]
+    assert str(repository) not in json.dumps(projected_sarif)
+    assert projected_run["originalUriBaseIds"] == {
+        "%SRCROOT%": {"description": {"text": "Repository root for relative artifact paths."}}
+    }
+    artifact_locations = [
+        location["physicalLocation"]["artifactLocation"]
+        for result_item in projected_run["results"]
+        for location in result_item.get("locations", []) + result_item.get("relatedLocations", [])
+    ]
+    assert artifact_locations
+    assert all(
+        location["uriBaseId"] == "%SRCROOT%" and not PurePosixPath(location["uri"]).is_absolute()
+        for location in artifact_locations
+    )
+    primary_artifact_locations = [
+        location["physicalLocation"]["artifactLocation"]
+        for result_item in projected_run["results"]
+        for location in result_item.get("locations", [])
+    ]
+    round_tripped = import_sarif(output / "triage.sarif", repository_root=repository)
+    assert [location["path"] for finding in round_tripped for location in finding["locations"]] == [
+        location["uri"] for location in primary_artifact_locations
+    ]
     summary = load_json(output / "triage-summary.json")
     assert summary == {
         "artifact_type": "summary",
