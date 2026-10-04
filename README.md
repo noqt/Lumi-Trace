@@ -222,14 +222,11 @@ See [Inputs and outputs](docs/INPUTS_AND_OUTPUTS.md).
 
 ## GitHub Actions
 
-If your existing CI scanner writes a local SARIF 2.1.0 file, Lumi Trace V0.8
-can run the same batch triage workflow inside a GitHub Actions job. It presents a
-bounded reviewer summary and can retain a verified evidence package only when
-you explicitly enable artifact upload. It does not scan, upload source by
-itself, post PR comments, or make a vulnerability verdict.
+Already have SARIF from your scanner? Use the [GitHub Actions integration](docs/GITHUB_ACTIONS.md) with a local SARIF 2.1.0 report whose selected results identify physical Python implementation locations under an authorised repository or pre-selected component root. Container layers, OS or dependency inventory, infrastructure/configuration, and pathless findings should remain in the scanner's native filtering and producer workflow. For eligible findings, Lumi prioritises known results into a deterministic reviewer queue and verifies the resulting evidence package. If one result is invalid, valid results can still be retained in a verified partial package while the default policy keeps CI red.
 
-See [GitHub Actions integration](docs/GITHUB_ACTIONS.md) for the minimal step,
-permissions, policy options, privacy implications, and exact outputs.
+Lumi does not scan code, repair malformed SARIF, decide whether findings are true, or declare a repository safe. Artifact upload is off by default. GitHub still retains normal workflow logs and the job summary under repository or organisation settings.
+
+Evaluating first? Use the [synthetic Bandit walkthrough](docs/TRY_BANDIT_DEMO.md). It demonstrates the handoff only; it is not independent use or adoption.
 
 ## What gets written
 
