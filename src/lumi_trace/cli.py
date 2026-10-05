@@ -12,6 +12,7 @@ from pathlib import Path, PurePosixPath
 
 from . import __version__
 from .canonical import canonical_sha256, dump_json, load_json, sha256_file, stable_id
+from .demo import run_demo
 from .errors import InputError, LumiTraceError
 from .findings import (
     import_manual,
@@ -59,7 +60,7 @@ def _write_summary(**values: object) -> None:
     print(json.dumps(values, ensure_ascii=True, sort_keys=True))
 
 
-def _write_trace_summary(result: dict[str, object]) -> None:
+def _write_trace_summary(result: dict[str, object], *, synthetic_label: str | None = None) -> None:
     """Write a human summary to stderr and a stable machine summary to stdout."""
 
     bundle = result["bundle"]
@@ -153,30 +154,41 @@ def _write_trace_summary(result: dict[str, object]) -> None:
         file=sys.stderr,
     )
     print(f"  Reasons: {', '.join(map(str, reason_codes))}", file=sys.stderr)
+    if synthetic_label is not None:
+        print(f"  Demo fixture: {synthetic_label}", file=sys.stderr)
     print(f"  Output: {output}", file=sys.stderr)
     print(f'  Verify: lumi-trace verify "{output}"', file=sys.stderr)
 
-    _write_summary(
-        bundle_id=bundle["bundle_id"],
-        classification=outcome,
-        reason_codes=reason_codes,
-        confidence_grade=classification["confidence_grade"],
-        confidence_basis_points=classification["confidence_basis_points"],
-        confidence_is_not_probability=True,
-        ranking_abstained=ranking_abstained,
-        ranking_abstention_reason=ranking_abstention["reason"],
-        ranking_confidence_descriptor=candidate_set["confidence_descriptor"],
-        ranking_algorithm=candidate_set["algorithm"],
-        candidate_algorithm=candidate_set["candidate_algorithm"],
-        ranking_id=candidate_set["ranking_id"],
-        ranked_locations=len(candidates),
-        top_ranked_locations=top_ranked_locations,
-        top_implementation_locations=top_implementation_locations,
-        reproduction_requested=reproduction["requested"],
-        reproduction_attempted=reproduction["attempted"],
-        reproduction_abstained=reproduction_abstained,
-        output=str(output),
-    )
+    summary: dict[str, object] = {
+        "bundle_id": bundle["bundle_id"],
+        "classification": outcome,
+        "reason_codes": reason_codes,
+        "confidence_grade": classification["confidence_grade"],
+        "confidence_basis_points": classification["confidence_basis_points"],
+        "confidence_is_not_probability": True,
+        "ranking_abstained": ranking_abstained,
+        "ranking_abstention_reason": ranking_abstention["reason"],
+        "ranking_confidence_descriptor": candidate_set["confidence_descriptor"],
+        "ranking_algorithm": candidate_set["algorithm"],
+        "candidate_algorithm": candidate_set["candidate_algorithm"],
+        "ranking_id": candidate_set["ranking_id"],
+        "ranked_locations": len(candidates),
+        "top_ranked_locations": top_ranked_locations,
+        "top_implementation_locations": top_implementation_locations,
+        "reproduction_requested": reproduction["requested"],
+        "reproduction_attempted": reproduction["attempted"],
+        "reproduction_abstained": reproduction_abstained,
+        "output": str(output),
+    }
+    if synthetic_label is not None:
+        summary.update(
+            {
+                "demo": "synthetic",
+                "synthetic_demo": True,
+                "demo_fixture": synthetic_label,
+            }
+        )
+    _write_summary(**summary)
 
 
 def _write_triage_summary(result: dict[str, object]) -> None:
@@ -385,6 +397,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     verify = commands.add_parser("verify", help="verify a bundle or evidence package")
     verify.add_argument("input", type=_path)
+
+    demo = commands.add_parser(
+        "demo",
+        help="run the self-contained synthetic quickstart fixture",
+    )
+    demo.add_argument("--output", "-o", type=_path, required=True)
     return parser
 
 
@@ -747,6 +765,9 @@ def dispatch(args: argparse.Namespace) -> int | None:
             result_index=args.result_index,
         )
         _write_trace_summary(result)
+    elif args.command == "demo":
+        result = run_demo(output_directory=args.output)
+        _write_trace_summary(result, synthetic_label="examples/quickstart")
     elif args.command == "triage":
         result = triage_sarif(
             sarif_path=args.sarif,

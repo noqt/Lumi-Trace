@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+import lumi_trace.demo as demo_module
 from lumi_trace.canonical import dump_json, load_json, stable_id
 from lumi_trace.cli import _write_trace_summary, main
 
@@ -18,6 +19,98 @@ def test_version_reports_zero_weights(capsys) -> None:
     assert output["model_status"] == "DETERMINISTIC_RUNTIME_NO_PACKAGED_WEIGHTS"
     assert output["checkpoint"] is None
     assert output["current_weights"] == 0
+
+
+def test_cli_synthetic_demo_runs_from_empty_non_repository_directory(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    output = tmp_path / "demo-output"
+
+    assert main(["demo", "--output", str(output)]) == 0
+    captured = capsys.readouterr()
+    summary = json.loads(captured.out)
+    assert summary["demo"] == "synthetic"
+    assert summary["synthetic_demo"] is True
+    assert summary["demo_fixture"] == "examples/quickstart"
+    assert summary["classification"] == "INSUFFICIENT_EVIDENCE"
+    assert summary["reason_codes"] == ["NO_REPRODUCTION_PLAN"]
+    assert "Demo fixture: examples/quickstart" in captured.err
+
+    bundle = load_json(output / "evidence-bundle.json")
+    candidates = load_json(output / "candidates.json")
+    assert bundle["classification"]["outcome"] == "INSUFFICIENT_EVIDENCE"
+    assert bundle["classification"]["reason_codes"] == ["NO_REPRODUCTION_PLAN"]
+    assert any(
+        candidate["path"] == "src/archive.py"
+        and candidate["symbol"]["qualified_name"] == "extraction_target"
+        for candidate in candidates["candidates"]
+    )
+    assert main(["verify", str(output)]) == 0
+    capsys.readouterr()
+
+
+def test_cli_synthetic_demo_preserves_existing_output(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    output = tmp_path / "existing-output"
+    output.mkdir()
+    sentinel = output / "sentinel.txt"
+    sentinel.write_text("preserve me\n", encoding="utf-8")
+
+    assert main(["demo", "--output", str(output)]) == 2
+    assert "output directory already exists" in capsys.readouterr().err
+    assert sentinel.read_text(encoding="utf-8") == "preserve me\n"
+    assert sorted(path.name for path in output.iterdir()) == ["sentinel.txt"]
+
+
+def test_cli_synthetic_demo_ignores_adjacent_checkout_fixture(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys,
+) -> None:
+    poisoned_root = tmp_path / "poisoned-checkout"
+    poisoned_fixture = poisoned_root / "examples" / "quickstart"
+    poisoned_repository = poisoned_fixture / "repository" / "src"
+    poisoned_repository.mkdir(parents=True)
+    (poisoned_fixture / "finding.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "manual-finding-v1",
+                "id": "AMBIENT-POISON",
+                "title": "ambient fixture must not be read",
+                "locations": [{"path": "src/poison.py", "symbol": "poison"}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (poisoned_repository / "archive.py").write_text(
+        "def poison(root, member_name):\n    return root / member_name\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        demo_module,
+        "__file__",
+        str(poisoned_root / "src" / "lumi_trace" / "demo.py"),
+    )
+    output = tmp_path / "demo-output"
+
+    assert main(["demo", "--output", str(output)]) == 0
+    capsys.readouterr()
+    bundle = load_json(output / "evidence-bundle.json")
+    candidates = load_json(output / "candidates.json")
+    assert bundle["finding"]["finding_id"] == "manual:LUMI-TRACE-DEMO-001"
+    assert all(candidate["path"] != "src/poison.py" for candidate in candidates["candidates"])
+    assert any(
+        candidate["path"] == "src/archive.py"
+        and candidate["symbol"]["qualified_name"] == "extraction_target"
+        for candidate in candidates["candidates"]
+    )
 
 
 def test_cli_import_and_trace_without_provider_or_api_key(
