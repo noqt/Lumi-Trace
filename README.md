@@ -141,6 +141,27 @@ lumi-trace version
 
 The source repository and source archive include a small synthetic fixture under `examples/quickstart/`, distributed under Apache-2.0. It demonstrates installation, ranking, output, and verification. It is not a benchmark or a claim about real-world detection coverage.
 
+### First success from a source build
+
+This demo is available in source builds containing this change. Published
+v0.10.0 wheels do not include lumi-trace demo; until a release containing it
+is published, use the [From source](#from-source) installation instructions.
+
+From any empty, non-repository directory after installing the source build, run the
+self-contained synthetic quickstart demo:
+
+```sh
+lumi-trace demo --output lumi-demo-output
+lumi-trace verify lumi-demo-output
+```
+
+The command uses only the inert `examples/quickstart` fixture bundled by the
+demo workflow. It does not scan, execute repository code, use Docker or the
+network, or read a private finding. The result is explicitly synthetic and
+should report `INSUFFICIENT_EVIDENCE` with `NO_REPRODUCTION_PLAN`; it is a
+workflow check, not a security verdict or independent-use evidence. Choose a
+new output directory for each run; existing output is never overwritten.
+
 From the repository root:
 
 ```sh
