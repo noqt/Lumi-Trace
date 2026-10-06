@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path, PurePosixPath
 
 from . import __version__
-from .canonical import dump_json, load_json, sha256_file, stable_id
+from .canonical import dump_json, is_printable_ascii, load_json, sha256_file, stable_id
 from .errors import InputError, IntegrityError
 from .findings import import_sarif_batch, validate_normalized_finding
 from .indexing import build_repository_index, verify_repository_index
@@ -18,7 +18,7 @@ from .localization import (
     construct_inference_request,
 )
 from .pipeline import source_revision
-from .ranking import project_localization_candidates, verify_candidate_set
+from .ranking import PRODUCT_ROLES, project_localization_candidates, verify_candidate_set
 from .reporting import (
     SARIF_SRCROOT_DESCRIPTION,
     build_evidence_bundle,
@@ -453,7 +453,7 @@ def _verify_source_position(value: object) -> dict[str, object]:
     return source
 
 
-def verify_triage_package(path: Path) -> None:
+def verify_triage_package(path: Path) -> dict[str, object]:
     """Verify full batch membership, shared identities, references, and projections."""
 
     manifest_path = path / "manifest.json"
@@ -707,3 +707,109 @@ def verify_triage_package(path: Path) -> None:
     }
     if any(summary.get(key) != value for key, value in expected_summary.items()):
         raise IntegrityError("batch summary is inconsistent")
+    return {"summary": summary, "review_queue": entries}
+
+
+def _review_row(entry: object) -> dict[str, object]:
+    if not isinstance(entry, dict):
+        raise IntegrityError("batch review entry is invalid")
+    path = entry.get("path")
+    parsed_path = PurePosixPath(path) if isinstance(path, str) else None
+    role = entry.get("role")
+    severity = entry.get("highest_severity")
+    finding_count = entry.get("finding_count")
+    shortlist_rank = entry.get("best_shortlist_rank")
+    queue_rank = entry.get("queue_rank")
+    anchor = entry.get("primary_anchor")
+    if (
+        not isinstance(path, str)
+        or not path
+        or not is_printable_ascii(path)
+        or "\\" in path
+        or parsed_path is None
+        or parsed_path.is_absolute()
+        or ".." in parsed_path.parts
+        or parsed_path.as_posix() != path
+        or re.match(r"^[A-Za-z]:", path)
+        or not isinstance(role, str)
+        or role not in PRODUCT_ROLES
+        or not isinstance(severity, str)
+        or severity not in {"critical", "high", "medium", "low", "unknown"}
+        or not isinstance(finding_count, int)
+        or isinstance(finding_count, bool)
+        or finding_count < 1
+        or not isinstance(shortlist_rank, int)
+        or isinstance(shortlist_rank, bool)
+        or shortlist_rank < 1
+        or not isinstance(queue_rank, int)
+        or isinstance(queue_rank, bool)
+        or queue_rank < 1
+        or not isinstance(anchor, dict)
+        or set(anchor) != {"finding_key", "candidate_id", "region"}
+        or not isinstance(anchor.get("finding_key"), str)
+        or _RESULT_KEY.fullmatch(anchor["finding_key"]) is None
+        or not isinstance(anchor.get("candidate_id"), str)
+        or not anchor["candidate_id"]
+    ):
+        raise IntegrityError("batch review entry is unsafe")
+    region = anchor["region"]
+    if (
+        not isinstance(region, dict)
+        or set(region) != {"start_line", "start_column", "end_line", "end_column"}
+        or any(
+            not isinstance(value, int) or isinstance(value, bool) or value < 1
+            for value in region.values()
+        )
+        or (region["end_line"], region["end_column"])
+        < (region["start_line"], region["start_column"])
+    ):
+        raise IntegrityError("batch review region is invalid")
+    finding_key = anchor["finding_key"]
+    return {
+        "queue_rank": queue_rank,
+        "path": path,
+        "role": role,
+        "severity": severity,
+        "finding_count": finding_count,
+        "best_shortlist_rank": shortlist_rank,
+        "primary_region": region,
+        "candidates_reference": f"findings/{finding_key}/candidates.json",
+        "evidence_bundle_reference": f"findings/{finding_key}/evidence-bundle.json",
+    }
+
+
+def review_triage_package(path: Path, *, after_rank: int = 0, limit: int = 20) -> dict[str, object]:
+    """Return one bounded metadata-only page from a fully verified batch package."""
+
+    if (
+        not isinstance(after_rank, int)
+        or isinstance(after_rank, bool)
+        or after_rank < 0
+        or not isinstance(limit, int)
+        or isinstance(limit, bool)
+        or not 1 <= limit <= 200
+    ):
+        raise InputError("review pagination arguments are invalid")
+    verified = verify_triage_package(path)
+    queue = verified.get("review_queue")
+    if not isinstance(queue, list):
+        raise IntegrityError("verified batch review queue is invalid")
+    rows = [_review_row(entry) for entry in queue]
+    ranks = [row["queue_rank"] for row in rows]
+    if any(not isinstance(rank, int) or isinstance(rank, bool) for rank in ranks):
+        raise IntegrityError("verified batch review queue ranks are invalid")
+    if ranks != list(range(1, len(queue) + 1)):
+        raise IntegrityError("verified batch review queue ranks are invalid")
+    remaining = [row for row in rows if row["queue_rank"] > after_rank]
+    selected = remaining[:limit]
+    has_more = len(remaining) > limit
+    next_after_rank = selected[-1].get("queue_rank") if has_more and selected else None
+    return {
+        "after_rank": after_rank,
+        "limit": limit,
+        "total": len(queue),
+        "has_more": has_more,
+        "next_after_rank": next_after_rank,
+        "queue_order_is_not_probability": True,
+        "entries": selected,
+    }

@@ -65,6 +65,27 @@ lumi-trace triage \
 
 Malformed individual results are recorded as `NORMALIZATION_FAILED` or `LOCALIZATION_FAILED` error artifacts. Valid results still complete and the package verifies, but the command exits with code `5` for that partial-success state. A valid SARIF report with no results produces a verified package with zero counts and an empty queue. Exit `0` means every selected result completed, including the valid empty case. An empty result is not evidence that the repository is secure. Queue order is a deterministic review priority, not probability or exploitability.
 
+Use `review` to page through a batch package's verified queue:
+
+```sh
+lumi-trace review ./triage-evidence --limit 20
+lumi-trace review ./triage-evidence --after-rank 20 --limit 20
+```
+
+`--after-rank` is an exclusive queue-rank cursor (default `0`); `--limit` is
+from 1 to 200 (default `20`). A cursor beyond the queue returns an empty page.
+The command is local, offline, read-only, and accepts batch triage packages
+only. It verifies the complete package before emitting a page containing only
+safe repository-relative paths, role/severity/count/rank/region metadata, and
+relative candidate/evidence artifact references. It does not emit findings,
+messages, snippets, or result-error details. The queue order is not a
+probability, exploitability measure, or vulnerability verdict.
+
+Package integrity verification detects changes and inconsistencies; it is not
+authentication and does not independently validate or prove a vulnerability.
+SARIF `%SRCROOT%` is a relative URI base whose mapping to the intended local
+repository must be verified by the user.
+
 ### GitHub Actions wrapper
 
 The first-party GitHub Action passes only a local SARIF path, a local workspace

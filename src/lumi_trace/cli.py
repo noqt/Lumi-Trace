@@ -47,6 +47,7 @@ from .sandbox import (
 from .triage import (
     DEFAULT_MAX_FINDINGS,
     TRIAGE_PACKAGE_SCHEMA,
+    review_triage_package,
     triage_sarif,
     verify_triage_package,
 )
@@ -54,6 +55,21 @@ from .triage import (
 
 def _path(value: str) -> Path:
     return Path(value)
+
+
+class _ReviewArgumentError(Exception):
+    pass
+
+
+class _ReviewArgumentParser(argparse.ArgumentParser):
+    def error(self, _message: str) -> None:
+        raise _ReviewArgumentError from None
+
+
+def _add_review_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("package", type=_path)
+    parser.add_argument("--after-rank", default="0", metavar="N")
+    parser.add_argument("--limit", default="20", metavar="N")
 
 
 def _write_summary(**values: object) -> None:
@@ -240,6 +256,42 @@ def _write_triage_summary(result: dict[str, object]) -> None:
     )
 
 
+def _write_review_page(result: dict[str, object]) -> None:
+    """Write only verified, bounded review metadata to stderr and stdout."""
+
+    entries = result["entries"]
+    if not isinstance(entries, list):
+        raise RuntimeError("verified review page is malformed")
+    next_after_rank = result["next_after_rank"]
+    print("Lumi Trace verified batch review", file=sys.stderr)
+    print(f"  Entries on page: {len(entries)} of {result['total']}", file=sys.stderr)
+    print(
+        f"  Queue order is review priority, not probability; has more: "
+        f"{str(result['has_more']).lower()}",
+        file=sys.stderr,
+    )
+    for entry in entries:
+        if not isinstance(entry, dict) or not isinstance(entry.get("primary_region"), dict):
+            raise RuntimeError("verified review entry is malformed")
+        region = entry["primary_region"]
+        print(
+            f"  {entry['queue_rank']}. {entry['path']} ({entry['role']}, "
+            f"{entry['severity']}; {entry['finding_count']} findings; "
+            f"best shortlist rank {entry['best_shortlist_rank']})",
+            file=sys.stderr,
+        )
+        print(
+            f"    Primary region {region['start_line']}:{region['start_column']}-"
+            f"{region['end_line']}:{region['end_column']}; "
+            f"candidates {entry['candidates_reference']}; "
+            f"evidence bundle {entry['evidence_bundle_reference']}",
+            file=sys.stderr,
+        )
+    if next_after_rank is not None:
+        print(f"  Continue after rank: {next_after_rank}", file=sys.stderr)
+    _write_summary(command="review", **result)
+
+
 def _actionable_hint(exc: Exception) -> str | None:
     message = str(exc).casefold()
     if "output directory already exists" in message:
@@ -387,6 +439,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=DEFAULT_MAX_FINDINGS,
         help=f"maximum SARIF results to triage (default: {DEFAULT_MAX_FINDINGS})",
     )
+
+    review = commands.add_parser(
+        "review",
+        help="read a bounded page from a fully verified batch triage package",
+    )
+    _add_review_arguments(review)
 
     export = commands.add_parser("export-sarif", help="export an evidence bundle as SARIF 2.1.0")
     export.add_argument("bundle", type=_path)
@@ -778,6 +836,18 @@ def dispatch(args: argparse.Namespace) -> int | None:
         )
         _write_triage_summary(result)
         return int(result["exit_code"])
+    elif args.command == "review":
+        try:
+            after_rank = int(args.after_rank, 10)
+            limit = int(args.limit, 10)
+        except (TypeError, ValueError):
+            raise InputError("review pagination arguments are invalid") from None
+        result = review_triage_package(
+            args.package,
+            after_rank=after_rank,
+            limit=limit,
+        )
+        _write_review_page(result)
     elif args.command == "export-sarif":
         bundle = load_bundle(args.bundle)
         sarif = export_sarif(bundle)
@@ -794,14 +864,50 @@ def dispatch(args: argparse.Namespace) -> int | None:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    raw_argv = list(sys.argv[1:] if argv is None else argv)
     parser = build_parser()
-    args = parser.parse_args(argv)
+    if raw_argv and raw_argv[0] == "review":
+        review_parser = _ReviewArgumentParser(
+            prog="lumi-trace review",
+            description="Read a bounded page from a fully verified batch triage package",
+        )
+        _add_review_arguments(review_parser)
+        try:
+            review_args = review_parser.parse_args(raw_argv[1:])
+        except _ReviewArgumentError:
+            print("lumi-trace: review arguments are invalid", file=sys.stderr)
+            return 2
+        except SystemExit as exc:
+            return 0 if exc.code is None else int(exc.code)
+        args = argparse.Namespace(command="review", **vars(review_args))
+    else:
+        args = parser.parse_args(raw_argv)
     try:
         result = dispatch(args)
     except (LumiTraceError, ValueError, OSError) as exc:
+        if args.command == "review":
+            if (
+                isinstance(exc, InputError)
+                and str(exc) == "review pagination arguments are invalid"
+            ):
+                print("lumi-trace: review pagination arguments are invalid", file=sys.stderr)
+            else:
+                print(
+                    "lumi-trace: review failed; package verification was unsuccessful",
+                    file=sys.stderr,
+                )
+            return getattr(exc, "exit_code", 2)
         print(f"lumi-trace: {exc}", file=sys.stderr)
         hint = _actionable_hint(exc)
         if hint:
             print(f"hint: {hint}", file=sys.stderr)
         return getattr(exc, "exit_code", 2)
+    except Exception:
+        if args.command == "review":
+            print(
+                "lumi-trace: review failed; package verification was unsuccessful",
+                file=sys.stderr,
+            )
+            return 2
+        raise
     return 0 if result is None else result
