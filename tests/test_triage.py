@@ -7,12 +7,17 @@ from pathlib import Path, PurePosixPath
 
 import pytest
 
-from lumi_trace.canonical import dump_json, load_json
+from lumi_trace.canonical import dump_json, load_json, sha256_file, stable_id
 from lumi_trace.cli import main
 from lumi_trace.errors import InputError, IntegrityError
 from lumi_trace.findings import import_sarif
 from lumi_trace.pipeline import trace_repository
-from lumi_trace.triage import TRIAGE_PARTIAL_SUCCESS_EXIT_CODE, triage_sarif, verify_triage_package
+from lumi_trace.triage import (
+    TRIAGE_PARTIAL_SUCCESS_EXIT_CODE,
+    review_triage_package,
+    triage_sarif,
+    verify_triage_package,
+)
 
 
 def _multi_result_sarif(project_root: Path, destination: Path) -> Path:
@@ -259,3 +264,269 @@ def test_triage_verification_rejects_review_queue_tampering(
     dump_json(queue_path, queue)
     with pytest.raises(IntegrityError):
         verify_triage_package(output)
+
+
+def test_review_pages_verified_queue_and_does_not_mutate_package(
+    tmp_path: Path,
+    project_root: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    repository = project_root / "tests" / "fixtures" / "localization-repository"
+    sarif = _multi_result_sarif(project_root, tmp_path / "findings.sarif")
+    output = tmp_path / "triage"
+    triage_sarif(
+        sarif_path=sarif,
+        repository_source=repository,
+        output_directory=output,
+        implementation_revision="fixture-revision",
+    )
+    before = {
+        item.relative_to(output).as_posix(): item.read_bytes()
+        for item in output.rglob("*")
+        if item.is_file()
+    }
+
+    assert main(["review", str(output), "--limit", "1"]) == 0
+    first_capture = capsys.readouterr()
+    first = json.loads(first_capture.out)
+    assert first["command"] == "review"
+    assert first["after_rank"] == 0
+    assert first["limit"] == 1
+    assert first["total"] == 2
+    assert first["has_more"] is True
+    assert first["next_after_rank"] == 1
+    assert first["queue_order_is_not_probability"] is True
+    assert len(first["entries"]) == 1
+
+    assert main(["review", str(output), "--after-rank", "1", "--limit", "1"]) == 0
+    second_capture = capsys.readouterr()
+    second = json.loads(second_capture.out)
+    assert second["after_rank"] == 1
+    assert second["has_more"] is False
+    assert second["next_after_rank"] is None
+    assert len(second["entries"]) == 1
+    rows = first["entries"] + second["entries"]
+    assert [row["queue_rank"] for row in rows] == [1, 2]
+    for row in rows:
+        assert row["path"].isascii()
+        assert all(character.isprintable() for character in row["path"])
+        assert "\\" not in row["path"]
+        assert not PurePosixPath(row["path"]).is_absolute()
+        assert row["role"] in {
+            "implementation",
+            "wrapper",
+            "test",
+            "fixture",
+            "generated",
+            "vendor",
+        }
+        assert row["severity"] in {"critical", "high", "medium", "low", "unknown"}
+        assert isinstance(row["finding_count"], int)
+        assert isinstance(row["best_shortlist_rank"], int)
+        assert set(row["primary_region"]) == {
+            "start_line",
+            "start_column",
+            "end_line",
+            "end_column",
+        }
+        assert row["candidates_reference"].startswith("findings/result-")
+        assert row["candidates_reference"].endswith("/candidates.json")
+        assert row["evidence_bundle_reference"].startswith("findings/result-")
+        assert row["evidence_bundle_reference"].endswith("/evidence-bundle.json")
+    rendered = first_capture.out + first_capture.err + second_capture.out + second_capture.err
+    human_output = first_capture.err + second_capture.err
+    for row in rows:
+        region = row["primary_region"]
+        assert f"{row['queue_rank']}. {row['path']}" in human_output
+        assert row["role"] in human_output
+        assert row["severity"] in human_output
+        assert f"{row['finding_count']} findings" in human_output
+        assert f"best shortlist rank {row['best_shortlist_rank']}" in human_output
+        assert (
+            f"Primary region {region['start_line']}:{region['start_column']}-"
+            f"{region['end_line']}:{region['end_column']}"
+        ) in human_output
+        assert row["candidates_reference"] in human_output
+        assert row["evidence_bundle_reference"] in human_output
+    assert str(output) not in rendered
+    assert str(repository) not in rendered
+    assert "Quasar nebula mismatch" not in rendered
+    assert "\x1b" not in rendered
+    assert "Queue order is review priority, not probability" in first_capture.err
+    after = {
+        item.relative_to(output).as_posix(): item.read_bytes()
+        for item in output.rglob("*")
+        if item.is_file()
+    }
+    assert after == before
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        ["--after-rank", "not-a-rank"],
+        ["--after-rank", "-1"],
+        ["--limit", "0"],
+        ["--limit", "201"],
+    ],
+)
+def test_review_rejects_invalid_pagination_without_echoing_inputs(
+    tmp_path: Path,
+    options: list[str],
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    marker = "\x1b[31mhidden-path-marker"
+    output = tmp_path / marker
+    assert main(["review", str(output), *options]) != 0
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "review pagination arguments are invalid" in captured.err
+    assert marker not in captured.err
+    assert "\x1b" not in captured.err
+
+
+def test_review_parse_errors_do_not_echo_terminal_controls(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    control_marker = "\x1b[31mprivate-option-marker"
+    assert main(["review", "package", "--unknown", control_marker]) != 0
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "review arguments are invalid" in captured.err
+    assert control_marker not in captured.err
+    assert "\x1b" not in captured.err
+
+
+def test_review_beyond_end_is_deterministic_empty_page(
+    tmp_path: Path,
+    project_root: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    repository = project_root / "tests" / "fixtures" / "localization-repository"
+    sarif = _multi_result_sarif(project_root, tmp_path / "findings.sarif")
+    output = tmp_path / "triage"
+    triage_sarif(
+        sarif_path=sarif,
+        repository_source=repository,
+        output_directory=output,
+        implementation_revision="fixture-revision",
+    )
+
+    assert main(["review", str(output), "--after-rank", "999", "--limit", "1"]) == 0
+    captured = capsys.readouterr()
+    page = json.loads(captured.out)
+    assert page["entries"] == []
+    assert page["total"] == 2
+    assert page["has_more"] is False
+    assert page["next_after_rank"] is None
+
+
+@pytest.mark.parametrize("tamper", ["queue", "manifest"])
+def test_review_emits_no_rows_for_tampered_queue_or_manifest(
+    tmp_path: Path,
+    project_root: Path,
+    capsys: pytest.CaptureFixture[str],
+    tamper: str,
+) -> None:
+    repository = project_root / "tests" / "fixtures" / "localization-repository"
+    sarif = _multi_result_sarif(project_root, tmp_path / "findings.sarif")
+    output = tmp_path / "triage"
+    triage_sarif(
+        sarif_path=sarif,
+        repository_source=repository,
+        output_directory=output,
+        implementation_revision="fixture-revision",
+    )
+    if tamper == "queue":
+        queue_path = output / "review-queue.json"
+        queue = load_json(queue_path)
+        queue["entries"][0]["queue_rank"] = 99
+        dump_json(queue_path, queue)
+    else:
+        manifest_path = output / "manifest.json"
+        manifest = load_json(manifest_path)
+        manifest["package_id"] = "tampered-manifest-identity"
+        dump_json(manifest_path, manifest)
+
+    assert main(["review", str(output)]) != 0
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "review failed; package verification was unsuccessful" in captured.err
+    assert str(output) not in captured.err
+    assert "\x1b" not in captured.err
+
+
+def test_review_output_excludes_finding_and_result_error_details(
+    tmp_path: Path,
+    project_root: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    repository = project_root / "tests" / "fixtures" / "localization-repository"
+    sarif = _multi_result_sarif(project_root, tmp_path / "findings.sarif")
+    output = tmp_path / "triage"
+    triage_sarif(
+        sarif_path=sarif,
+        repository_source=repository,
+        output_directory=output,
+        implementation_revision="fixture-revision",
+    )
+    error_path = next((output / "errors").glob("*.json"))
+    error = load_json(error_path)
+    detail_marker = "private-result-error-detail-\x1b[31m"
+    error["detail"] = detail_marker
+    dump_json(error_path, error)
+
+    manifest_path = output / "manifest.json"
+    manifest = load_json(manifest_path)
+    relative_error = error_path.relative_to(output).as_posix()
+    artifact = next(item for item in manifest["artifacts"] if item["path"] == relative_error)
+    artifact["sha256"] = sha256_file(error_path)
+    artifact["size_bytes"] = error_path.stat().st_size
+    manifest.pop("package_id")
+    manifest["package_id"] = stable_id("triage-package", manifest)
+    dump_json(manifest_path, manifest)
+
+    assert main(["review", str(output)]) == 0
+    captured = capsys.readouterr()
+    rendered = captured.out + captured.err
+    assert "Quasar nebula mismatch" not in rendered
+    assert "private-result-error-detail" not in rendered
+    assert "\x1b" not in rendered
+    assert str(output) not in rendered
+    assert str(repository) not in rendered
+
+
+def test_review_rows_use_only_verified_data_returned_by_verifier(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    verified_entry = {
+        "queue_rank": 1,
+        "path": "src/example.py",
+        "role": "implementation",
+        "highest_severity": "high",
+        "finding_count": 1,
+        "best_shortlist_rank": 1,
+        "primary_anchor": {
+            "finding_key": "result-000-00000-0123456789ab",
+            "candidate_id": "candidate-id",
+            "region": {
+                "start_line": 1,
+                "start_column": 1,
+                "end_line": 1,
+                "end_column": 2,
+            },
+        },
+    }
+    monkeypatch.setattr(
+        "lumi_trace.triage.verify_triage_package",
+        lambda _path: {"summary": {}, "review_queue": [verified_entry]},
+    )
+    monkeypatch.setattr(
+        "lumi_trace.triage.load_json",
+        lambda *_args, **_kwargs: pytest.fail("review must not perform an unchecked reread"),
+    )
+
+    page = review_triage_package(tmp_path / "not-read", limit=1)
+    assert page["total"] == 1
+    assert page["entries"][0]["path"] == "src/example.py"
