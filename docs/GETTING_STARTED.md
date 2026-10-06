@@ -228,6 +228,21 @@ lumi-trace verify ./trace-evidence
 
 Verification detects changed, missing, or inconsistent artifacts. It does not independently validate the vulnerability.
 
+For a batch triage package, page through its verified reviewer queue without
+changing the package:
+
+```sh
+lumi-trace review ./triage-evidence --limit 20
+lumi-trace review ./triage-evidence --after-rank 20 --limit 20
+```
+
+Review is read-only and batch-package-only. It prints safe relative paths,
+queue metadata, and artifact references—not finding text or result-local error
+details. Queue order is a review priority, not probability or exploitability.
+Package integrity verification is not authentication and does not prove or
+disprove a vulnerability. Verify that SARIF's `%SRCROOT%` URI base maps to the
+intended local repository.
+
 ## Common corrections
 
 ### Output directory already exists
