@@ -78,8 +78,13 @@ The command is local, offline, read-only, and accepts batch triage packages
 only. It verifies the complete package before emitting a page containing only
 safe repository-relative paths, role/severity/count/rank/region metadata, and
 relative candidate/evidence artifact references. It does not emit findings,
-messages, snippets, or result-error details. The queue order is not a
-probability, exploitability measure, or vulnerability verdict.
+messages, snippets, or result-error details. Each page reports the verified
+completeness status plus selected, completed, and result-local error counts.
+Review returns `0` by default for a verified complete or partial-success
+package. `--fail-on-partial` returns `5` only after verification succeeds for a
+partial-success package; a complete package, including a valid empty package,
+still returns `0`. The queue order is not a probability, exploitability
+measure, or vulnerability verdict.
 
 Package integrity verification detects changes and inconsistencies; it is not
 authentication and does not independently validate or prove a vulnerability.
