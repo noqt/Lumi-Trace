@@ -791,6 +791,24 @@ def review_triage_package(path: Path, *, after_rank: int = 0, limit: int = 20) -
     ):
         raise InputError("review pagination arguments are invalid")
     verified = verify_triage_package(path)
+    summary = verified.get("summary")
+    if not isinstance(summary, dict):
+        raise IntegrityError("verified batch review summary is invalid")
+    completeness_status = summary.get("exit_status")
+    selected_results = summary.get("selected_results")
+    completed_localizations = summary.get("completed_localizations")
+    result_local_errors = summary.get("result_local_errors")
+    counts = (selected_results, completed_localizations, result_local_errors)
+    if (
+        not isinstance(completeness_status, str)
+        or completeness_status not in {"complete", "partial-success"}
+        or any(
+            not isinstance(value, int) or isinstance(value, bool) or value < 0 for value in counts
+        )
+        or selected_results != completed_localizations + result_local_errors
+        or completeness_status != ("partial-success" if result_local_errors else "complete")
+    ):
+        raise IntegrityError("verified batch review summary is invalid")
     queue = verified.get("review_queue")
     if not isinstance(queue, list):
         raise IntegrityError("verified batch review queue is invalid")
@@ -805,6 +823,10 @@ def review_triage_package(path: Path, *, after_rank: int = 0, limit: int = 20) -
     has_more = len(remaining) > limit
     next_after_rank = selected[-1].get("queue_rank") if has_more and selected else None
     return {
+        "completeness_status": completeness_status,
+        "selected_results": selected_results,
+        "completed_localizations": completed_localizations,
+        "result_local_errors": result_local_errors,
         "after_rank": after_rank,
         "limit": limit,
         "total": len(queue),

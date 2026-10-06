@@ -238,7 +238,11 @@ lumi-trace review ./triage-evidence --after-rank 20 --limit 20
 
 Review is read-only and batch-package-only. It prints safe relative paths,
 queue metadata, and artifact references—not finding text or result-local error
-details. Queue order is a review priority, not probability or exploitability.
+details. Each verified page also reports completeness status and selected,
+completed, and result-local error counts. Review returns `0` by default for a
+verified complete or partial-success package; `--fail-on-partial` returns `5`
+only after verifying a partial-success package. Queue order is a review
+priority, not probability or exploitability.
 Package integrity verification is not authentication and does not prove or
 disprove a vulnerability. Verify that SARIF's `%SRCROOT%` URI base maps to the
 intended local repository.

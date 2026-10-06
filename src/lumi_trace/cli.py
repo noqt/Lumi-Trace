@@ -47,6 +47,7 @@ from .sandbox import (
 from .triage import (
     DEFAULT_MAX_FINDINGS,
     TRIAGE_PACKAGE_SCHEMA,
+    TRIAGE_PARTIAL_SUCCESS_EXIT_CODE,
     review_triage_package,
     triage_sarif,
     verify_triage_package,
@@ -70,6 +71,11 @@ def _add_review_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("package", type=_path)
     parser.add_argument("--after-rank", default="0", metavar="N")
     parser.add_argument("--limit", default="20", metavar="N")
+    parser.add_argument(
+        "--fail-on-partial",
+        action="store_true",
+        help="return code 5 after verifying a partial-success package",
+    )
 
 
 def _write_summary(**values: object) -> None:
@@ -263,8 +269,26 @@ def _write_review_page(result: dict[str, object]) -> None:
     if not isinstance(entries, list):
         raise RuntimeError("verified review page is malformed")
     next_after_rank = result["next_after_rank"]
+    completeness_status = result["completeness_status"]
+    selected_results = result["selected_results"]
+    completed_localizations = result["completed_localizations"]
+    result_local_errors = result["result_local_errors"]
+    if (
+        not isinstance(completeness_status, str)
+        or completeness_status not in {"complete", "partial-success"}
+        or any(
+            not isinstance(value, int) or isinstance(value, bool) or value < 0
+            for value in (selected_results, completed_localizations, result_local_errors)
+        )
+    ):
+        raise RuntimeError("verified review completeness metadata is malformed")
     print("Lumi Trace verified batch review", file=sys.stderr)
     print(f"  Entries on page: {len(entries)} of {result['total']}", file=sys.stderr)
+    print(
+        f"  Completeness: {completeness_status}; {selected_results} selected; "
+        f"{completed_localizations} completed; {result_local_errors} result-local errors",
+        file=sys.stderr,
+    )
     print(
         f"  Queue order is review priority, not probability; has more: "
         f"{str(result['has_more']).lower()}",
@@ -848,6 +872,8 @@ def dispatch(args: argparse.Namespace) -> int | None:
             limit=limit,
         )
         _write_review_page(result)
+        if args.fail_on_partial and result["completeness_status"] == "partial-success":
+            return TRIAGE_PARTIAL_SUCCESS_EXIT_CODE
     elif args.command == "export-sarif":
         bundle = load_bundle(args.bundle)
         sarif = export_sarif(bundle)

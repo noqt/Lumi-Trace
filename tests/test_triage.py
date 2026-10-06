@@ -116,6 +116,18 @@ def test_triage_cli_reports_empty_complete_and_verifies(
     assert machine_summary["exit_status"] == "complete"
     assert "0 selected; 0 completed; 0 error" in captured.err
     assert main(["verify", str(output)]) == 0
+    capsys.readouterr()
+
+    assert main(["review", str(output), "--fail-on-partial"]) == 0
+    review_capture = capsys.readouterr()
+    review_summary = json.loads(review_capture.out)
+    assert review_summary["completeness_status"] == "complete"
+    assert review_summary["selected_results"] == 0
+    assert review_summary["completed_localizations"] == 0
+    assert review_summary["result_local_errors"] == 0
+    assert "Completeness: complete; 0 selected; 0 completed; 0 result-local errors" in (
+        review_capture.err
+    )
 
 
 def test_triage_preserves_single_finding_candidates_and_partial_success(
@@ -296,6 +308,10 @@ def test_review_pages_verified_queue_and_does_not_mutate_package(
     assert first["has_more"] is True
     assert first["next_after_rank"] == 1
     assert first["queue_order_is_not_probability"] is True
+    assert first["completeness_status"] == "partial-success"
+    assert first["selected_results"] == 4
+    assert first["completed_localizations"] == 3
+    assert first["result_local_errors"] == 1
     assert len(first["entries"]) == 1
 
     assert main(["review", str(output), "--after-rank", "1", "--limit", "1"]) == 0
@@ -305,6 +321,14 @@ def test_review_pages_verified_queue_and_does_not_mutate_package(
     assert second["has_more"] is False
     assert second["next_after_rank"] is None
     assert len(second["entries"]) == 1
+
+    assert main(["review", str(output), "--limit", "1", "--fail-on-partial"]) == 5
+    strict_capture = capsys.readouterr()
+    strict = json.loads(strict_capture.out)
+    assert strict["completeness_status"] == "partial-success"
+    assert strict["selected_results"] == 4
+    assert strict["completed_localizations"] == 3
+    assert strict["result_local_errors"] == 1
     rows = first["entries"] + second["entries"]
     assert [row["queue_rank"] for row in rows] == [1, 2]
     for row in rows:
@@ -333,8 +357,18 @@ def test_review_pages_verified_queue_and_does_not_mutate_package(
         assert row["candidates_reference"].endswith("/candidates.json")
         assert row["evidence_bundle_reference"].startswith("findings/result-")
         assert row["evidence_bundle_reference"].endswith("/evidence-bundle.json")
-    rendered = first_capture.out + first_capture.err + second_capture.out + second_capture.err
-    human_output = first_capture.err + second_capture.err
+    rendered = (
+        first_capture.out
+        + first_capture.err
+        + second_capture.out
+        + second_capture.err
+        + strict_capture.out
+        + strict_capture.err
+    )
+    human_output = first_capture.err + second_capture.err + strict_capture.err
+    assert "Completeness: partial-success; 4 selected; 3 completed; 1 result-local errors" in (
+        human_output
+    )
     for row in rows:
         region = row["primary_region"]
         assert f"{row['queue_rank']}. {row['path']}" in human_output
@@ -520,7 +554,15 @@ def test_review_rows_use_only_verified_data_returned_by_verifier(
     }
     monkeypatch.setattr(
         "lumi_trace.triage.verify_triage_package",
-        lambda _path: {"summary": {}, "review_queue": [verified_entry]},
+        lambda _path: {
+            "summary": {
+                "exit_status": "partial-success",
+                "selected_results": 3,
+                "completed_localizations": 2,
+                "result_local_errors": 1,
+            },
+            "review_queue": [verified_entry],
+        },
     )
     monkeypatch.setattr(
         "lumi_trace.triage.load_json",
@@ -530,3 +572,7 @@ def test_review_rows_use_only_verified_data_returned_by_verifier(
     page = review_triage_package(tmp_path / "not-read", limit=1)
     assert page["total"] == 1
     assert page["entries"][0]["path"] == "src/example.py"
+    assert page["completeness_status"] == "partial-success"
+    assert page["selected_results"] == 3
+    assert page["completed_localizations"] == 2
+    assert page["result_local_errors"] == 1
