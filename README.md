@@ -239,6 +239,51 @@ lumi-trace triage \
 
 Batch triage creates a per-result shortlist and one unique-path review queue. Queue order is review priority, not probability, exploitability, or a repository safety verdict. A malformed individual result is retained as an error record while valid results complete; that verified partial-success outcome exits with code `5`.
 
+### Review a verified batch package from current source
+
+The `review` command is available from source at commit
+`1ca7a3922cd29a6976bb1ce65acac7de467451bc`. The currently published V0.10.0
+wheel does not include it. Install that exact source revision into a fresh
+CPython 3.11 or 3.12 environment:
+
+```sh
+python -m pip install --no-deps "git+https://github.com/noqt/Lumi-Trace.git@1ca7a3922cd29a6976bb1ce65acac7de467451bc"
+```
+
+Use a local SARIF 2.1.0 report whose selected results identify physical Python
+implementation locations under an authorised repository or pre-selected
+component root. Filter container layers, dependency or OS inventory,
+infrastructure/configuration, and pathless findings in the producer workflow.
+For SARIF that uses `%SRCROOT%`, verify that it maps to the intended local
+repository before continuing. Choose a new output directory; Lumi does not
+replace an existing package.
+
+```sh
+lumi-trace triage \
+  --sarif findings.sarif \
+  --repository /path/to/local/repository \
+  --output out/triage
+lumi-trace verify out/triage
+lumi-trace review out/triage --limit 20
+```
+
+`review` accepts verified batch triage packages only. It verifies the complete
+package before emitting a page of repository-relative review metadata. Continue
+with the exclusive queue-rank cursor returned by the previous page:
+
+```sh
+lumi-trace review out/triage --after-rank 20 --limit 20
+```
+
+The limit must be from 1 to 200. Queue order is review priority, not probability,
+exploitability, or proof that a vulnerability exists. The review page omits raw
+finding messages, snippets, result-error details, and absolute host paths, but
+the underlying evidence package can still contain sensitive findings, paths,
+symbols, hashes, and runtime metadata. Keep the package access-controlled and
+out of source control, public issues, and public artifacts. These commands run
+locally with no Lumi product telemetry or API key; they do not make the
+surrounding operating system, Python, Git, shell, or backups private.
+
 See [Inputs and outputs](docs/INPUTS_AND_OUTPUTS.md).
 
 ## GitHub Actions
