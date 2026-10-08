@@ -87,7 +87,7 @@ Bash:
 ```sh
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install --no-deps ./skylark_lumi_trace-0.10.1-py3-none-any.whl
+python -m pip install --no-deps ./skylark_lumi_trace-0.10.0-py3-none-any.whl
 lumi-trace version
 ```
 
@@ -96,11 +96,11 @@ PowerShell:
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --no-deps `
-  .\skylark_lumi_trace-0.10.1-py3-none-any.whl
+  .\skylark_lumi_trace-0.10.0-py3-none-any.whl
 .\.venv\Scripts\lumi-trace.exe version
 ```
 
-Use the filename from the release you downloaded. Do not copy the `0.10.1` command against a different release.
+Use the filename from the release you downloaded. Do not copy the `0.10.0` command against a different release.
 
 ### Verify a downloaded release
 
