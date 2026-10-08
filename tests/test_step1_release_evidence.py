@@ -15,6 +15,7 @@ from pathlib import Path, PurePosixPath
 import pytest
 
 from scripts.build_step1_release_evidence import (
+    CURRENT_SCANNER_IDENTITY,
     ReleaseEvidenceError,
     build_release_evidence,
     inspect_release_artifacts,
@@ -33,9 +34,27 @@ METADATA = (
     b"Requires-Python: <3.13,>=3.11\n"
     b"\n"
 )
+SUPERSEDED_SCANNER_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.10"
 
 
-def _wheel(path: Path, extra: dict[str, bytes] | None = None) -> None:
+def _scanner_source(identity: str) -> bytes:
+    return (
+        f"STEP1_RUNTIME_IDENTITY = {identity!r}\n"
+        "RUNTIME_IDENTITY = STEP1_RUNTIME_IDENTITY\n"
+        'raise AssertionError("release inspection must not execute scanner source")\n'
+    ).encode()
+
+
+SCANNER_SOURCE = _scanner_source(CURRENT_SCANNER_IDENTITY)
+MISSING_SCANNER_IDENTITY_SOURCE = b"UNRELATED_CONSTANT = 'no scanner identity'\n"
+
+
+def _wheel(
+    path: Path,
+    extra: dict[str, bytes] | None = None,
+    *,
+    scanner_source: bytes | None = SCANNER_SOURCE,
+) -> None:
     members = {
         "lumi_trace/__init__.py": b'__version__ = "0.4.1"\n',
         f"{PACKAGE_ROOT}.dist-info/METADATA": METADATA,
@@ -44,6 +63,8 @@ def _wheel(path: Path, extra: dict[str, bytes] | None = None) -> None:
         ),
         f"{PACKAGE_ROOT}.dist-info/licenses/LICENSE": b"Apache License\nVersion 2.0\n",
     }
+    if scanner_source is not None:
+        members["lumi_trace/localization.py"] = scanner_source
     members.update(extra or {})
     with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for name, payload in sorted(members.items()):
@@ -55,12 +76,15 @@ def _sdist(
     extra: dict[str, bytes] | None = None,
     *,
     member_mtime: int = SOURCE_DATE_EPOCH,
+    scanner_source: bytes | None = SCANNER_SOURCE,
 ) -> None:
     members = {
         f"{PACKAGE_ROOT}/PKG-INFO": METADATA,
         f"{PACKAGE_ROOT}/LICENSE": b"Apache License\nVersion 2.0\n",
         f"{PACKAGE_ROOT}/src/lumi_trace/__init__.py": b'__version__ = "0.4.1"\n',
     }
+    if scanner_source is not None:
+        members[f"{PACKAGE_ROOT}/src/lumi_trace/localization.py"] = scanner_source
     members.update({f"{PACKAGE_ROOT}/{name}": payload for name, payload in (extra or {}).items()})
     with tarfile.open(path, "w:gz") as archive:
         for name, payload in sorted(members.items()):
@@ -71,12 +95,17 @@ def _sdist(
             archive.addfile(member, io.BytesIO(payload))
 
 
-def _pair(tmp_path: Path) -> tuple[Path, Path]:
+def _pair(
+    tmp_path: Path,
+    *,
+    wheel_scanner_source: bytes | None = SCANNER_SOURCE,
+    sdist_scanner_source: bytes | None = SCANNER_SOURCE,
+) -> tuple[Path, Path]:
     wheel = tmp_path / f"{PACKAGE_ROOT}-py3-none-any.whl"
     sdist = tmp_path / f"{PACKAGE_ROOT}.tar.gz"
     raw_sdist = tmp_path / f"raw-{PACKAGE_ROOT}.tar.gz"
-    _wheel(wheel)
-    _sdist(raw_sdist)
+    _wheel(wheel, scanner_source=wheel_scanner_source)
+    _sdist(raw_sdist, scanner_source=sdist_scanner_source)
     normalize_sdist(raw_sdist, sdist, source_date_epoch=SOURCE_DATE_EPOCH)
     return wheel, sdist
 
@@ -112,6 +141,99 @@ def test_builds_hash_bound_spdx_release_evidence(tmp_path: Path) -> None:
     }
     assert all(item["licenseDeclared"] == "Apache-2.0" for item in sbom["packages"])
     assert "C:\\" not in (output / "environment.json").read_text(encoding="utf-8")
+
+
+def test_release_evidence_records_and_manifest_binds_current_scanner_identity(
+    tmp_path: Path,
+) -> None:
+    wheel, sdist = _pair(tmp_path)
+    output = tmp_path / "evidence"
+
+    manifest = build_release_evidence(
+        wheel=wheel,
+        sdist=sdist,
+        output=output,
+        source_revision=REVISION,
+        source_date_epoch=SOURCE_DATE_EPOCH,
+    )
+
+    inventory = json.loads((output / "artifact-inventory.json").read_text(encoding="utf-8"))
+    summary = json.loads((output / "summary.json").read_text(encoding="utf-8"))
+    assert inventory["scanner_identity"] == CURRENT_SCANNER_IDENTITY
+    assert {artifact["scanner_identity"] for artifact in inventory["artifacts"]} == {
+        CURRENT_SCANNER_IDENTITY
+    }
+    assert summary["scanner_identity"] == CURRENT_SCANNER_IDENTITY
+    assert {check["id"] for check in summary["checks"]} >= {"current-scanner-identity"}
+
+    manifest_members = {member["path"]: member for member in manifest["members"]}
+    for name in ("artifact-inventory.json", "summary.json"):
+        member = manifest_members[name]
+        payload = (output / name).read_bytes()
+        assert member["sha256"] == f"sha256:{hashlib.sha256(payload).hexdigest()}"
+        assert member["size_bytes"] == len(payload)
+    identity_payload = json.dumps(
+        manifest["members"], separators=(",", ":"), sort_keys=True
+    ).encode()
+    assert manifest["evidence_id"] == (
+        f"lumi-trace-step1-release-evidence:{hashlib.sha256(identity_payload).hexdigest()}"
+    )
+
+
+@pytest.mark.parametrize("missing_in", ("wheel", "sdist"))
+def test_rejects_missing_scanner_identity_declaration(
+    tmp_path: Path,
+    missing_in: str,
+) -> None:
+    wheel, sdist = _pair(
+        tmp_path,
+        wheel_scanner_source=(
+            MISSING_SCANNER_IDENTITY_SOURCE if missing_in == "wheel" else SCANNER_SOURCE
+        ),
+        sdist_scanner_source=(
+            MISSING_SCANNER_IDENTITY_SOURCE if missing_in == "sdist" else SCANNER_SOURCE
+        ),
+    )
+
+    with pytest.raises(ReleaseEvidenceError, match="scanner identity declaration is missing"):
+        inspect_release_artifacts(wheel, sdist)
+
+
+@pytest.mark.parametrize("missing_in", ("wheel", "sdist"))
+def test_rejects_missing_scanner_source_member(
+    tmp_path: Path,
+    missing_in: str,
+) -> None:
+    wheel, sdist = _pair(
+        tmp_path,
+        wheel_scanner_source=None if missing_in == "wheel" else SCANNER_SOURCE,
+        sdist_scanner_source=None if missing_in == "sdist" else SCANNER_SOURCE,
+    )
+
+    with pytest.raises(ReleaseEvidenceError, match="exactly one current scanner source member"):
+        inspect_release_artifacts(wheel, sdist)
+
+
+def test_rejects_mismatched_scanner_identities(tmp_path: Path) -> None:
+    wheel, sdist = _pair(
+        tmp_path,
+        wheel_scanner_source=_scanner_source(SUPERSEDED_SCANNER_IDENTITY),
+    )
+
+    with pytest.raises(ReleaseEvidenceError, match="wheel and sdist scanner identities differ"):
+        inspect_release_artifacts(wheel, sdist)
+
+
+def test_rejects_superseded_scanner_identity(tmp_path: Path) -> None:
+    superseded_source = _scanner_source(SUPERSEDED_SCANNER_IDENTITY)
+    wheel, sdist = _pair(
+        tmp_path,
+        wheel_scanner_source=superseded_source,
+        sdist_scanner_source=superseded_source,
+    )
+
+    with pytest.raises(ReleaseEvidenceError, match="scanner identity is superseded"):
+        inspect_release_artifacts(wheel, sdist)
 
 
 def test_release_checksums_are_flat_download_compatible(

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import gzip
 import hashlib
 import json
@@ -30,6 +31,15 @@ MAX_MEMBER_BYTES = 16 * 1024 * 1024
 MAX_TOTAL_BYTES = 256 * 1024 * 1024
 SOURCE_REVISION = re.compile(r"[0-9a-f]{40}")
 REQUIRED_PYTHON_SPECIFIERS = frozenset({">=3.11", "<3.13"})
+CURRENT_SCANNER_IDENTITY = "lumi-trace-runtime-v0.4.1-pre-release.11"
+SUPERSEDED_SCANNER_IDENTITIES = frozenset(
+    {
+        "lumi-trace-runtime-v0.4.1-pre-release.9",
+        "lumi-trace-runtime-v0.4.1-pre-release.10",
+    }
+)
+WHEEL_SCANNER_SOURCE_PATH = "lumi_trace/localization.py"
+SDIST_SCANNER_SOURCE_PATH = "src/lumi_trace/localization.py"
 
 WEIGHT_SUFFIXES = {
     ".bin",
@@ -175,6 +185,7 @@ class ArtifactInspection:
     size_bytes: int
     members: tuple[ArchiveMember, ...]
     metadata: PackageMetadata
+    scanner_identity: str
 
     def record(self) -> dict[str, object]:
         return {
@@ -184,6 +195,7 @@ class ArtifactInspection:
             "member_count": len(self.members),
             "members": [member.record() for member in self.members],
             "metadata": self.metadata.record(),
+            "scanner_identity": self.scanner_identity,
             "sha256": f"sha256:{self.sha256}",
             "size_bytes": self.size_bytes,
         }
@@ -296,6 +308,52 @@ def _metadata_from_bytes(payload: bytes, *, member_name: str) -> PackageMetadata
     )
 
 
+def _scanner_identity_from_bytes(payload: bytes, *, member_name: str) -> str:
+    """Read the active scanner identity from source syntax without importing it."""
+
+    try:
+        module = ast.parse(payload.decode("utf-8"), filename=member_name)
+    except (UnicodeDecodeError, SyntaxError) as exc:
+        raise ReleaseEvidenceError(
+            f"scanner source cannot be statically parsed: {member_name}"
+        ) from exc
+
+    declarations: dict[str, list[ast.expr]] = {
+        "STEP1_RUNTIME_IDENTITY": [],
+        "RUNTIME_IDENTITY": [],
+    }
+    for statement in module.body:
+        if isinstance(statement, ast.Assign):
+            assignments = (
+                (target.id, statement.value)
+                for target in statement.targets
+                if isinstance(target, ast.Name)
+            )
+        elif isinstance(statement, ast.AnnAssign) and isinstance(statement.target, ast.Name):
+            assignments = ((statement.target.id, statement.value),)
+        else:
+            continue
+        for name, value in assignments:
+            if name in declarations and value is not None:
+                declarations[name].append(value)
+
+    if any(len(values) != 1 for values in declarations.values()):
+        raise ReleaseEvidenceError(
+            f"scanner identity declaration is missing or ambiguous: {member_name}"
+        )
+    step1_identity = declarations["STEP1_RUNTIME_IDENTITY"][0]
+    active_identity = declarations["RUNTIME_IDENTITY"][0]
+    if not isinstance(step1_identity, ast.Constant) or not isinstance(step1_identity.value, str):
+        raise ReleaseEvidenceError(
+            f"current scanner identity must be a string literal: {member_name}"
+        )
+    if not isinstance(active_identity, ast.Name) or active_identity.id != "STEP1_RUNTIME_IDENTITY":
+        raise ReleaseEvidenceError(
+            f"active scanner identity must alias STEP1_RUNTIME_IDENTITY: {member_name}"
+        )
+    return step1_identity.value
+
+
 def _bounded_payload(source: BinaryIO, *, name: str, declared_size: int) -> bytes:
     if declared_size < 0 or declared_size > MAX_MEMBER_BYTES:
         raise ReleaseEvidenceError(f"archive member exceeds the size bound: {name}")
@@ -311,6 +369,7 @@ def _inspect_wheel(path: Path) -> ArtifactInspection:
     seen: set[str] = set()
     members: list[ArchiveMember] = []
     metadata_payloads: list[tuple[str, bytes]] = []
+    scanner_payloads: list[tuple[str, bytes]] = []
     total_bytes = 0
     try:
         with zipfile.ZipFile(path) as archive:
@@ -341,6 +400,8 @@ def _inspect_wheel(path: Path) -> ArtifactInspection:
                 _check_payload(name, payload)
                 if name.endswith(".dist-info/METADATA"):
                     metadata_payloads.append((name, payload))
+                if name == WHEEL_SCANNER_SOURCE_PATH:
+                    scanner_payloads.append((name, payload))
                 members.append(
                     ArchiveMember(
                         path=name,
@@ -353,9 +414,15 @@ def _inspect_wheel(path: Path) -> ArtifactInspection:
         raise ReleaseEvidenceError("wheel is not a valid ZIP archive") from exc
     if len(metadata_payloads) != 1:
         raise ReleaseEvidenceError("wheel must contain exactly one dist-info/METADATA")
+    if len(scanner_payloads) != 1:
+        raise ReleaseEvidenceError("wheel must contain exactly one current scanner source member")
     metadata = _metadata_from_bytes(
         metadata_payloads[0][1],
         member_name=metadata_payloads[0][0],
+    )
+    scanner_identity = _scanner_identity_from_bytes(
+        scanner_payloads[0][1],
+        member_name=scanner_payloads[0][0],
     )
     return ArtifactInspection(
         artifact_type="wheel",
@@ -365,6 +432,7 @@ def _inspect_wheel(path: Path) -> ArtifactInspection:
         size_bytes=path.stat().st_size,
         members=tuple(sorted(members, key=lambda member: member.path)),
         metadata=metadata,
+        scanner_identity=scanner_identity,
     )
 
 
@@ -374,6 +442,7 @@ def _inspect_sdist(path: Path) -> ArtifactInspection:
     seen: set[str] = set()
     members: list[ArchiveMember] = []
     metadata_payloads: list[tuple[str, bytes]] = []
+    scanner_payloads: list[tuple[str, bytes]] = []
     total_bytes = 0
     try:
         with tarfile.open(path, mode="r:gz") as archive:
@@ -414,6 +483,8 @@ def _inspect_sdist(path: Path) -> ArtifactInspection:
                 _check_payload(logical_name, payload)
                 if logical_name == "PKG-INFO":
                     metadata_payloads.append((name, payload))
+                if logical_name == SDIST_SCANNER_SOURCE_PATH:
+                    scanner_payloads.append((name, payload))
                 members.append(
                     ArchiveMember(
                         path=name,
@@ -426,9 +497,15 @@ def _inspect_sdist(path: Path) -> ArtifactInspection:
         raise ReleaseEvidenceError("sdist is not a valid gzip-compressed TAR archive") from exc
     if len(metadata_payloads) != 1:
         raise ReleaseEvidenceError("sdist must contain exactly one root PKG-INFO")
+    if len(scanner_payloads) != 1:
+        raise ReleaseEvidenceError("sdist must contain exactly one current scanner source member")
     metadata = _metadata_from_bytes(
         metadata_payloads[0][1],
         member_name=metadata_payloads[0][0],
+    )
+    scanner_identity = _scanner_identity_from_bytes(
+        scanner_payloads[0][1],
+        member_name=scanner_payloads[0][0],
     )
     return ArtifactInspection(
         artifact_type="sdist",
@@ -438,6 +515,7 @@ def _inspect_sdist(path: Path) -> ArtifactInspection:
         size_bytes=path.stat().st_size,
         members=tuple(sorted(members, key=lambda member: member.path)),
         metadata=metadata,
+        scanner_identity=scanner_identity,
     )
 
 
@@ -452,6 +530,16 @@ def inspect_release_artifacts(wheel: Path, sdist: Path) -> tuple[ArtifactInspect
     wheel_metadata, sdist_metadata = (item.metadata for item in inspections)
     if wheel_metadata != sdist_metadata:
         raise ReleaseEvidenceError("wheel and sdist package metadata differ")
+    wheel_scanner_identity, sdist_scanner_identity = (item.scanner_identity for item in inspections)
+    if wheel_scanner_identity != sdist_scanner_identity:
+        raise ReleaseEvidenceError("wheel and sdist scanner identities differ")
+    if wheel_scanner_identity in SUPERSEDED_SCANNER_IDENTITIES:
+        raise ReleaseEvidenceError(f"scanner identity is superseded: {wheel_scanner_identity}")
+    if wheel_scanner_identity != CURRENT_SCANNER_IDENTITY:
+        raise ReleaseEvidenceError(
+            f"release artifacts do not contain the current scanner identity: "
+            f"{CURRENT_SCANNER_IDENTITY}"
+        )
     if wheel_metadata.license_expression != "Apache-2.0":
         raise ReleaseEvidenceError("Step 1 package metadata must declare Apache-2.0")
     python_specifiers = (
@@ -651,6 +739,7 @@ def build_release_evidence(
         inventory = {
             "artifacts": [inspection.record() for inspection in inspections],
             "package": inspections[0].metadata.record(),
+            "scanner_identity": inspections[0].scanner_identity,
             "schema_version": "lumi-trace-step1-release-artifact-inventory-v1",
             "source_revision": source_revision,
         }
@@ -681,6 +770,7 @@ def build_release_evidence(
                 {"id": "archive-structure", "status": "PASS"},
                 {"id": "canonical-sdist", "status": "PASS"},
                 {"id": "package-metadata-match", "status": "PASS"},
+                {"id": "current-scanner-identity", "status": "PASS"},
                 {"id": "apache-2.0-declaration", "status": "PASS"},
                 {"id": "supported-python-range", "status": "PASS"},
                 {"id": "zero-runtime-dependencies", "status": "PASS"},
@@ -694,6 +784,7 @@ def build_release_evidence(
             "overall_status": "PASS",
             "publication_authorised": False,
             "schema_version": "lumi-trace-step1-release-evidence-summary-v1",
+            "scanner_identity": inspections[0].scanner_identity,
             "source_revision": source_revision,
         }
         _write_json(staging / "summary.json", summary)
