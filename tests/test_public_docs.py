@@ -27,7 +27,7 @@ PRODUCT_DOCUMENTS = (
 )
 MARKDOWN_LINK = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
 # Published v0.10.0 release asset 500802915; SHA-256:
-# fb788f981dbf681d08f2edf2513e1b2f3dceb69bc3f9f8d270a42f6d430035920.
+# fb788f981dbf681d08f2edf2515db8e968669ef23f5109cac31bfad866cce11d.
 PUBLISHED_RELEASE_VERSION = "v0.10.0"
 PUBLISHED_RELEASE_WHEEL = "skylark_lumi_trace-0.10.0-py3-none-any.whl"
 PUBLISHED_RELEASE_WARNING = (
