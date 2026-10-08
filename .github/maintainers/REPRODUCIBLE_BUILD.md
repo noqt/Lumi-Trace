@@ -195,9 +195,14 @@ syntax, CR/LF/CRLF variants, non-ASCII source inside strings/comments,
 non-Python source containing Unicode-category edge characters, and an
 explicit non-printable-ASCII repository-path rejection. It must also exercise
 the 16,384-character, 512-work-unit, 2,048-AST-node and 128-AST-level
-projection controls and the 1,000 minimum recursion-limit gate. The current
-`.11` scanner, `.7` candidate algorithm, v4 index and `python-lexical-v1`
-extractor must be present in every successful current-profile artifact.
+projection controls and the 1,000 minimum recursion-limit gate. Release
+evidence must statically extract the current `.11` scanner identity from both
+the wheel and sdist, record it in `artifact-inventory.json` and `summary.json`,
+and bind those files through the member hashes in `manifest.json`. Verify the
+`.7` candidate algorithm, v4 index and `python-lexical-v1` extractor in the
+current-profile artifacts where those identities are defined. The
+`repository-index.json` and `candidates.json` v1 formats do not require a
+scanner identity field.
 
 No-Docker execution is the required core path. Docker-marked tests may be run
 separately only when the immutable image is already present locally; Lumi
