@@ -26,6 +26,18 @@ PRODUCT_DOCUMENTS = (
     Path("docs/ARCHITECTURE.md"),
 )
 MARKDOWN_LINK = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
+# Published v0.10.0 release asset 500802915; SHA-256:
+# fb788f981dbf681d08f2edf2513e1b2f3dceb69bc3f9f8d270a42f6d430035920.
+PUBLISHED_RELEASE_VERSION = "v0.10.0"
+PUBLISHED_RELEASE_WHEEL = "skylark_lumi_trace-0.10.0-py3-none-any.whl"
+PUBLISHED_RELEASE_WARNING = (
+    "Use the filename from the release you downloaded. Do not copy the "
+    f"`{PUBLISHED_RELEASE_VERSION.removeprefix('v')}` command against a different release."
+)
+BASH_RELEASE_INSTALL = f"python -m pip install --no-deps ./{PUBLISHED_RELEASE_WHEEL}"
+POWERSHELL_RELEASE_INSTALL = (
+    f".\\.venv\\Scripts\\python.exe -m pip install --no-deps `\n  .\\{PUBLISHED_RELEASE_WHEEL}"
+)
 
 
 def test_public_document_links_resolve(project_root: Path) -> None:
@@ -182,14 +194,139 @@ def test_clean_source_install_runs_and_verifies_public_quickstart(
     assert json.loads(verify.stdout) == {"input": str(output), "valid": True}
 
 
-def test_release_install_example_matches_source_version_without_an_unpublished_tag(
+def _release_install_section(readme: str) -> str:
+    headings = list(re.finditer(r"(?m)^### From a GitHub Release[ \t]*\r?$", readme))
+    assert len(headings) == 1, "expected one '### From a GitHub Release' section"
+
+    section_start = headings[0].end()
+    next_heading = re.search(r"(?m)^#{1,3}[ \t]+", readme[section_start:])
+    section_end = section_start + next_heading.start() if next_heading else len(readme)
+    return readme[section_start:section_end]
+
+
+def _assert_published_release_install_contract(readme: str) -> None:
+    section = _release_install_section(readme)
+
+    bash_blocks = re.findall(r"(?ms)^```sh[ \t]*\r?\n(.*?)^```[ \t]*\r?$", section)
+    assert len(bash_blocks) == 1, "expected one Bash install code block in the release section"
+    bash_commands = [
+        line.strip() for line in bash_blocks[0].splitlines() if "-m pip install" in line
+    ]
+    assert bash_commands == [BASH_RELEASE_INSTALL]
+
+    powershell_blocks = re.findall(r"(?ms)^```powershell[ \t]*\r?\n(.*?)^```[ \t]*\r?$", section)
+    assert len(powershell_blocks) == 1, (
+        "expected one PowerShell install code block in the release section"
+    )
+    powershell_lines = powershell_blocks[0].splitlines()
+    powershell_commands: list[str] = []
+    for index, line in enumerate(powershell_lines):
+        if "-m pip install" not in line:
+            continue
+        command = line.strip()
+        if command.endswith("`") and index + 1 < len(powershell_lines):
+            command += "\n" + powershell_lines[index + 1]
+        powershell_commands.append(command)
+    assert powershell_commands == [POWERSHELL_RELEASE_INSTALL]
+
+    warning_lines = [
+        " ".join(line.split())
+        for line in section.splitlines()
+        if "filename" in line.casefold() or "different release" in line.casefold()
+    ]
+    assert warning_lines == [PUBLISHED_RELEASE_WARNING]
+
+
+def _valid_release_install_example() -> str:
+    return f"""### From a GitHub Release
+
+Download the wheel for the version you want from GitHub Releases.
+
+Bash:
+
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+{BASH_RELEASE_INSTALL}
+lumi-trace version
+```
+
+PowerShell:
+
+```powershell
+py -3.12 -m venv .venv
+{POWERSHELL_RELEASE_INSTALL}
+.\\.venv\\Scripts\\lumi-trace.exe version
+```
+
+{PUBLISHED_RELEASE_WARNING}
+
+### Verify a downloaded release
+"""
+
+
+@pytest.mark.parametrize(
+    "invalid_case",
+    (
+        "wrong-bash-wheel",
+        "wrong-powershell-wheel",
+        "wrong-warning",
+        "missing-section",
+        "duplicate-section",
+        "correct-wheel-elsewhere",
+    ),
+)
+def test_release_install_contract_rejects_invalid_examples(invalid_case: str) -> None:
+    readme = _valid_release_install_example()
+    wrong_wheel = "skylark_lumi_trace-0.10.1-py3-none-any.whl"
+
+    if invalid_case == "wrong-bash-wheel":
+        readme = readme.replace(
+            BASH_RELEASE_INSTALL,
+            BASH_RELEASE_INSTALL.replace(PUBLISHED_RELEASE_WHEEL, wrong_wheel),
+            1,
+        )
+    elif invalid_case == "wrong-powershell-wheel":
+        readme = readme.replace(
+            POWERSHELL_RELEASE_INSTALL,
+            POWERSHELL_RELEASE_INSTALL.replace(PUBLISHED_RELEASE_WHEEL, wrong_wheel),
+            1,
+        )
+    elif invalid_case == "wrong-warning":
+        readme = readme.replace(
+            PUBLISHED_RELEASE_WARNING,
+            "Use the 0.10.1 wheel for this release.",
+            1,
+        )
+    elif invalid_case == "missing-section":
+        readme = readme.replace("### From a GitHub Release", "### From source", 1)
+    elif invalid_case == "duplicate-section":
+        readme += "\n### From a GitHub Release\n"
+    elif invalid_case == "correct-wheel-elsewhere":
+        readme = readme.replace(
+            BASH_RELEASE_INSTALL,
+            BASH_RELEASE_INSTALL.replace(PUBLISHED_RELEASE_WHEEL, wrong_wheel),
+            1,
+        )
+        readme = readme.replace(
+            POWERSHELL_RELEASE_INSTALL,
+            POWERSHELL_RELEASE_INSTALL.replace(PUBLISHED_RELEASE_WHEEL, wrong_wheel),
+            1,
+        )
+        readme += f"\nThe published asset is {PUBLISHED_RELEASE_WHEEL}.\n"
+
+    with pytest.raises(AssertionError):
+        _assert_published_release_install_contract(readme)
+
+
+def test_release_install_example_is_pinned_to_published_release_not_source_version(
     project_root: Path,
 ) -> None:
     project = (project_root / "pyproject.toml").read_text(encoding="utf-8")
+    source_version = re.search(r'^version = "([^"]+)"$', project, flags=re.MULTILINE)
+    assert source_version is not None
+    assert source_version.group(1) == "0.10.1"
+
     readme = (project_root / "README.md").read_text(encoding="utf-8")
-    version = re.search(r'^version = "([^"]+)"$', project, flags=re.MULTILINE)
-    assert version is not None
-    release_version = version.group(1)
     assert "https://github.com/noqt/Lumi-Trace/releases" in readme
-    assert f"releases/tag/v{release_version}" not in readme
-    assert f"skylark_lumi_trace-{release_version}-py3-none-any.whl" in readme
+    _assert_published_release_install_contract(readme)
