@@ -24,6 +24,7 @@ def _multi_result_sarif(project_root: Path, destination: Path) -> Path:
     source = json.loads((project_root / "tests" / "data" / "finding.sarif").read_text("utf-8"))
     original = source["runs"][0]["results"][0]
     duplicate = deepcopy(original)
+    duplicate["message"] = {"text": "unsafe_join has a distinct scanner diagnostic"}
     unrelated = deepcopy(original)
     unrelated["ruleId"] = "UNRELATED"
     unrelated["message"] = {"text": "Quasar nebula mismatch"}
@@ -205,6 +206,33 @@ def test_triage_preserves_single_finding_candidates_and_partial_success(
     assert queue[0]["finding_count"] == 2
     assert queue[0]["queue_order_is_not_probability"] is True
     assert (output / "errors" / f"{sorted((output / 'errors').iterdir())[0].stem}.json").is_file()
+
+
+def test_triage_sarif_keeps_distinct_original_diagnostics_in_batch_projection(
+    tmp_path: Path, project_root: Path
+) -> None:
+    repository = project_root / "tests" / "fixtures" / "localization-repository"
+    sarif = _multi_result_sarif(project_root, tmp_path / "findings.sarif")
+    output = tmp_path / "triage"
+
+    triage_sarif(
+        sarif_path=sarif,
+        repository_source=repository,
+        output_directory=output,
+        implementation_revision="fixture-revision",
+    )
+
+    results = load_json(output / "triage.sarif")["runs"][0]["results"]
+    messages = [item["message"]["text"] for item in results]
+    assert len(messages) == 3
+    assert messages[0] != messages[1]
+    assert messages[0].endswith(
+        "Original diagnostic: unsafe_join accepts a parent-directory member name "
+        "without containment validation."
+    )
+    assert messages[1].endswith(
+        "Original diagnostic: unsafe_join has a distinct scanner diagnostic"
+    )
 
 
 def test_triage_cli_reports_partial_success_and_verifies(
