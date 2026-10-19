@@ -50,6 +50,8 @@ A `trace` run operates on exactly one result. When a SARIF document contains sev
 
 Remote artifact locations and unresolved URI bases are rejected. No SARIF field is interpreted as a command or reproduction plan.
 
+For SARIF `artifactLocation.uri`, a decoded backslash is rejected before separator normalization, so `src%5Ctarget.py` is not treated as `src/target.py`. Valid local absolute `file:///` URIs remain supported with `--repository`; manual Windows paths keep their existing normalization.
+
 ### Batch SARIF triage
 
 Use `triage` when one local SARIF 2.1.0 report contains several results for the same local repository:
