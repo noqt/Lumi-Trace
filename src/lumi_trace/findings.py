@@ -104,7 +104,12 @@ def _security_severity(rule: dict[str, Any], fallback: Any) -> dict[str, str]:
     return {"normalized": normalized, "original": str(raw)}
 
 
-def _safe_relative_path(value: str, repository_root: Path | None = None) -> str:
+def _safe_relative_path(
+    value: str,
+    repository_root: Path | None = None,
+    *,
+    reject_decoded_backslash: bool = False,
+) -> str:
     windows_drive_path = re.match(r"^[A-Za-z]:[\\/]", value) is not None
     if windows_drive_path:
         raw_path = urllib.parse.unquote(value)
@@ -118,6 +123,8 @@ def _safe_relative_path(value: str, repository_root: Path | None = None) -> str:
         if parsed.query or parsed.fragment:
             raise UnsupportedError("SARIF artifact location queries and fragments are unsupported")
         raw_path = urllib.parse.unquote(parsed.path if scheme else value)
+    if reject_decoded_backslash and "\\" in raw_path:
+        raise InputError("SARIF artifact location contains a backslash after percent-decoding")
     raw_path = raw_path.replace("\\", "/")
     if "\x00" in raw_path:
         raise InputError("finding location contains a NUL byte")
@@ -393,7 +400,9 @@ def _sarif_location(
             "SARIF artifact uriBaseId must be omitted or use the explicit %SRCROOT% boundary"
         )
     result: dict[str, object] = {
-        "path": _safe_relative_path(artifact["uri"], repository_root),
+        "path": _safe_relative_path(
+            artifact["uri"], repository_root, reject_decoded_backslash=True
+        ),
         "region": _region(physical.get("region")),
     }
     logical = location.get("logicalLocations")

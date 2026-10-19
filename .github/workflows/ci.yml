@@ -27,19 +27,30 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           cache: pip
-      - run: python -m pip install --disable-pip-version-check --upgrade "pip==26.2"
+      - name: Create isolated unit environment
+        run: python -m venv .venv
+      - name: Select isolated unit Python
+        id: unit-python
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo 'executable=.\.venv\Scripts\python.exe' >> "$GITHUB_OUTPUT"
+          else
+            echo "executable=.venv/bin/python" >> "$GITHUB_OUTPUT"
+          fi
+      - run: ${{ steps.unit-python.outputs.executable }} -m pip install --disable-pip-version-check --upgrade "pip==26.2"
       - name: Install project and development checks
-        run: python -m pip install --disable-pip-version-check -e ".[dev]"
+        run: ${{ steps.unit-python.outputs.executable }} -m pip install --disable-pip-version-check -e ".[dev]"
       - name: Test deterministic runtime
-        run: python -m pytest -q -m "not docker"
+        run: ${{ steps.unit-python.outputs.executable }} -m pytest -q -m "not docker"
       - name: Check licences
-        run: python scripts/check_licenses.py
+        run: ${{ steps.unit-python.outputs.executable }} scripts/check_licenses.py
       - name: Check secrets
-        run: python scripts/check_secrets.py
+        run: ${{ steps.unit-python.outputs.executable }} scripts/check_secrets.py
       - name: Check dependencies
-        run: python scripts/check_dependencies.py
+        run: ${{ steps.unit-python.outputs.executable }} scripts/check_dependencies.py
       - name: Check public boundary
-        run: python scripts/check_public_boundary.py
+        run: ${{ steps.unit-python.outputs.executable }} scripts/check_public_boundary.py
 
   quality:
     name: Package and lint
