@@ -664,6 +664,11 @@ def export_sarif(bundle: dict[str, object]) -> dict[str, object]:
     candidates = bundle.get("candidates", [])
     outcome = str(classification["outcome"])
     severity = str(finding["severity"]["normalized"])
+    title = str(finding["message"]["title"])
+    diagnostic = str(finding["message"]["text"])
+    message_text = f"Lumi Trace classification: {outcome}. {title}"
+    if diagnostic != title and diagnostic != str(rule["id"]):
+        message_text += f". Original diagnostic: {diagnostic}"
     level_by_severity = {
         "CRITICAL": "error",
         "HIGH": "error",
@@ -676,7 +681,7 @@ def export_sarif(bundle: dict[str, object]) -> dict[str, object]:
         "ruleId": rule["id"],
         "level": level_by_severity.get(severity, "none"),
         "kind": "fail" if outcome == "CONFIRMED" else "informational",
-        "message": {"text": f"Lumi Trace classification: {outcome}. {finding['message']['title']}"},
+        "message": {"text": message_text},
         "properties": {
             "lumiTraceBundleId": bundle["bundle_id"],
             "classification": outcome,

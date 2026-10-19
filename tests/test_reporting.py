@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path, PurePosixPath
 
 import pytest
@@ -254,3 +255,50 @@ def test_historical_candidate_profile_does_not_claim_current_path_boundary(
     assert all(
         "printable-ASCII repository paths" not in limitation for limitation in bundle["limitations"]
     )
+
+
+def test_export_sarif_preserves_distinct_original_diagnostic_without_new_fields(
+    tmp_path: Path, fixture_repository: Path, manual_finding_path: Path
+) -> None:
+    finding = import_manual(manual_finding_path, fixture_repository)
+    with RepositoryWorkspace(fixture_repository) as workspace:
+        index = build_repository_index(workspace.root, workspace.identity)
+        candidates = rank_candidates(finding, index)
+
+        def bundle_for_message(message: str) -> dict[str, object]:
+            variant = deepcopy(finding)
+            variant["message"]["text"] = message
+            return build_evidence_bundle(
+                finding=variant,
+                repository=workspace.identity,
+                index=index,
+                candidate_set=candidates,
+                reproduction_requested=False,
+                receipt=None,
+                source_revision="fixture-revision",
+            )
+
+        title = str(finding["message"]["title"])
+        rule_id = str(finding["rule"]["id"])
+        prior_bundle = bundle_for_message(title)
+        original_diagnostic = "line α\n<span data-kind='scanner'>unsafe_join</span>"
+        distinct_bundle = bundle_for_message(original_diagnostic)
+        fallback_bundles = [bundle_for_message(title), bundle_for_message(rule_id)]
+
+    result = export_sarif(prior_bundle)["runs"][0]["results"][0]
+    prior_message = (
+        "Lumi Trace classification: INSUFFICIENT_EVIDENCE. "
+        "Archive member path can escape the extraction root"
+    )
+    assert result["message"] == {"text": prior_message}
+    result_keys = set(result)
+    exported = export_sarif(distinct_bundle)
+    exported_result = exported["runs"][0]["results"][0]
+    assert exported_result["message"] == {
+        "text": f"{prior_message}. Original diagnostic: {original_diagnostic}"
+    }
+    assert set(exported_result) == result_keys
+    assert json.loads(json.dumps(exported_result))["message"] == exported_result["message"]
+
+    for bundle in fallback_bundles:
+        assert export_sarif(bundle)["runs"][0]["results"][0]["message"] == {"text": prior_message}
