@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from copy import deepcopy
 from pathlib import Path
 
@@ -91,6 +92,97 @@ def test_sarif_percent_decoded_nul_location_is_rejected(tmp_path: Path) -> None:
     path.write_text(json.dumps(sarif), encoding="utf-8")
     with pytest.raises(InputError, match="NUL"):
         import_sarif(path)
+
+
+@pytest.mark.parametrize("encoded_backslash", ["%5C", "%5c"])
+@pytest.mark.parametrize("uri_base_id", [None, "%SRCROOT%"])
+def test_sarif_percent_decoded_backslash_location_is_rejected(
+    tmp_path: Path,
+    encoded_backslash: str,
+    uri_base_id: str | None,
+) -> None:
+    artifact = {"uri": f"src{encoded_backslash}target.py"}
+    run: dict[str, object] = {
+        "tool": {"driver": {"name": "fixture"}},
+        "results": [
+            {
+                "ruleId": "X",
+                "message": {"text": "encoded separator"},
+                "locations": [{"physicalLocation": {"artifactLocation": artifact}}],
+            }
+        ],
+    }
+    if uri_base_id is not None:
+        artifact["uriBaseId"] = uri_base_id
+        run["originalUriBaseIds"] = {"%SRCROOT%": {"uri": "./"}}
+    sarif = {"version": "2.1.0", "runs": [run]}
+    path = tmp_path / "encoded-backslash.sarif"
+    path.write_text(json.dumps(sarif), encoding="utf-8")
+
+    with pytest.raises(InputError, match="backslash"):
+        import_sarif(path)
+
+
+@pytest.mark.parametrize("location_field", ["path", "uri"])
+def test_manual_relative_backslash_path_and_uri_remain_supported(
+    tmp_path: Path,
+    location_field: str,
+) -> None:
+    path = tmp_path / "manual.json"
+    path.write_text(
+        json.dumps({"title": "manual", "locations": [{location_field: r"src\target.py"}]}),
+        encoding="utf-8",
+    )
+
+    finding = import_manual(path)
+
+    assert finding["locations"][0]["path"] == "src/target.py"
+
+
+@pytest.mark.skipif(os.name != "nt", reason="native Windows-drive spelling")
+def test_manual_native_windows_drive_path_remains_supported(tmp_path: Path) -> None:
+    repository_root = tmp_path / "repo"
+    repository_root.mkdir()
+    target = repository_root / "src" / "target.py"
+    path = tmp_path / "manual-windows.json"
+    path.write_text(
+        json.dumps({"title": "manual", "locations": [{"path": str(target)}]}),
+        encoding="utf-8",
+    )
+
+    finding = import_manual(path, repository_root)
+
+    assert finding["locations"][0]["path"] == "src/target.py"
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows file URI")
+def test_sarif_windows_file_uri_remains_supported(tmp_path: Path) -> None:
+    repository_root = tmp_path / "repo"
+    repository_root.mkdir()
+    target = repository_root / "src" / "target.py"
+    sarif = {
+        "version": "2.1.0",
+        "runs": [
+            {
+                "tool": {"driver": {"name": "fixture"}},
+                "results": [
+                    {
+                        "ruleId": "X",
+                        "message": {"text": "windows file URI"},
+                        "locations": [
+                            {"physicalLocation": {"artifactLocation": {"uri": target.as_uri()}}}
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    path = tmp_path / "windows-file-uri.sarif"
+    path.write_text(json.dumps(sarif), encoding="utf-8")
+
+    findings = import_sarif(path, repository_root=repository_root)
+
+    assert findings[0]["locations"][0]["path"] == "src/target.py"
 
 
 def test_sarif_ambiguous_uri_base_is_rejected(tmp_path: Path) -> None:
