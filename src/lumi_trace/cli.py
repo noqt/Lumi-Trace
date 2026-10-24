@@ -44,6 +44,7 @@ from .sandbox import (
     validate_reproduction_plan,
     verify_reproduction_receipt,
 )
+from .sarif_comparison import compare_sarif
 from .triage import (
     DEFAULT_MAX_FINDINGS,
     TRIAGE_PACKAGE_SCHEMA,
@@ -464,6 +465,15 @@ def build_parser() -> argparse.ArgumentParser:
         help=f"maximum SARIF results to triage (default: {DEFAULT_MAX_FINDINGS})",
     )
 
+    comparison = commands.add_parser(
+        "compare-sarif",
+        help="compare two bounded local SARIF reports without source execution",
+    )
+    comparison.add_argument("--before", type=_path, required=True)
+    comparison.add_argument("--after", type=_path, required=True)
+    comparison.add_argument("--repository", type=_path, required=True)
+    comparison.add_argument("--output", type=_path, required=True)
+
     review = commands.add_parser(
         "review",
         help="read a bounded page from a fully verified batch triage package",
@@ -860,6 +870,19 @@ def dispatch(args: argparse.Namespace) -> int | None:
         )
         _write_triage_summary(result)
         return int(result["exit_code"])
+    elif args.command == "compare-sarif":
+        result = compare_sarif(
+            args.before,
+            args.after,
+            args.repository,
+            args.output,
+        )
+        _write_summary(
+            command="compare-sarif",
+            comparison_status=result["comparison_status"],
+            summary=result["summary"],
+            output=str(args.output),
+        )
     elif args.command == "review":
         try:
             after_rank = int(args.after_rank, 10)
