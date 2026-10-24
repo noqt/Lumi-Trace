@@ -25,7 +25,7 @@ relicensed by Lumi Trace.
 | Dependency | Declared version | Purpose | Upstream licence |
 | --- | --- | --- | --- |
 | pip | `26.2` | release-environment bootstrap installer | MIT |
-| setuptools | `83.0.0` | PEP 517 build backend | MIT |
+| setuptools | `84.1.0` | PEP 517 build backend | MIT |
 | build | `1.3.0` | source/wheel build check | MIT |
 | jsonschema | `4.26.0` | test-time schema validation | MIT |
 | packaging | `26.2` | release dependency and marker validation | Apache-2.0 OR BSD-2-Clause |
