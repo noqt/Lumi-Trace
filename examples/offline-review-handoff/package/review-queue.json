@@ -1,0 +1,112 @@
+{
+  "artifact_type": "review-queue",
+  "entries": [
+    {
+      "best_shortlist_rank": 1,
+      "contributions": [
+        {
+          "anchor": {
+            "end_column": 1,
+            "end_line": 10,
+            "start_column": 1,
+            "start_line": 6
+          },
+          "candidate_id": "candidate:13e6d8faaca2ba5f2d105553ea5d817aefe16da5d3f25af96eb4a3a5ed9fbf19",
+          "candidate_set_id": "candidate-set:cc0e8b73912426057aea1096d18219b46c521fc81a7595644b99f39af1e4da2d",
+          "finding_key": "result-000-00000-7f77a1fbd949",
+          "rank": 1,
+          "role": "implementation",
+          "severity": "LOW"
+        }
+      ],
+      "finding_count": 1,
+      "highest_severity": "low",
+      "path": "src/review_sample/parser.py",
+      "primary_anchor": {
+        "candidate_id": "candidate:13e6d8faaca2ba5f2d105553ea5d817aefe16da5d3f25af96eb4a3a5ed9fbf19",
+        "finding_key": "result-000-00000-7f77a1fbd949",
+        "region": {
+          "end_column": 1,
+          "end_line": 10,
+          "start_column": 1,
+          "start_line": 6
+        }
+      },
+      "queue_order_is_not_probability": true,
+      "queue_rank": 1,
+      "role": "implementation"
+    },
+    {
+      "best_shortlist_rank": 2,
+      "contributions": [
+        {
+          "anchor": {
+            "end_column": 1,
+            "end_line": 9,
+            "start_column": 1,
+            "start_line": 1
+          },
+          "candidate_id": "candidate:f86c54cee77c9c5cc420af52b7c2d227be055cdbfc10db2fb85331645ce44177",
+          "candidate_set_id": "candidate-set:cc0e8b73912426057aea1096d18219b46c521fc81a7595644b99f39af1e4da2d",
+          "finding_key": "result-000-00000-7f77a1fbd949",
+          "rank": 2,
+          "role": "implementation",
+          "severity": "LOW"
+        }
+      ],
+      "finding_count": 1,
+      "highest_severity": "low",
+      "path": "src/review_sample/storage.py",
+      "primary_anchor": {
+        "candidate_id": "candidate:f86c54cee77c9c5cc420af52b7c2d227be055cdbfc10db2fb85331645ce44177",
+        "finding_key": "result-000-00000-7f77a1fbd949",
+        "region": {
+          "end_column": 1,
+          "end_line": 9,
+          "start_column": 1,
+          "start_line": 1
+        }
+      },
+      "queue_order_is_not_probability": true,
+      "queue_rank": 2,
+      "role": "implementation"
+    },
+    {
+      "best_shortlist_rank": 3,
+      "contributions": [
+        {
+          "anchor": {
+            "end_column": 1,
+            "end_line": 2,
+            "start_column": 1,
+            "start_line": 1
+          },
+          "candidate_id": "candidate:b98e58cb7810297b2019c2747a66ca210fc87abf117f45dbafd1cdeb8f3a5237",
+          "candidate_set_id": "candidate-set:cc0e8b73912426057aea1096d18219b46c521fc81a7595644b99f39af1e4da2d",
+          "finding_key": "result-000-00000-7f77a1fbd949",
+          "rank": 3,
+          "role": "implementation",
+          "severity": "LOW"
+        }
+      ],
+      "finding_count": 1,
+      "highest_severity": "low",
+      "path": "src/review_sample/__init__.py",
+      "primary_anchor": {
+        "candidate_id": "candidate:b98e58cb7810297b2019c2747a66ca210fc87abf117f45dbafd1cdeb8f3a5237",
+        "finding_key": "result-000-00000-7f77a1fbd949",
+        "region": {
+          "end_column": 1,
+          "end_line": 2,
+          "start_column": 1,
+          "start_line": 1
+        }
+      },
+      "queue_order_is_not_probability": true,
+      "queue_rank": 3,
+      "role": "implementation"
+    }
+  ],
+  "queue_order_is_not_probability": true,
+  "schema_version": "batch-triage-package-v1"
+}

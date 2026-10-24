@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "originalUriBaseIds": {
+        "%SRCROOT%": {
+          "description": {
+            "text": "Repository root for relative artifact paths."
+          }
+        }
+      },
+      "properties": {
+        "externalNetworkCalls": 0,
+        "queueOrderIsNotProbability": true,
+        "repositoryManifestId": "sha256:0d96724426c2c9b7cc21ee83ff66099b0cdf24446bbc6bdf8244a6d094285a48"
+      },
+      "results": [
+        {
+          "fingerprints": {
+            "noqt/synthetic/v1": "offline-review-handoff-320-001"
+          },
+          "kind": "informational",
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "normalise_label",
+                  "kind": "python-symbol",
+                  "name": "normalise_label"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/review_sample/parser.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "endColumn": 1,
+                  "endLine": 10,
+                  "startColumn": 1,
+                  "startLine": 6
+                }
+              },
+              "properties": {
+                "candidateId": "candidate:13e6d8faaca2ba5f2d105553ea5d817aefe16da5d3f25af96eb4a3a5ed9fbf19",
+                "integerScore": 134758,
+                "locationRole": "implementation",
+                "rank": 1,
+                "scoreReasons": [
+                  {
+                    "code": "BASENAME",
+                    "points": 1550
+                  },
+                  {
+                    "code": "BM25",
+                    "points": 18503
+                  },
+                  {
+                    "code": "CONTENT",
+                    "points": 1500
+                  },
+                  {
+                    "code": "DESCRIPTION",
+                    "points": 1100
+                  },
+                  {
+                    "code": "PATH",
+                    "points": 5250
+                  },
+                  {
+                    "code": "PATH_DEPTH",
+                    "points": 405
+                  },
+                  {
+                    "code": "REPORTED_PATH",
+                    "points": 100000
+                  },
+                  {
+                    "code": "ROLE_IMPLEMENTATION",
+                    "points": 1300
+                  },
+                  {
+                    "code": "SYMBOL",
+                    "points": 4400
+                  },
+                  {
+                    "code": "SYMBOL_CANDIDATE",
+                    "points": 750
+                  }
+                ]
+              }
+            }
+          ],
+          "message": {
+            "text": "Lumi Trace classification: INSUFFICIENT_EVIDENCE. Review the supplied label normalisation semantics"
+          },
+          "properties": {
+            "candidateAlgorithm": "label-blind-python-role-candidates-v0.4.1.7",
+            "classification": "INSUFFICIENT_EVIDENCE",
+            "confidenceBasisPoints": 2500,
+            "confidenceGrade": "D",
+            "confidenceIsNotProbability": true,
+            "currentWeights": 0,
+            "lumiTraceBatchResultKey": "result-000-00000-7f77a1fbd949",
+            "lumiTraceBundleId": "evidence-bundle:038ce125c9eeb7295aeb1bc185ff3d0f0dbaa760963d35d4fcebd9c092cd033b",
+            "modelCheckpoint": null,
+            "rankedRoles": [
+              "implementation"
+            ],
+            "rankingAbstained": false,
+            "rankingAbstentionReason": null,
+            "rankingAlgorithm": "role-aware-sparse-v0.6.0.1",
+            "rankingConfidenceDescriptor": "FINDING_GUIDED_SIGNAL_PRESENT",
+            "rankingConfidenceIsNotProbability": true,
+            "rankingId": "ranking:af16e6155b176797b6c1c3b8d8a9f6709ae1cb52a85bd2b527a1b4a8fdedb1b7",
+            "reasonCodes": [
+              "NO_REPRODUCTION_PLAN"
+            ],
+            "repositoryId": "repository:0d96724426c2c9b7cc21ee83ff66099b0cdf24446bbc6bdf8244a6d094285a48"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/review_sample/storage.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "endColumn": 1,
+                  "endLine": 9,
+                  "startColumn": 1,
+                  "startLine": 1
+                }
+              },
+              "properties": {
+                "candidateId": "candidate:f86c54cee77c9c5cc420af52b7c2d227be055cdbfc10db2fb85331645ce44177",
+                "integerScore": 16313,
+                "locationRole": "implementation",
+                "rank": 2,
+                "scoreReasons": [
+                  {
+                    "code": "BM25",
+                    "points": 8083
+                  },
+                  {
+                    "code": "CONTENT",
+                    "points": 1500
+                  },
+                  {
+                    "code": "DESCRIPTION",
+                    "points": 825
+                  },
+                  {
+                    "code": "PATH",
+                    "points": 4200
+                  },
+                  {
+                    "code": "PATH_DEPTH",
+                    "points": 405
+                  },
+                  {
+                    "code": "ROLE_IMPLEMENTATION",
+                    "points": 1300
+                  }
+                ]
+              }
+            },
+            {
+              "id": 2,
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/review_sample/__init__.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "endColumn": 1,
+                  "endLine": 2,
+                  "startColumn": 1,
+                  "startLine": 1
+                }
+              },
+              "properties": {
+                "candidateId": "candidate:b98e58cb7810297b2019c2747a66ca210fc87abf117f45dbafd1cdeb8f3a5237",
+                "integerScore": 10699,
+                "locationRole": "implementation",
+                "rank": 3,
+                "scoreReasons": [
+                  {
+                    "code": "BM25",
+                    "points": 3494
+                  },
+                  {
+                    "code": "CONTENT",
+                    "points": 750
+                  },
+                  {
+                    "code": "DESCRIPTION",
+                    "points": 550
+                  },
+                  {
+                    "code": "PATH",
+                    "points": 4200
+                  },
+                  {
+                    "code": "PATH_DEPTH",
+                    "points": 405
+                  },
+                  {
+                    "code": "ROLE_IMPLEMENTATION",
+                    "points": 1300
+                  }
+                ]
+              }
+            }
+          ],
+          "ruleId": "NOQT-SYNTHETIC-LABEL-NORMALISATION"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://github.com/noqt/Lumi-Trace",
+          "name": "Lumi Trace",
+          "rules": [
+            {
+              "id": "NOQT-SYNTHETIC-LABEL-NORMALISATION",
+              "name": "SyntheticLabelNormalisationReview",
+              "properties": {
+                "tags": [
+                  "known-finding",
+                  "review-only",
+                  "synthetic"
+                ]
+              },
+              "shortDescription": {
+                "text": "Review the supplied label normalisation semantics"
+              }
+            }
+          ],
+          "semanticVersion": "0.10.1"
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}
