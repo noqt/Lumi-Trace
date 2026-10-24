@@ -268,9 +268,7 @@ def test_incompatible_and_partial_inputs_are_inconclusive(
     assert status == 0
     assert comparison["comparison_status"] == "INCONCLUSIVE"
     assert comparison["summary"]["ambiguous"] >= 1
-    assert any(
-        item["reason_code"] == reason for item in comparison["categories"]["ambiguous"]
-    )
+    assert any(item["reason_code"] == reason for item in comparison["categories"]["ambiguous"])
     assert comparison["summary"]["new_in_report"] == 0
     assert comparison["summary"]["absent_from_report"] == 0
 
@@ -283,7 +281,7 @@ def test_malformed_and_empty_unknown_inputs_never_report_zero_removals_as_comple
     before_path = tmp_path / "before.sarif"
     after_path = tmp_path / "after.sarif"
     before_path.write_text("{not-json", encoding="utf-8")
-    _write(after_path, _report([] , tool="", version=""))
+    _write(after_path, _report([], tool="", version=""))
     output = tmp_path / "malformed-comparison.json"
     assert (
         main(
@@ -310,9 +308,7 @@ def test_malformed_and_empty_unknown_inputs_never_report_zero_removals_as_comple
     assert comparison["summary"]["ambiguous"] >= 1
 
 
-def test_failed_invocations_block_empty_nonempty_and_mixed_reports(
-    tmp_path: Path, capsys
-) -> None:
+def test_failed_invocations_block_empty_nonempty_and_mixed_reports(tmp_path: Path, capsys) -> None:
     empty_before = _report([], rule_ids=["RULE-A"])
     empty_before["runs"][0]["invocations"] = [  # type: ignore[index]
         {"executionSuccessful": False}
@@ -513,4 +509,3 @@ def test_invalid_missing_unsafe_symlink_existing_output_and_repository_failures(
 def test_invalid_arguments_are_rejected() -> None:
     with pytest.raises(SystemExit):
         main(["compare-sarif"])
-
