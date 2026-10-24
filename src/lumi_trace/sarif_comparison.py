@@ -19,7 +19,6 @@ from .canonical import canonical_json_bytes, dump_json, load_json, sha256_file
 from .errors import InputError, UnsupportedError
 from .findings import import_sarif_batch
 
-
 COMPARISON_SCHEMA_VERSION = "sarif-comparison-v1"
 MAX_COMPARISON_RESULTS = 1_000
 MAX_REPORT_BYTES = 64 * 1024 * 1024
@@ -103,15 +102,15 @@ def _raw_region(value: object) -> dict[str, object] | None:
     # Keep the original SARIF spelling and scalar values, but never copy an
     # unbounded arbitrary object into the comparison artifact.
     return {
-        key: value[key]
-        for key in _RAW_REGION_KEYS
-        if key in value and _json_scalar(value[key])
+        key: value[key] for key in _RAW_REGION_KEYS if key in value and _json_scalar(value[key])
     }
 
 
 def _json_scalar(value: object) -> bool:
-    return value is None or isinstance(value, (bool, int, str)) or (
-        isinstance(value, float) and math.isfinite(value)
+    return (
+        value is None
+        or isinstance(value, bool | int | str)
+        or (isinstance(value, float) and math.isfinite(value))
     )
 
 
@@ -125,9 +124,7 @@ def _raw_location(value: object) -> dict[str, object]:
     if not isinstance(artifact, dict):
         artifact = {}
     uri = artifact.get("uri") if isinstance(artifact.get("uri"), str) else None
-    uri_base_id = (
-        artifact.get("uriBaseId") if isinstance(artifact.get("uriBaseId"), str) else None
-    )
+    uri_base_id = artifact.get("uriBaseId") if isinstance(artifact.get("uriBaseId"), str) else None
     return {
         "artifact_uri": uri,
         "artifact_uri_base_id": uri_base_id,
@@ -214,8 +211,7 @@ def _has_failed_invocation(document: dict[str, object]) -> bool:
         if not isinstance(invocations, list):
             continue
         if any(
-            isinstance(invocation, dict)
-            and invocation.get("executionSuccessful") is False
+            isinstance(invocation, dict) and invocation.get("executionSuccessful") is False
             for invocation in invocations
         ):
             return True
@@ -239,9 +235,7 @@ def _unsafe_uri(uri: object, repository: Path) -> bool:
     if not windows_drive_path and parsed.scheme and parsed.scheme.casefold() != "file":
         return True
     raw_path = (
-        parsed.path
-        if not windows_drive_path and parsed.scheme.casefold() == "file"
-        else decoded
+        parsed.path if not windows_drive_path and parsed.scheme.casefold() == "file" else decoded
     )
     raw_path = raw_path.replace("\\", "/")
     if re.match(r"^/[A-Za-z]:/", raw_path):
@@ -285,9 +279,7 @@ def _reject_unsafe_locations(document: dict[str, object], repository: Path) -> N
                 if not isinstance(artifact, dict):
                     continue
                 if artifact.get("uriBaseId") not in (None, "%SRCROOT%"):
-                    raise InputError(
-                        "SARIF artifact uriBaseId must be omitted or use %SRCROOT%"
-                    )
+                    raise InputError("SARIF artifact uriBaseId must be omitted or use %SRCROOT%")
                 if _unsafe_uri(artifact.get("uri"), repository):
                     raise InputError("SARIF artifact location is unsafe")
 
@@ -496,7 +488,9 @@ def _load_report(path: Path, repository: Path) -> dict[str, object]:
     if failed_invocation:
         completeness = "partial" if records else "failed"
     else:
-        completeness = "partial" if normalization_errors else ("empty" if not records else "complete")
+        completeness = (
+            "partial" if normalization_errors else ("empty" if not records else "complete")
+        )
     error_codes = []
     if failed_invocation:
         error_codes.append("INVOCATION_FAILED")
@@ -541,8 +535,7 @@ def _canonical_locations(record: dict[str, object]) -> tuple[tuple[object, ...],
         if not isinstance(path, str) or not isinstance(region, dict):
             return None
         values = tuple(
-            region.get(key)
-            for key in ("start_line", "start_column", "end_line", "end_column")
+            region.get(key) for key in ("start_line", "start_column", "end_line", "end_column")
         )
         if not all(isinstance(value, int) and not isinstance(value, bool) for value in values):
             return None
@@ -555,9 +548,7 @@ def _paths(record: dict[str, object]) -> set[str]:
     if not isinstance(locations, list):
         return set()
     return {
-        str(item.get("path"))
-        for item in locations
-        if isinstance(item, dict) and item.get("path")
+        str(item.get("path")) for item in locations if isinstance(item, dict) and item.get("path")
     }
 
 
@@ -1046,16 +1037,14 @@ def _build_comparison(before: dict[str, object], after: dict[str, object]) -> di
             group = _compare_group(before_groups.get(key, []), after_groups.get(key, []))
             for category, values in group.items():
                 categories[category].extend(values)
-        if not before_records and not after_records and (
-            before.get("unknown_metadata") or after.get("unknown_metadata")
+        if (
+            not before_records
+            and not after_records
+            and (before.get("unknown_metadata") or after.get("unknown_metadata"))
         ):
-            categories["ambiguous"].append(
-                _report_item(reason_code="INPUT_EMPTY_IDENTITY_UNKNOWN")
-            )
+            categories["ambiguous"].append(_report_item(reason_code="INPUT_EMPTY_IDENTITY_UNKNOWN"))
         elif before.get("unknown_metadata") or after.get("unknown_metadata"):
-            categories["ambiguous"].append(
-                _report_item(reason_code="IDENTITY_INSUFFICIENT")
-            )
+            categories["ambiguous"].append(_report_item(reason_code="IDENTITY_INSUFFICIENT"))
     else:
         reason = (
             "TOOL_INCOMPATIBLE"
@@ -1128,4 +1117,3 @@ def compare_sarif(
     if output is not None:
         dump_json(output, result)
     return result
-

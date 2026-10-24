@@ -37,7 +37,6 @@ from .pipeline import load_bundle, trace_repository
 from .ranking import rank_candidates, verify_candidate_set
 from .reporting import classify_evidence, export_sarif, verify_evidence_bundle
 from .repository import RepositoryWorkspace
-from .sarif_comparison import compare_sarif
 from .sandbox import (
     DockerSandbox,
     load_reproduction_plan,
@@ -45,6 +44,7 @@ from .sandbox import (
     validate_reproduction_plan,
     verify_reproduction_receipt,
 )
+from .sarif_comparison import compare_sarif
 from .triage import (
     DEFAULT_MAX_FINDINGS,
     TRIAGE_PACKAGE_SCHEMA,
