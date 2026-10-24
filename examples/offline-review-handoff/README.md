@@ -5,6 +5,16 @@ a local offline `lumi-trace` verification and review handoff. It is documentatio
 and test material, not a release artifact, and does not claim that a published
 wheel exposes `review`.
 
+## Source prerequisite
+
+Install source commit `c0fdcb61de8de034c7d99a22e4228a32352aaed1`, which includes the
+`review` command and pins the patched setuptools `84.1.0` build backend, in a
+fresh CPython 3.11 or 3.12 environment before running the handoff:
+
+```sh
+python -m pip install --no-deps "git+https://github.com/noqt/Lumi-Trace.git@c0fdcb61de8de034c7d99a22e4228a32352aaed1"
+```
+
 ## Run the handoff
 
 `PACKAGE` is exactly `examples/offline-review-handoff/package`. From the
@@ -58,8 +68,9 @@ except for this narrowly scoped public example.
 
 ## Provenance, reuse, and licensing
 
-These exact sample bytes were created wholly by NoQ Technology Pty Ltd for this
-synthetic example and are distributed under this repository's Apache-2.0 policy.
+These exact sample bytes are task-generated, wholly synthetic material made
+available under the authorized exact-sample reuse terms and this repository's
+Apache-2.0 policy.
 The public exception covers only these exact bytes; it does not imply that all
 generated evidence is Apache-licensed. Preserve `LICENSE`, `NOTICE`,
 `DISCLAIMER.md`, and all applicable legal-holder text when copying or
