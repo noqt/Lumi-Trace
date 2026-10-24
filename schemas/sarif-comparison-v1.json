@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sarif-comparison-v1.json",
+  "title": "Lumi Trace bounded SARIF comparison v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "comparison_status",
+    "compatibility",
+    "input_completeness",
+    "inputs",
+    "matching_policy",
+    "categories",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "sarif-comparison-v1"
+    },
+    "comparison_status": {
+      "enum": ["COMPLETE", "INCONCLUSIVE"]
+    },
+    "compatibility": {
+      "$ref": "#/$defs/compatibility"
+    },
+    "input_completeness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["before", "after"],
+      "properties": {
+        "before": {"$ref": "#/$defs/completeness"},
+        "after": {"$ref": "#/$defs/completeness"}
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["before", "after"],
+      "properties": {
+        "before": {"$ref": "#/$defs/input"},
+        "after": {"$ref": "#/$defs/input"}
+      }
+    },
+    "matching_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "methods_in_order",
+        "identity_excludes",
+        "fuzzy_matching",
+        "code_matching",
+        "history_matching"
+      ],
+      "properties": {
+        "methods_in_order": {
+          "const": ["stable_fingerprint", "canonical_path_region"]
+        },
+        "identity_excludes": {
+          "type": "array",
+          "const": [
+            "whole_input_sha256",
+            "sarif_run_index",
+            "sarif_result_index",
+            "rank"
+          ]
+        },
+        "fuzzy_matching": {"const": false},
+        "code_matching": {"const": false},
+        "history_matching": {"const": false}
+      }
+    },
+    "categories": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["new_in_report", "absent_from_report", "unchanged", "ambiguous"],
+      "properties": {
+        "new_in_report": {"$ref": "#/$defs/category"},
+        "absent_from_report": {"$ref": "#/$defs/category"},
+        "unchanged": {"$ref": "#/$defs/category"},
+        "ambiguous": {"$ref": "#/$defs/category"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["new_in_report", "absent_from_report", "unchanged", "ambiguous"],
+      "properties": {
+        "new_in_report": {"type": "integer", "minimum": 0},
+        "absent_from_report": {"type": "integer", "minimum": 0},
+        "unchanged": {"type": "integer", "minimum": 0},
+        "ambiguous": {"type": "integer", "minimum": 0}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "completeness": {
+      "enum": ["complete", "empty", "partial", "failed", "malformed", "normalization_error"]
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "completeness",
+        "result_count",
+        "normalized_count",
+        "error_count",
+        "error_codes"
+      ],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "completeness": {"$ref": "#/$defs/completeness"},
+        "result_count": {"type": "integer", "minimum": 0, "maximum": 2560000},
+        "normalized_count": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "error_count": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "error_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "identity_key": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tool_name", "tool_version", "rule_id"],
+      "properties": {
+        "tool_name": {"type": "string", "minLength": 1},
+        "tool_version": {"type": "string", "minLength": 1},
+        "rule_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "before_identities",
+        "after_identities",
+        "compatible_identities"
+      ],
+      "properties": {
+        "status": {"enum": ["compatible", "partial", "incompatible", "unknown"]},
+        "before_identities": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/identity_key"}
+        },
+        "after_identities": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/identity_key"}
+        },
+        "compatible_identities": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/identity_key"}
+        }
+      }
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start_line", "start_column", "end_line", "end_column"],
+      "properties": {
+        "start_line": {"type": "integer", "minimum": 1},
+        "start_column": {"type": "integer", "minimum": 1},
+        "end_line": {"type": "integer", "minimum": 1},
+        "end_column": {"type": "integer", "minimum": 1}
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "region"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+$"
+        },
+        "region": {"$ref": "#/$defs/region"},
+        "symbol": {"type": "string", "minLength": 1}
+      }
+    },
+    "raw_region": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "startLine": {"$ref": "#/$defs/raw_scalar"},
+        "startColumn": {"$ref": "#/$defs/raw_scalar"},
+        "endLine": {"$ref": "#/$defs/raw_scalar"},
+        "endColumn": {"$ref": "#/$defs/raw_scalar"},
+        "start_line": {"$ref": "#/$defs/raw_scalar"},
+        "start_column": {"$ref": "#/$defs/raw_scalar"},
+        "end_line": {"$ref": "#/$defs/raw_scalar"},
+        "end_column": {"$ref": "#/$defs/raw_scalar"}
+      }
+    },
+    "raw_scalar": {
+      "type": ["boolean", "integer", "number", "string", "null"]
+    },
+    "raw_location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_uri", "artifact_uri_base_id", "region"],
+      "properties": {
+        "artifact_uri": {"type": ["string", "null"]},
+        "artifact_uri_base_id": {"type": ["string", "null"]},
+        "region": {"$ref": "#/$defs/raw_region"}
+      }
+    },
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_index", "result_index"],
+      "properties": {
+        "run_index": {"type": "integer", "minimum": 0},
+        "result_index": {"type": "integer", "minimum": 0}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_sha256",
+        "tool",
+        "rule",
+        "locations",
+        "raw_locations",
+        "fingerprints",
+        "raw_position"
+      ],
+      "properties": {
+        "input_sha256": {"$ref": "#/$defs/sha256"},
+        "tool": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": {"type": "string", "minLength": 1},
+            "version": {"type": "string", "minLength": 1}
+          }
+        },
+        "rule": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "name"],
+          "properties": {
+            "id": {"type": "string", "minLength": 1},
+            "name": {"type": "string", "minLength": 1}
+          }
+        },
+        "locations": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {"$ref": "#/$defs/location"}
+        },
+        "raw_locations": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {"$ref": "#/$defs/raw_location"}
+        },
+        "fingerprints": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        },
+        "raw_position": {"$ref": "#/$defs/position"}
+      }
+    },
+    "identity": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["tool_name", "tool_version", "rule_id", "method", "value"],
+      "properties": {
+        "tool_name": {"type": "string", "minLength": 1},
+        "tool_version": {"type": "string", "minLength": 1},
+        "rule_id": {"type": "string", "minLength": 1},
+        "method": {"enum": ["stable_fingerprint", "canonical_path_region", "insufficient"]},
+        "value": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "object", "additionalProperties": {"type": "string"}},
+            {"type": "array", "items": {"type": "object"}}
+          ]
+        }
+      }
+    },
+    "category_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "match_basis", "reason_code", "before", "after"],
+      "properties": {
+        "identity": {"$ref": "#/$defs/identity"},
+        "match_basis": {
+          "enum": ["stable_fingerprint", "canonical_path_region", null]
+        },
+        "reason_code": {"type": "string", "minLength": 1},
+        "before": {
+          "oneOf": [{"$ref": "#/$defs/evidence"}, {"type": "null"}]
+        },
+        "after": {
+          "oneOf": [{"$ref": "#/$defs/evidence"}, {"type": "null"}]
+        }
+      }
+    },
+    "category": {
+      "type": "array",
+      "maxItems": 2000,
+      "items": {"$ref": "#/$defs/category_item"}
+    }
+  }
+}
