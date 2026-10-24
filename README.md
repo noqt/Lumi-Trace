@@ -241,6 +241,8 @@ Batch triage creates a per-result shortlist and one unique-path review queue. Qu
 
 ### Review a verified batch package from current source
 
+See the narrowly scoped [offline review handoff example](examples/offline-review-handoff/README.md) for the exact wholly owned synthetic sample exception; generated evidence otherwise remains out of source control.
+
 The `review` command is available from source at commit
 `1ca7a3922cd29a6976bb1ce65acac7de467451bc`. The currently published V0.10.0
 wheel does not include it. Install that exact source revision into a fresh

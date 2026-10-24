@@ -1,0 +1,60 @@
+{
+  "artifact_type": "normalized-findings",
+  "findings": [
+    {
+      "finding": {
+        "finding_id": "sarif:32000000-0000-4000-8000-000000000001",
+        "fingerprints": {
+          "noqt/synthetic/v1": "offline-review-handoff-320-001"
+        },
+        "keywords": [],
+        "locations": [
+          {
+            "path": "src/review_sample/parser.py",
+            "region": {
+              "end_column": 32,
+              "end_line": 10,
+              "start_column": 1,
+              "start_line": 6
+            },
+            "symbol": "review_sample.parser.normalise_label"
+          }
+        ],
+        "message": {
+          "text": "Synthetic known finding: inspect normalise_label and confirm the supplied display-label semantics with a human reviewer. This is not a vulnerability or safety verdict.",
+          "title": "Review the supplied label normalisation semantics"
+        },
+        "rule": {
+          "cwes": [],
+          "id": "NOQT-SYNTHETIC-LABEL-NORMALISATION",
+          "name": "SyntheticLabelNormalisationReview",
+          "tags": [
+            "known-finding",
+            "review-only",
+            "synthetic"
+          ]
+        },
+        "schema_version": "normalized-finding-v1",
+        "severity": {
+          "normalized": "LOW",
+          "original": "3.0"
+        },
+        "source": {
+          "input_sha256": "sha256:eb86792e4d18a10e71b00e9e8bd1a90eb665dbdca22c9b65ff25f017cc2cbe90",
+          "kind": "SARIF",
+          "sarif_result_index": 0,
+          "sarif_run_index": 0,
+          "tool_name": "NoQTSyntheticKnownFinding",
+          "tool_version": "1.0.0"
+        }
+      },
+      "result_key": "result-000-00000-7f77a1fbd949",
+      "source": {
+        "sarif_result_index": 0,
+        "sarif_run_index": 0
+      }
+    }
+  ],
+  "sarif_input_sha256": "sha256:eb86792e4d18a10e71b00e9e8bd1a90eb665dbdca22c9b65ff25f017cc2cbe90",
+  "schema_version": "batch-triage-package-v1"
+}
