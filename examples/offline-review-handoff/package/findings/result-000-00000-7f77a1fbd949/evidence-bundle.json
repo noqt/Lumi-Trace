@@ -1,0 +1,285 @@
+{
+  "bundle_id": "evidence-bundle:038ce125c9eeb7295aeb1bc185ff3d0f0dbaa760963d35d4fcebd9c092cd033b",
+  "candidates": [
+    {
+      "candidate_id": "candidate:13e6d8faaca2ba5f2d105553ea5d817aefe16da5d3f25af96eb4a3a5ed9fbf19",
+      "integer_score": 134758,
+      "kind": "symbol",
+      "path": "src/review_sample/parser.py",
+      "rank": 1,
+      "region": {
+        "end_column": 1,
+        "end_line": 10,
+        "start_column": 1,
+        "start_line": 6
+      },
+      "role": "implementation",
+      "score_reasons": [
+        {
+          "code": "BASENAME",
+          "points": 1550
+        },
+        {
+          "code": "BM25",
+          "points": 18503
+        },
+        {
+          "code": "CONTENT",
+          "points": 1500
+        },
+        {
+          "code": "DESCRIPTION",
+          "points": 1100
+        },
+        {
+          "code": "PATH",
+          "points": 5250
+        },
+        {
+          "code": "PATH_DEPTH",
+          "points": 405
+        },
+        {
+          "code": "REPORTED_PATH",
+          "points": 100000
+        },
+        {
+          "code": "ROLE_IMPLEMENTATION",
+          "points": 1300
+        },
+        {
+          "code": "SYMBOL",
+          "points": 4400
+        },
+        {
+          "code": "SYMBOL_CANDIDATE",
+          "points": 750
+        }
+      ],
+      "symbol": {
+        "extractor": "python-lexical-v1",
+        "kind": "python-symbol",
+        "name": "normalise_label",
+        "qualified_name": "normalise_label"
+      }
+    },
+    {
+      "candidate_id": "candidate:f86c54cee77c9c5cc420af52b7c2d227be055cdbfc10db2fb85331645ce44177",
+      "integer_score": 16313,
+      "kind": "file",
+      "path": "src/review_sample/storage.py",
+      "rank": 2,
+      "region": {
+        "end_column": 1,
+        "end_line": 9,
+        "start_column": 1,
+        "start_line": 1
+      },
+      "role": "implementation",
+      "score_reasons": [
+        {
+          "code": "BM25",
+          "points": 8083
+        },
+        {
+          "code": "CONTENT",
+          "points": 1500
+        },
+        {
+          "code": "DESCRIPTION",
+          "points": 825
+        },
+        {
+          "code": "PATH",
+          "points": 4200
+        },
+        {
+          "code": "PATH_DEPTH",
+          "points": 405
+        },
+        {
+          "code": "ROLE_IMPLEMENTATION",
+          "points": 1300
+        }
+      ]
+    },
+    {
+      "candidate_id": "candidate:b98e58cb7810297b2019c2747a66ca210fc87abf117f45dbafd1cdeb8f3a5237",
+      "integer_score": 10699,
+      "kind": "file",
+      "path": "src/review_sample/__init__.py",
+      "rank": 3,
+      "region": {
+        "end_column": 1,
+        "end_line": 2,
+        "start_column": 1,
+        "start_line": 1
+      },
+      "role": "implementation",
+      "score_reasons": [
+        {
+          "code": "BM25",
+          "points": 3494
+        },
+        {
+          "code": "CONTENT",
+          "points": 750
+        },
+        {
+          "code": "DESCRIPTION",
+          "points": 550
+        },
+        {
+          "code": "PATH",
+          "points": 4200
+        },
+        {
+          "code": "PATH_DEPTH",
+          "points": 405
+        },
+        {
+          "code": "ROLE_IMPLEMENTATION",
+          "points": 1300
+        }
+      ]
+    }
+  ],
+  "classification": {
+    "confidence_basis_points": 2500,
+    "confidence_grade": "D",
+    "confidence_is_not_probability": true,
+    "outcome": "INSUFFICIENT_EVIDENCE",
+    "reason_codes": [
+      "NO_REPRODUCTION_PLAN"
+    ]
+  },
+  "finding": {
+    "finding_id": "sarif:32000000-0000-4000-8000-000000000001",
+    "fingerprints": {
+      "noqt/synthetic/v1": "offline-review-handoff-320-001"
+    },
+    "keywords": [],
+    "locations": [
+      {
+        "path": "src/review_sample/parser.py",
+        "region": {
+          "end_column": 32,
+          "end_line": 10,
+          "start_column": 1,
+          "start_line": 6
+        },
+        "symbol": "review_sample.parser.normalise_label"
+      }
+    ],
+    "message": {
+      "text": "Synthetic known finding: inspect normalise_label and confirm the supplied display-label semantics with a human reviewer. This is not a vulnerability or safety verdict.",
+      "title": "Review the supplied label normalisation semantics"
+    },
+    "rule": {
+      "cwes": [],
+      "id": "NOQT-SYNTHETIC-LABEL-NORMALISATION",
+      "name": "SyntheticLabelNormalisationReview",
+      "tags": [
+        "known-finding",
+        "review-only",
+        "synthetic"
+      ]
+    },
+    "schema_version": "normalized-finding-v1",
+    "severity": {
+      "normalized": "LOW",
+      "original": "3.0"
+    },
+    "source": {
+      "input_sha256": "sha256:eb86792e4d18a10e71b00e9e8bd1a90eb665dbdca22c9b65ff25f017cc2cbe90",
+      "kind": "SARIF",
+      "sarif_result_index": 0,
+      "sarif_run_index": 0,
+      "tool_name": "NoQTSyntheticKnownFinding",
+      "tool_version": "1.0.0"
+    }
+  },
+  "index": {
+    "algorithm": "deterministic-lexical-index-v4",
+    "exclusions": {},
+    "file_count": 4,
+    "index_id": "index:1b6554d9b64080bb483f7e517ee8b45be1fbeb21ded47806e6a6412b7bd90895",
+    "indexed_text_file_count": 4,
+    "symbol_count": 3
+  },
+  "limitations": [
+    "Candidate scores are deterministic retrieval heuristics, not probabilities.",
+    "Step 1 implementation-location ranking considers Python files and symbols only.",
+    "Current Step 1 deterministic artifacts require printable-ASCII repository paths.",
+    "Extracted symbols are lexical landmarks and do not assert that files compile.",
+    "CONFIRMED applies only to the declared reproduction witness in the supplied snapshot.",
+    "No learned model, checkpoint, hosted inference, or repair generation is used."
+  ],
+  "provenance": {
+    "candidate_set_id": "candidate-set:cc0e8b73912426057aea1096d18219b46c521fc81a7595644b99f39af1e4da2d",
+    "environment_key_names": [],
+    "external_network_calls": 0,
+    "finding_input_sha256": "sha256:eb86792e4d18a10e71b00e9e8bd1a90eb665dbdca22c9b65ff25f017cc2cbe90",
+    "index_id": "index:1b6554d9b64080bb483f7e517ee8b45be1fbeb21ded47806e6a6412b7bd90895",
+    "repository_manifest_id": "sha256:0d96724426c2c9b7cc21ee83ff66099b0cdf24446bbc6bdf8244a6d094285a48",
+    "runtime": {
+      "implementation": "CPython",
+      "platform_system": "Windows",
+      "python": "3.12.5"
+    },
+    "schema_versions": [
+      "normalized-finding-v1",
+      "repository-index-v1",
+      "candidate-set-v1",
+      "evidence-bundle-v1"
+    ]
+  },
+  "ranking": {
+    "abstention": {
+      "abstained": false,
+      "reason": null
+    },
+    "candidate_algorithm": "label-blind-python-role-candidates-v0.4.1.7",
+    "candidate_count_considered": 6,
+    "candidates_emitted": 3,
+    "confidence_descriptor": "FINDING_GUIDED_SIGNAL_PRESENT",
+    "confidence_is_not_probability": true,
+    "ranker": "role-aware-sparse-v0.6.0.1",
+    "ranking_id": "ranking:af16e6155b176797b6c1c3b8d8a9f6709ae1cb52a85bd2b527a1b4a8fdedb1b7",
+    "roles_emitted": [
+      "implementation"
+    ],
+    "score_basis": "DETERMINISTIC_INTEGER_COMPONENTS_WITH_ROLE_PRIORS"
+  },
+  "repository": {
+    "algorithm": "lumi-tree-sha256-v1",
+    "file_count": 4,
+    "manifest_id": "sha256:0d96724426c2c9b7cc21ee83ff66099b0cdf24446bbc6bdf8244a6d094285a48",
+    "repository_id": "repository:0d96724426c2c9b7cc21ee83ff66099b0cdf24446bbc6bdf8244a6d094285a48",
+    "source_kind": "directory",
+    "total_bytes": 976
+  },
+  "reproduction": {
+    "attempted": false,
+    "receipts": [],
+    "requested": false
+  },
+  "schema_version": "evidence-bundle-v1",
+  "telemetry": {
+    "candidates_considered": 6,
+    "candidates_emitted": 3,
+    "repository_bytes": 976,
+    "repository_files": 4,
+    "reproduction_steps": 0,
+    "symbols_indexed": 3,
+    "text_files_indexed": 4
+  },
+  "tool": {
+    "checkpoint": null,
+    "current_weights": 0,
+    "model_provider": null,
+    "name": "Lumi Trace",
+    "source_revision": "release:0.10.1",
+    "version": "0.10.1"
+  }
+}

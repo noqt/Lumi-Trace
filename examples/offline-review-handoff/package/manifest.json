@@ -1,0 +1,49 @@
+{
+  "artifact_type": "manifest",
+  "artifacts": [
+    {
+      "path": "findings/result-000-00000-7f77a1fbd949/candidates.json",
+      "role": "candidates",
+      "sha256": "sha256:467c99cf373ecf4489629ccd31f2b97ff988c969edd54a27a36f0ed10c80c0db",
+      "size_bytes": 3884
+    },
+    {
+      "path": "findings/result-000-00000-7f77a1fbd949/evidence-bundle.json",
+      "role": "evidence-bundle",
+      "sha256": "sha256:37aed8224c72f2fec343c61d8467da86dd661e884aa3395d8e057621f5d15e18",
+      "size_bytes": 7920
+    },
+    {
+      "path": "normalized-findings.json",
+      "role": "normalized-findings",
+      "sha256": "sha256:2a74850e7622fa4cd65ede8f27346f85ca05e41d41519974b68c95f803b84846",
+      "size_bytes": 1938
+    },
+    {
+      "path": "repository-index.json",
+      "role": "repository-index",
+      "sha256": "sha256:064ebb42d052b73df8ef572846822fd3079adbae48ee5671327f994eb85a8786",
+      "size_bytes": 5957
+    },
+    {
+      "path": "review-queue.json",
+      "role": "review-queue",
+      "sha256": "sha256:21c7b480cf56189322029b395bed3b5a22b494a6c5a7a112b107674392b1b0cc",
+      "size_bytes": 3577
+    },
+    {
+      "path": "triage-summary.json",
+      "role": "summary",
+      "sha256": "sha256:1375006aef8b29dabfb5b29ee0f6048af710cac7e1d5dfacd84a2eed6766cb94",
+      "size_bytes": 315
+    },
+    {
+      "path": "triage.sarif",
+      "role": "sarif",
+      "sha256": "sha256:245116135350bb632af2ed88cc1a86567910f651301f65608d5c5681aaf1b33d",
+      "size_bytes": 8002
+    }
+  ],
+  "package_id": "triage-package:447aad9b8b107dfbb331529b1342fad0e3069c189c369140b2cf5738b0cfd5f9",
+  "schema_version": "batch-triage-package-v1"
+}
