@@ -1,0 +1,12 @@
+{
+  "artifact_type": "summary",
+  "completed_localizations": 1,
+  "exit_code": 0,
+  "exit_status": "complete",
+  "localization_abstentions": 0,
+  "queue_order_is_not_probability": true,
+  "result_local_errors": 0,
+  "schema_version": "batch-triage-package-v1",
+  "selected_results": 1,
+  "unique_review_paths": 3
+}
