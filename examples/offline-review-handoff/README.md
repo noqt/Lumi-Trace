@@ -7,12 +7,12 @@ wheel exposes `review`.
 
 ## Source prerequisite
 
-Install source commit `c0fdcb61de8de034c7d99a22e4228a32352aaed1`, which includes the
+Install source commit `4f392e4a60d60a49a50264eff5f192bf1e681ba0`, which includes the
 `review` command and pins the patched setuptools `84.1.0` build backend, in a
 fresh CPython 3.11 or 3.12 environment before running the handoff:
 
 ```sh
-python -m pip install --no-deps "git+https://github.com/noqt/Lumi-Trace.git@c0fdcb61de8de034c7d99a22e4228a32352aaed1"
+python -m pip install --no-deps "git+https://github.com/noqt/Lumi-Trace.git@4f392e4a60d60a49a50264eff5f192bf1e681ba0"
 ```
 
 ## Run the handoff

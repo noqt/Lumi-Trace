@@ -243,13 +243,13 @@ Batch triage creates a per-result shortlist and one unique-path review queue. Qu
 
 See the narrowly scoped [offline review handoff example](examples/offline-review-handoff/README.md) for the exact wholly owned synthetic sample exception; generated evidence otherwise remains out of source control.
 
-Source commit `c0fdcb61de8de034c7d99a22e4228a32352aaed1` includes the `review`
+Source commit `4f392e4a60d60a49a50264eff5f192bf1e681ba0` includes the `review`
 command and pins the patched setuptools `84.1.0` build backend. The currently
 published V0.10.0 wheel does not include the `review` command. Install that
 exact source revision into a fresh CPython 3.11 or 3.12 environment:
 
 ```sh
-python -m pip install --no-deps "git+https://github.com/noqt/Lumi-Trace.git@c0fdcb61de8de034c7d99a22e4228a32352aaed1"
+python -m pip install --no-deps "git+https://github.com/noqt/Lumi-Trace.git@4f392e4a60d60a49a50264eff5f192bf1e681ba0"
 ```
 
 Use a local SARIF 2.1.0 report whose selected results identify physical Python
